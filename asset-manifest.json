@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/familyreunion/static/css/main.48d6e6ea.css",
-    "main.js": "/familyreunion/static/js/main.bc4267ff.js",
+    "main.js": "/familyreunion/static/js/main.87c1c38e.js",
     "static/js/952.b0088f61.chunk.js": "/familyreunion/static/js/952.b0088f61.chunk.js",
     "static/js/453.1d70b7cf.chunk.js": "/familyreunion/static/js/453.1d70b7cf.chunk.js",
     "index.html": "/familyreunion/index.html",
     "main.48d6e6ea.css.map": "/familyreunion/static/css/main.48d6e6ea.css.map",
-    "main.bc4267ff.js.map": "/familyreunion/static/js/main.bc4267ff.js.map",
+    "main.87c1c38e.js.map": "/familyreunion/static/js/main.87c1c38e.js.map",
     "952.b0088f61.chunk.js.map": "/familyreunion/static/js/952.b0088f61.chunk.js.map",
     "453.1d70b7cf.chunk.js.map": "/familyreunion/static/js/453.1d70b7cf.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.48d6e6ea.css",
-    "static/js/main.bc4267ff.js"
+    "static/js/main.87c1c38e.js"
   ]
 }
