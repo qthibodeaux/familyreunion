@@ -1,0 +1,37 @@
+.ant-picker {
+  background-color: #f3e7b1 !important;
+}
+
+.ant-picker:hover, .ant-picker:focus {
+  border-color: #873d62 !important;
+}
+
+.ant-picker-input > input {
+  color: #873d62 !important;
+}
+
+.ant-picker-input > input::placeholder {
+  color: #873d62 !important;
+  opacity: 0.7;
+}
+
+.ant-picker-cell-in-view {
+  color: #873d62 !important;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: #873d62 !important;
+  color: #f3e7b1 !important;
+}
+
+.ant-picker-header {
+  color: #873d62 !important;
+}
+
+.ant-picker-header button {
+  color: #873d62 !important;
+}
+
+.ant-picker-content th {
+  color: #873d62 !important;
+}

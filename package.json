@@ -1,17 +1,31 @@
 {
+  "homepage": "https://qthibodeaux.github.io/familyreunion",
   "name": "familyreunion",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@supabase/auth-ui-react": "^0.4.6",
+    "@supabase/auth-ui-shared": "^0.1.8",
+    "@supabase/supabase-js": "^2.45.3",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "antd": "^5.19.0",
+    "antd-mobile": "^5.37.1",
+    "canvas-to-blob": "^1.0.0",
+    "moment": "^2.30.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-easy-crop": "^5.0.7",
+    "react-router-dom": "^6.21.0",
     "react-scripts": "5.0.1",
+    "recoil": "^0.7.7",
+    "styled-components": "^6.1.11",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -34,5 +48,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1",
+    "supabase": "^1.176.10"
   }
 }

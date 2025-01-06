@@ -1,0 +1,278 @@
+.hero-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  background: linear-gradient(
+    to right,
+    #f4c967,
+    #f7dc92 25%,
+    #eabea9 75%,
+    #d7a58d
+  );
+  margin-bottom: 2rem;
+}
+
+.hero-card {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 16px;
+  box-shadow: none;
+}
+
+.hero-title {
+  font-size: 5rem;
+  color: black;
+  font-weight: bold;
+  text-align: center;
+  padding-top: 3rem;
+  margin: 0;
+}
+
+.hero-image {
+  width: 100%;
+  padding: 1rem;
+  padding-top: 2rem;
+}
+
+.hero-icon {
+  font-size: 3rem;
+  color: #873d62;
+}
+
+.welcome-banner {
+  padding: 1rem;
+  background-color: #873d62;
+  text-align: center;
+  margin: 0.5rem;
+}
+
+.banner-title {
+  color: #f7dc92;
+  margin: 0;
+}
+
+.banner-description {
+  color: #f7dc92;
+  margin: 1rem 0;
+}
+
+.banner-button {
+  color: #873d62;
+  background: #f7dc92;
+  font-weight: bold;
+  border: none;
+}
+
+.row-tab-container {
+  padding: 20px;
+}
+
+.image-container {
+  width: 100%;
+  padding-top: 100%; /* Makes the div a square */
+  position: relative;
+  overflow: hidden;
+}
+
+.image-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.carousel-card-container {
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin: 0.5rem;
+}
+
+.carousel-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background-color: #873d62;
+  border-radius: 8px;
+  color: #f7dc92;
+  text-align: center;
+}
+
+.profile-name {
+  font-size: 20px;
+  margin: 0;
+}
+
+.profile-nickname {
+  font-size: 16px;
+  color: #eabea9;
+  margin-top: 4px;
+}
+
+.carousel-card-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.carousel-card-container {
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin: 0.5rem;
+}
+
+.carousel-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background-color: #873d62;
+  border-radius: 8px;
+  color: #f7dc92;
+  text-align: center;
+}
+
+.profile-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.profile-info {
+  text-align: left;
+}
+
+.profile-name {
+  font-size: 18px;
+  margin: 0;
+}
+
+.profile-lastname {
+  font-size: 16px;
+  margin: 4px 0 0 0;
+}
+
+.profile-relationship {
+  font-size: 14px;
+  color: #eabea9;
+  margin: 2px 0 0 0;
+}
+
+/* SearchCard.css */
+.search-card {
+  margin: 1rem;
+  height: 16rem; /* Set the fixed height for the card */
+  display: flex;
+  flex-direction: column;
+  background-color: #c3776d;
+}
+
+.search-results {
+  margin-top: 8px;
+  max-height: calc(
+    15rem - 5rem
+  ); /* Adjust height to allow scrolling within the card */
+  overflow-y: auto; /* Enable scrolling */
+  flex: 1; /* Allow the list to grow within the card */
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.selected-profile {
+  margin-top: 16px;
+}
+
+.action-buttons {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.reset-button {
+  background: #f3e7b1;
+  color: #6c254c;
+}
+
+.choose-button {
+}
+
+.selected-avatar {
+  width: 3rem;
+  height: 3rem;
+}
+
+.root-branch-container {
+  text-align: center;
+  padding: 1rem;
+  margin: 0.5rem;
+}
+
+.root-branch-container h2 {
+  color: black;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.root-image-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.root-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.first-branch-container {
+  text-align: center;
+  padding: 1rem;
+  margin: 0.5rem;
+}
+
+.first-branch-container h2 {
+  color: black;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.first-branch-image {
+  width: 100%;
+  height: 100%;
+}
+
+.first-branch-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
