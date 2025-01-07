@@ -120,6 +120,12 @@ function Profile() {
     return acc;
   }, {});
 
+  // Check if all connection types are present
+  const hasParent = data.parent_profile || (connectionGroups.parent && connectionGroups.parent.length > 0);
+  const hasSpouse = connectionGroups.spouse && connectionGroups.spouse.length > 0;
+  const hasChild = connectionGroups.child && connectionGroups.child.length > 0;
+  const needsConnections = !hasParent || !hasSpouse || !hasChild;
+
   return (
     <Flex
       vertical
@@ -140,11 +146,13 @@ function Profile() {
         parent={data.parent_profile}
       />
 
-      <AddConnectionsCard
-        userId={userId}
-        connectionGroups={connectionGroups}
-        parent={data.parent_profile}
-      />
+      {needsConnections && (
+        <AddConnectionsCard
+          userId={userId}
+          connectionGroups={connectionGroups}
+          parent={data.parent_profile}
+        />
+      )}
 
       <TreePlace />
     </Flex>
