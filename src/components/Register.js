@@ -31,11 +31,7 @@ function Register() {
   };
 
   return (
-    <Row
-      justify="center"
-      align="start"
-      style={{ padding: '16px', backgroundColor: '#f3e7b1', height: '100vh' }}
-    >
+    <Row justify="center" align="start" style={{ padding: '16px' }}>
       <Col span={24} style={{ backgroundColor: 'transparent' }}>
         <Card
           style={{

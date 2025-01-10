@@ -24,6 +24,7 @@ import {
   ConnectionForm,
   CreateForm,
   MainAncestorForm,
+  MemberSearchForm,
   ResidenceForm,
   ParentForm,
   ProfileForm,
@@ -67,6 +68,8 @@ const routing = createHashRouter(
       <Route path="avatar/:userid" element={<Avatar />} />
       <Route path="antavatar/:userid" element={<AntAvatar />} />
       <Route path="residenceform/:userid" element={<ResidenceForm />} />
+
+      <Route path="membersearch" element={<MemberSearchForm />} />
 
       <Route path="createform/:type" element={<CreateForm />} />
     </Route>

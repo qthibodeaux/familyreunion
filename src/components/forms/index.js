@@ -3,6 +3,7 @@ import CreateForm from './CreateForm';
 import FirstNameForm from './FirstNameForm';
 import LastNameForm from './LastNameForm';
 import MainAncestorForm from './MainAncestorForm';
+import MemberSearchForm from './MemberSearchForm';
 import NameForm from './NameForm';
 import NickNameForm from './NickNameForm';
 import ParentForm from './ParentForm';
@@ -18,6 +19,7 @@ export {
   FirstNameForm,
   LastNameForm,
   MainAncestorForm,
+  MemberSearchForm,
   NameForm,
   NickNameForm,
   ParentForm,

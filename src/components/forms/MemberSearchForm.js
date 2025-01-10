@@ -190,9 +190,7 @@ function MemerSearchForm() {
   };
 
   return (
-    <div
-      style={{ backgroundColor: '#f3e7b1', height: '100%', padding: '1rem' }}
-    >
+    <div style={{ padding: '1rem' }}>
       <Card
         style={{
           background: '#5b1f40',
@@ -202,7 +200,7 @@ function MemerSearchForm() {
         }}
       >
         <Title level={3} style={{ textAlign: 'center', color: '#f3e7b1' }}>
-          Who is your Smith family parent?
+          Does your connection have a profile?
         </Title>
 
         {selectedProfile && (

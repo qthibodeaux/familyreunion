@@ -22,6 +22,7 @@ import Loretta from '../assets/loretta.jpg';
 import Mary from '../assets/mary.jpg';
 import Sylvester from '../assets/sylvester.jpg';
 import Root from '../assets/root.png';
+import Test from './Test';
 
 const images = [
   Alma,
@@ -48,6 +49,7 @@ function Home() {
   const goToScroll = () => navigate('/scrolltree');
   const goToYear = () => navigate('/yeartree');
   const goToChat = () => navigate('/hero');
+  const goToMSF = () => navigate('/membersearch');
 
   const [url, setUrl] = useState(null);
 
@@ -70,6 +72,7 @@ function Home() {
 
   return (
     <div>
+      <Test />
       <Hero />
       <WelcomeBanner />
       <RootBranch />
@@ -83,6 +86,7 @@ function Home() {
         <button onClick={goToScroll}>Scroll Tree</button>
         <button onClick={goToChat}>Chat</button>
         <button onClick={goToYear}>Year</button>
+        <button onClick={goToMSF}>MSF</button>
       </div>
     </div>
   );
@@ -158,11 +162,11 @@ const RootBranch = () => {
     <div className="root-branch-container">
       <h2 className="banner-title">Root Branch</h2>
       <div className="root-image-container">
-        <img src={Root} alt='root' className="root-image" />
+        <img src={Root} alt="root" className="root-image" />
       </div>
     </div>
-  )
-}
+  );
+};
 
 const FirstBranch = () => {
   return (
