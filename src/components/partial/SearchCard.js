@@ -90,6 +90,21 @@ const SearchCard = () => {
         value={searchTerm}
         onChange={handleSearchChange}
         onClear={handleReset}
+        style={{
+          background: '#6c254c',
+          border: 'none',
+          color: '#f3e7b1',
+          fontWeight: 'bold',
+          fontSize: '1.5rem',
+          borderRadius: '0',
+          marginTop: '.5rem',
+        }}
+        inputStyle={{
+          background: '#6c254c',
+          color: '#f3e7b1',
+          fontWeight: 'bold',
+          fontSize: '1.5rem',
+        }}
       />
 
       {searchResults.length > 0 && (

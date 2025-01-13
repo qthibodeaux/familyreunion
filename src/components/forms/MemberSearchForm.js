@@ -9,6 +9,7 @@ import {
   Row,
   Typography,
 } from 'antd';
+import { SearchBar } from 'antd-mobile';
 import { UserOutlined } from '@ant-design/icons';
 import { supabase } from '../../supabaseClient';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -351,9 +352,37 @@ function MemerSearchForm() {
             Back
           </Button>
         </Row>
+
+        <Row justify="center" style={{ marginTop: '24px' }}>
+          <SearchBar
+            placeholder="Search for a member"
+            value={inputValue}
+            onChange={handleSearch}
+            onClear={handleSelect}
+            style={{
+              '--background': '#6c254c',
+              '--border-radius': '0',
+              '--height': '48px',
+              '--padding-left': '12px',
+              '--placeholder-color': '#f3e7b1',
+              color: '#f3e7b1',
+              fontWeight: 'bold',
+              fontSize: '1.5rem',
+            }}
+            autoFocus
+          />
+        </Row>
       </Card>
     </div>
   );
 }
+
+const handleS = () => {
+  console.log('handleS');
+};
+
+const handleR = () => {
+  console.log('handleR');
+};
 
 export default MemerSearchForm;
