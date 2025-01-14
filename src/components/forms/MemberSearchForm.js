@@ -354,35 +354,106 @@ function MemerSearchForm() {
         </Row>
 
         <Row justify="center" style={{ marginTop: '24px' }}>
-          <SearchBar
-            placeholder="Search for a member"
-            value={inputValue}
-            onChange={handleSearch}
-            onClear={handleSelect}
-            style={{
-              '--background': '#6c254c',
-              '--border-radius': '0',
-              '--height': '48px',
-              '--padding-left': '12px',
-              '--placeholder-color': '#f3e7b1',
-              color: '#f3e7b1',
-              fontWeight: 'bold',
-              fontSize: '1.5rem',
-            }}
-            autoFocus
-          />
+          <CustomAutoComplete />
         </Row>
       </Card>
     </div>
   );
 }
 
-const handleS = () => {
-  console.log('handleS');
-};
+const CustomAutoComplete = () => {
+  const [options, setOptions] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  const inputRef = useRef();
 
-const handleR = () => {
-  console.log('handleR');
+  const handleSearch = (value) => {
+    // Simulate API results
+    const searchResults = [
+      {
+        id: 1,
+        firstname: 'John',
+        lastname: 'Doe',
+        nickname: 'Johnny',
+        avatar_url: 'https://via.placeholder.com/40',
+      },
+      {
+        id: 2,
+        firstname: 'Jane',
+        lastname: 'Smith',
+        nickname: '',
+        avatar_url: 'https://via.placeholder.com/40',
+      },
+    ].filter((profile) =>
+      `${profile.firstname} ${profile.lastname}`
+        .toLowerCase()
+        .includes(value.toLowerCase())
+    );
+
+    setOptions(
+      searchResults.map((profile) => ({
+        value: `${profile.firstname} ${profile.lastname}`,
+        label: (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#6c254c',
+              padding: '0.5rem',
+              color: '#f3e7b1',
+              borderBottom: '1px solid #f3e7b1',
+            }}
+          >
+            <Avatar
+              src={profile.avatar_url}
+              style={{ marginRight: '0.5rem' }}
+            />
+            <div>
+              <div style={{ fontWeight: 'bold' }}>
+                {profile.firstname}{' '}
+                {profile.nickname && `(${profile.nickname})`}
+              </div>
+              <div>{profile.lastname}</div>
+            </div>
+          </div>
+        ),
+      }))
+    );
+  };
+
+  const handleSelect = (value) => {
+    console.log('Selected:', value);
+  };
+
+  return (
+    <AutoComplete
+      options={options}
+      onSearch={handleSearch}
+      placeholder="Search for names"
+      onSelect={handleSelect}
+      value={inputValue}
+      onChange={setInputValue}
+      dropdownMatchSelectWidth={false}
+      style={{ marginTop: '.5rem', width: '100%' }}
+      dropdownStyle={{
+        background: '#6c254c',
+        color: '#f3e7b1',
+        borderRadius: '0',
+        overflow: 'hidden',
+      }}
+    >
+      <Input
+        ref={inputRef}
+        style={{
+          background: '#6c254c',
+          border: 'none',
+          color: '#f3e7b1',
+          fontWeight: 'bold',
+          fontSize: '1.5rem',
+          borderRadius: '0',
+        }}
+      />
+    </AutoComplete>
+  );
 };
 
 export default MemerSearchForm;
