@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Row, Typography } from 'antd';
 import { Card, Avatar, Button, SearchBar, List, Image } from 'antd-mobile';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from './../../supabaseClient';
@@ -9,6 +10,7 @@ const SearchCard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const debounceTimeout = useRef(null);
   const navigate = useNavigate();
+  const { Title } = Typography;
 
   useEffect(() => {
     return () => {
@@ -84,92 +86,126 @@ const SearchCard = () => {
   };
 
   return (
-    <Card title="Find A Member" className="search-card">
-      <SearchBar
-        placeholder="Search for a member"
-        value={searchTerm}
-        onChange={handleSearchChange}
-        onClear={handleReset}
-        style={{
-          background: '#6c254c',
-          border: 'none',
-          color: '#f3e7b1',
-          fontWeight: 'bold',
-          fontSize: '1.5rem',
-          borderRadius: '0',
-          marginTop: '.5rem',
-        }}
-        inputStyle={{
-          background: '#6c254c',
-          color: '#f3e7b1',
-          fontWeight: 'bold',
-          fontSize: '1.5rem',
-        }}
-      />
+    <Row style={{ width: '100%' }}>
+      <Card title="Find A Member" className="search-card">
+        <SearchBar
+          placeholder="Search for a member"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          onClear={handleReset}
+          style={{
+            background: '#6c254c',
+            border: 'none',
+            color: '#f3e7b1',
+            fontWeight: 'bold',
+            fontSize: '1.5rem',
+            borderRadius: '0',
+            marginTop: '.5rem',
+          }}
+          inputStyle={{
+            background: '#6c254c',
+            color: '#f3e7b1',
+            fontWeight: 'bold',
+            fontSize: '1.5rem',
+          }}
+        />
 
-      {searchResults.length > 0 && (
-        <List className="search-results">
-          {searchResults.map((profile) => (
+        {searchResults.length > 0 && (
+          <List className="search-results">
+            {searchResults.map((profile) => (
+              <List.Item
+                key={profile.id}
+                prefix={
+                  <Avatar src={profile.avatar_url} className="profile-avatar" />
+                }
+                description={
+                  profile.nickname
+                    ? `${profile.firstname} (${profile.nickname}) ${profile.lastname}`
+                    : `${profile.firstname} ${profile.lastname}`
+                }
+                onClick={() => handleProfileSelect(profile)}
+              >
+                {profile.firstname}{' '}
+                {profile.nickname && `(${profile.nickname})`}
+              </List.Item>
+            ))}
+          </List>
+        )}
+
+        {selectedProfile && (
+          <List className="selected-profile">
             <List.Item
-              key={profile.id}
               prefix={
-                <Avatar src={profile.avatar_url} className="profile-avatar" />
+                <Image
+                  src={selectedProfile.avatar_url}
+                  className="selected-avatar"
+                />
               }
               description={
-                profile.nickname
-                  ? `${profile.firstname} (${profile.nickname}) ${profile.lastname}`
-                  : `${profile.firstname} ${profile.lastname}`
+                <>
+                  <div>
+                    {selectedProfile.nickname
+                      ? `${selectedProfile.firstname} (${selectedProfile.nickname})`
+                      : `${selectedProfile.firstname} ${selectedProfile.lastname}`}
+                  </div>
+                  <div>{selectedProfile.lastname}</div>
+                  <div>
+                    {new Date(selectedProfile.sunrise).toLocaleDateString()}
+                  </div>
+                </>
               }
-              onClick={() => handleProfileSelect(profile)}
+            />
+          </List>
+        )}
+
+        {selectedProfile && (
+          <div className="action-buttons">
+            <Button onClick={handleReset} block className="reset-button">
+              Reset
+            </Button>
+            <Button
+              onClick={() => navigateToProfile(selectedProfile.id)}
+              color="primary"
+              block
+              className="choose-button"
             >
-              {profile.firstname} {profile.nickname && `(${profile.nickname})`}
-            </List.Item>
-          ))}
-        </List>
-      )}
+              Choose {selectedProfile.nickname || selectedProfile.firstname}
+            </Button>
+          </div>
+        )}
+      </Card>
 
-      {selectedProfile && (
-        <List className="selected-profile">
-          <List.Item
-            prefix={
-              <Image
-                src={selectedProfile.avatar_url}
-                className="selected-avatar"
-              />
-            }
-            description={
-              <>
-                <div>
-                  {selectedProfile.nickname
-                    ? `${selectedProfile.firstname} (${selectedProfile.nickname})`
-                    : `${selectedProfile.firstname} ${selectedProfile.lastname}`}
-                </div>
-                <div>{selectedProfile.lastname}</div>
-                <div>
-                  {new Date(selectedProfile.sunrise).toLocaleDateString()}
-                </div>
-              </>
-            }
-          />
-        </List>
-      )}
+      <Card
+        style={{
+          background: '#5b1f40',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '8px',
+        }}
+      >
+        <Title level={3} style={{ textAlign: 'center', color: '#f3e7b1' }}>
+          Find A Member
+        </Title>
 
-      {selectedProfile && (
-        <div className="action-buttons">
-          <Button onClick={handleReset} block className="reset-button">
-            Reset
-          </Button>
-          <Button
-            onClick={() => navigateToProfile(selectedProfile.id)}
-            color="primary"
-            block
-            className="choose-button"
-          >
-            Choose {selectedProfile.nickname || selectedProfile.firstname}
-          </Button>
-        </div>
-      )}
-    </Card>
+        <SearchBar
+          placeholder="Search for a member"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          onClear={handleReset}
+          style={{
+            '--background': '#6c254c',
+            '--border-radius': '0',
+            '--height': '48px',
+            '--padding-left': '12px',
+            '--placeholder-color': '#f3e7b1',
+            color: '#f3e7b1',
+            fontWeight: 'bold',
+            fontSize: '1.5rem',
+          }}
+          autoFocus
+        />
+      </Card>
+    </Row>
   );
 };
 
