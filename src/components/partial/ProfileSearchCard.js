@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, Avatar, Button, SearchBar, List, Image } from 'antd-mobile';
-import { useNavigate } from 'react-router-dom';
+import { Card, Avatar, List, Row, Col } from 'antd';
+import { SearchBar } from 'antd-mobile';
 import { supabase } from './../../supabaseClient';
+import moment from 'moment';
 
-const SearchCard = () => {
+const ProfileSearchCard = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const debounceTimeout = useRef(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     return () => {
@@ -26,7 +26,7 @@ const SearchCard = () => {
 
     const { data, error } = await supabase
       .from('profile')
-      .select('id, firstname, nickname, lastname, avatar_url, sunrise')
+      .select('id, firstname, nickname, lastname, avatar_url, sunrise, ancestor')
       .or(
         `firstname.ilike.%${searchTerm}%,nickname.ilike.%${searchTerm}%,lastname.ilike.%${searchTerm}%`
       )
@@ -74,22 +74,13 @@ const SearchCard = () => {
     setSearchTerm('');
   };
 
-  const handleReset = () => {
-    setSelectedProfile(null);
-    setSearchTerm('');
-  };
-
-  const navigateToProfile = (profileId) => {
-    navigate(`/profile/${profileId}`);
-  };
-
   return (
-    <Card title="Find A Member" className="search-card">
+    <Card title="Find A Member" className="search-card"></Card>
       <SearchBar
         placeholder="Search for a member"
         value={searchTerm}
         onChange={handleSearchChange}
-        onClear={handleReset}
+        onClear={() => setSearchTerm('')}
         style={{
           background: '#6c254c',
           border: 'none',
@@ -108,69 +99,73 @@ const SearchCard = () => {
       />
 
       {searchResults.length > 0 && (
-        <List className="search-results">
+        <List className="search-results" style={{ marginTop: '.5rem' }}>
           {searchResults.map((profile) => (
             <List.Item
               key={profile.id}
-              prefix={
-                <Avatar src={profile.avatar_url} className="profile-avatar" />
-              }
-              description={
-                profile.nickname
-                  ? `${profile.firstname} (${profile.nickname}) ${profile.lastname}`
-                  : `${profile.firstname} ${profile.lastname}`
-              }
               onClick={() => handleProfileSelect(profile)}
+              style={{ color: '#f3e7b1' }}
             >
-              {profile.firstname} {profile.nickname && `(${profile.nickname})`}
+              <List.Item.Meta
+                avatar={
+                  profile.avatar_url ? (
+                    <Avatar src={profile.avatar_url} />
+                  ) : (
+                    <Avatar icon={<UserOutlined />} />
+                  )
+                }
+                title={profile.nickname
+                  ? `${profile.firstname} (${profile.nickname}) ${profile.lastname}`
+                  : `${profile.firstname} ${profile.lastname}`}
+                description={profile.ancestor ? `House of ${profile.ancestor}` : ''}
+              />
             </List.Item>
           ))}
         </List>
       )}
 
       {selectedProfile && (
-        <List className="selected-profile">
-          <List.Item
-            prefix={
-              <Image
+        <Card style={{ marginTop: '1rem', background: '#5b1f40', color: '#f3e7b1' }}>
+          <Row>
+            <Col span={6}>
+              <Avatar
                 src={selectedProfile.avatar_url}
-                className="selected-avatar"
+                icon={<UserOutlined />}
+                shape="square"
+                style={{ borderRadius: '8px', width: '5rem', height: '5rem' }}
               />
-            }
-            description={
-              <>
-                <div>
+            </Col>
+            <Col span={12}>
+              <Row>
+                <Col span={24} style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
                   {selectedProfile.nickname
                     ? `${selectedProfile.firstname} (${selectedProfile.nickname})`
                     : `${selectedProfile.firstname} ${selectedProfile.lastname}`}
-                </div>
-                <div>{selectedProfile.lastname}</div>
-                <div>
-                  {new Date(selectedProfile.sunrise).toLocaleDateString()}
-                </div>
-              </>
-            }
-          />
-        </List>
-      )}
-
-      {selectedProfile && (
-        <div className="action-buttons">
-          <Button onClick={handleReset} block className="reset-button">
-            Reset
-          </Button>
-          <Button
-            onClick={() => navigateToProfile(selectedProfile.id)}
-            color="primary"
-            block
-            className="choose-button"
-          >
-            Choose {selectedProfile.nickname || selectedProfile.firstname}
-          </Button>
-        </div>
+                </Col>
+              </Row>
+              <Row>
+                <Col span={24} style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+                  {selectedProfile.ancestor ? `House of ${selectedProfile.ancestor}` : ''}
+                </Col>
+              </Row>
+            </Col>
+            <Col span={6}>
+              <Row>
+                <Col span={24} style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+                  {moment(selectedProfile.sunrise).format('MMMM D')}
+                </Col>
+              </Row>
+              <Row>
+                <Col span={24} style={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+                  {moment(selectedProfile.sunrise).format('YYYY')}
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        </Card>
       )}
     </Card>
   );
 };
 
-export default SearchCard;
+export default ProfileSearchCard;

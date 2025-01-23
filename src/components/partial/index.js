@@ -6,6 +6,7 @@ import ConnectionsCard from './ConnectionsCard';
 import MainAncestorCard from './MainAncestorCard';
 import ParentCard from './ParentCard';
 import ProfileCard from './ProfileCard';
+import ProfileSearchCard from './ProfileSearchCard';
 import SearchCard from './SearchCard';
 
 export {
@@ -17,5 +18,6 @@ export {
   MainAncestorCard,
   ParentCard,
   ProfileCard,
+  ProfileSearchCard,
   SearchCard,
 };
