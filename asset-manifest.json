@@ -1,17 +1,31 @@
 {
   "files": {
-    "main.css": "/familyreunion/static/css/main.48d6e6ea.css",
-    "main.js": "/familyreunion/static/js/main.6962cb09.js",
-    "static/js/952.b0088f61.chunk.js": "/familyreunion/static/js/952.b0088f61.chunk.js",
-    "static/js/453.1d70b7cf.chunk.js": "/familyreunion/static/js/453.1d70b7cf.chunk.js",
+    "main.css": "/familyreunion/static/css/main.ba4ae46f.css",
+    "main.js": "/familyreunion/static/js/main.19be678c.js",
+    "static/js/952.8980df39.chunk.js": "/familyreunion/static/js/952.8980df39.chunk.js",
+    "static/js/453.f580f8c7.chunk.js": "/familyreunion/static/js/453.f580f8c7.chunk.js",
+    "static/media/anc1.png": "/familyreunion/static/media/anc1.9a0cca835884abeaa53a.png",
+    "static/media/root.png": "/familyreunion/static/media/root.c082bc646905726b2464.png",
+    "static/media/hazel.jpg": "/familyreunion/static/media/hazel.4689f505c1809c2aa741.jpg",
+    "static/media/alma.jpg": "/familyreunion/static/media/alma.26f096870ea199978dd3.jpg",
+    "static/media/bobbie.jpg": "/familyreunion/static/media/bobbie.ece4f62ce86f60612f50.jpg",
+    "static/media/james.jpg": "/familyreunion/static/media/james.9c4ee1b7c22dd5cdbdba.jpg",
+    "static/media/joyce.jpg": "/familyreunion/static/media/joyce.d04f3567658d78554b47.jpg",
+    "static/media/ben.jpg": "/familyreunion/static/media/ben.7472f8715e001559bf03.jpg",
+    "static/media/loretta.jpg": "/familyreunion/static/media/loretta.4386c76b9ea0d7ca16f3.jpg",
+    "static/media/lorene.jpg": "/familyreunion/static/media/lorene.aa91760628417b7f9451.jpg",
+    "static/media/john.jpg": "/familyreunion/static/media/john.cccb71e12d46e70e527b.jpg",
+    "static/media/sylvester.jpg": "/familyreunion/static/media/sylvester.7eac7354fd7e33188c3d.jpg",
+    "static/media/ancestors.jpg": "/familyreunion/static/media/ancestors.253d4cb28b2ecd28c261.jpg",
+    "static/media/mary.jpg": "/familyreunion/static/media/mary.fdffc2a664811f465714.jpg",
     "index.html": "/familyreunion/index.html",
-    "main.48d6e6ea.css.map": "/familyreunion/static/css/main.48d6e6ea.css.map",
-    "main.6962cb09.js.map": "/familyreunion/static/js/main.6962cb09.js.map",
-    "952.b0088f61.chunk.js.map": "/familyreunion/static/js/952.b0088f61.chunk.js.map",
-    "453.1d70b7cf.chunk.js.map": "/familyreunion/static/js/453.1d70b7cf.chunk.js.map"
+    "main.ba4ae46f.css.map": "/familyreunion/static/css/main.ba4ae46f.css.map",
+    "main.19be678c.js.map": "/familyreunion/static/js/main.19be678c.js.map",
+    "952.8980df39.chunk.js.map": "/familyreunion/static/js/952.8980df39.chunk.js.map",
+    "453.f580f8c7.chunk.js.map": "/familyreunion/static/js/453.f580f8c7.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.48d6e6ea.css",
-    "static/js/main.6962cb09.js"
+    "static/css/main.ba4ae46f.css",
+    "static/js/main.19be678c.js"
   ]
 }
