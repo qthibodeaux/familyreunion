@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/familyreunion/static/css/main.ba4ae46f.css",
-    "main.js": "/familyreunion/static/js/main.19be678c.js",
+    "main.js": "/familyreunion/static/js/main.18a5af64.js",
     "static/js/952.8980df39.chunk.js": "/familyreunion/static/js/952.8980df39.chunk.js",
     "static/js/453.f580f8c7.chunk.js": "/familyreunion/static/js/453.f580f8c7.chunk.js",
     "static/media/anc1.png": "/familyreunion/static/media/anc1.9a0cca835884abeaa53a.png",
@@ -20,12 +20,12 @@
     "static/media/mary.jpg": "/familyreunion/static/media/mary.fdffc2a664811f465714.jpg",
     "index.html": "/familyreunion/index.html",
     "main.ba4ae46f.css.map": "/familyreunion/static/css/main.ba4ae46f.css.map",
-    "main.19be678c.js.map": "/familyreunion/static/js/main.19be678c.js.map",
+    "main.18a5af64.js.map": "/familyreunion/static/js/main.18a5af64.js.map",
     "952.8980df39.chunk.js.map": "/familyreunion/static/js/952.8980df39.chunk.js.map",
     "453.f580f8c7.chunk.js.map": "/familyreunion/static/js/453.f580f8c7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ba4ae46f.css",
-    "static/js/main.19be678c.js"
+    "static/js/main.18a5af64.js"
   ]
 }
