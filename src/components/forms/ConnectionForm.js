@@ -144,6 +144,15 @@ function ConnectionForm() {
             requested_by: userid,
           });
           if (connError) throw connError;
+
+          // Insert notification
+          await supabase.from("notification").insert({
+            recipient_id: selectedProfileId,
+            actor_id: userid,
+            action_type: "connection_request",
+            target_id: selectedProfileId
+          });
+
           message.success("Parent request sent! Waiting for their approval.");
         } else {
           // Standard active connection and parent update
@@ -240,6 +249,13 @@ function ConnectionForm() {
         }
 
         if (connStatus === "pending") {
+          // Insert notification
+          await supabase.from("notification").insert({
+            recipient_id: selectedProfileId,
+            actor_id: userid,
+            action_type: "connection_request",
+            target_id: selectedProfileId
+          });
           message.success("Connection request sent! Waiting for their approval.");
         } else {
           message.success("Connection added successfully!");

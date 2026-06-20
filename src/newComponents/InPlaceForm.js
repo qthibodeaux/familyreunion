@@ -66,7 +66,7 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
 
     let query = supabase
       .from("profile")
-      .select("id, firstname, nickname, lastname, avatar_url, branch")
+      .select("id, firstname, nickname, lastname, avatar_url, branch, email, phone, sunset")
       .or(`firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`);
 
     // Exclude first branch (branch 1) and root branch for child/spouse searches, but allow NULL branches for all
@@ -158,6 +158,17 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
         }
 
         if (connStatus === "pending") {
+          const { error: notifError } = await supabase
+            .from("notification")
+            .insert({
+              recipient_id: targetProfileId,
+              actor_id: anchor.id,
+              action_type: "connection_request",
+              target_id: targetProfileId
+            });
+          if (notifError) {
+            console.error("Failed to create connection notification:", notifError);
+          }
           message.info("Connection request sent! Waiting for approval.");
         }
       }

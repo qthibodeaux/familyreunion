@@ -86,12 +86,17 @@ const NotificationsPage = () => {
         return "left a new note in your Guestbook.";
       case "like_guestbook_post":
         return "liked your Guestbook note.";
+      case "connection_request":
+        return "sent you a family connection request.";
       default:
         return "interacted with your profile.";
     }
   };
 
   const getNotificationIcon = (actionType) => {
+    if (actionType === "connection_request") {
+      return <UserOutlined style={{ color: "#F7DC92" }} />;
+    }
     if (actionType.startsWith("like_")) {
       return <HeartFilled style={{ color: "#ff4d4f" }} />;
     }
@@ -116,6 +121,8 @@ const NotificationsPage = () => {
         drawer = "guestbook";
       } else if (notif.action_type.includes("media")) {
         drawer = "media";
+      } else if (notif.action_type === "connection_request") {
+        drawer = "connections";
       }
 
       navigate(`/profile/${session.user.id}?drawer=${drawer}`);
