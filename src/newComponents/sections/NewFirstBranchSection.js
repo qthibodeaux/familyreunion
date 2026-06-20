@@ -3,34 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 import "./NewFirstBranchSection.css";
 
-// Local Images
-import Alma from "../../assets/alma.jpg";
-import Ben from "../../assets/ben.jpg";
-import Bobbie from "../../assets/bobbie.jpg";
-import Hazel from "../../assets/hazel.jpg";
-import James from "../../assets/james.jpg";
-import John from "../../assets/john.jpg";
-import Joyce from "../../assets/joyce.jpg";
-import Lorene from "../../assets/lorene.jpg";
-import Loretta from "../../assets/loretta.jpg";
-import Mary from "../../assets/mary.jpg";
-import Sylvester from "../../assets/sylvester.jpg";
 import DefaultAvatar from "../../assets/root.png";
-
-// Firstname-to-image map
-const imageMap = {
-  alma: Alma,
-  ben: Ben,
-  bobbie: Bobbie,
-  hazel: Hazel,
-  james: James,
-  john: John,
-  joyce: Joyce,
-  lorene: Lorene,
-  loretta: Loretta,
-  mary: Mary,
-  sylvester: Sylvester,
-};
+import { getAvatarSrc } from "../../utils/avatarHelper";
 
 const NewFirstBranchSection = () => {
   const [profiles, setProfiles] = useState([]);
@@ -42,7 +16,7 @@ const NewFirstBranchSection = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("profile")
-        .select("id, firstname")
+        .select("id, firstname, avatar_url")
         .eq("branch", 1)
         .order("firstname", { ascending: true });
 
@@ -93,8 +67,7 @@ const NewFirstBranchSection = () => {
       ) : (
         <div className="new-first-branch-grid">
           {profiles.map((profile) => {
-            const firstWord = (profile.firstname || "").trim().split(/\s+/)[0].toLowerCase();
-            const imageSrc = (profile.branch === 1 && imageMap[firstWord]) || DefaultAvatar;
+            const imageSrc = getAvatarSrc(profile) || DefaultAvatar;
 
             return (
               <div

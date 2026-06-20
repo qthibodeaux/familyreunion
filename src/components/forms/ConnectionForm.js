@@ -41,12 +41,13 @@ function ConnectionForm() {
         .select("*")
         .or(
           `firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`,
-        )
-        .neq("branch", 0); // Always exclude Root (Branch 0)
+        );
 
-      // Exclude Branch 1 for spouse/child searches
+      // Exclude Branch 0 for parent/smithparent, exclude Branch 0 and 1 for spouse/child, but allow NULL branches for all
       if (type === "spouse" || type === "child") {
-        query = query.gt("branch", 1);
+        query = query.or("branch.gt.1,branch.is.null");
+      } else {
+        query = query.or("branch.neq.0,branch.is.null");
       }
 
       let { data, error } = await query.order("sunrise", { ascending: true });
@@ -76,12 +77,13 @@ function ConnectionForm() {
     try {
       let query = supabase
         .from("profile")
-        .select("*")
-        .neq("branch", 0); // Always exclude Root (Branch 0)
+        .select("*");
 
-      // Exclude Branch 1 for spouse/child searches
+      // Exclude Branch 0 for parent/smithparent, exclude Branch 0 and 1 for spouse/child, but allow NULL branches for all
       if (type === "spouse" || type === "child") {
-        query = query.gt("branch", 1);
+        query = query.or("branch.gt.1,branch.is.null");
+      } else {
+        query = query.or("branch.neq.0,branch.is.null");
       }
 
       let { data, error } = await query;

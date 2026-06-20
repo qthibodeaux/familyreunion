@@ -9,13 +9,11 @@ import {
   Space,
   message,
   Card,
-  DatePicker,
   Switch,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import dayjs from "dayjs";
 import "./ProfileEdit.css"; // Force rebuild trigger
 
 const { Title } = Typography;
@@ -74,8 +72,8 @@ function ProfileEdit() {
           nickname: data.nickname,
           city: data.profilestate?.city,
           state: data.profilestate?.state?.state_name,
-          sunrise: data.sunrise ? dayjs(data.sunrise) : null,
-          sunset: data.sunset ? dayjs(data.sunset) : null,
+          sunrise: data.sunrise ? data.sunrise.split('T')[0] : "",
+          sunset: data.sunset ? data.sunset.split('T')[0] : "",
           parent: data.parent_profile
             ? `${data.parent_profile.firstname} ${data.parent_profile.lastname}`
             : "No Parent",
@@ -128,8 +126,8 @@ function ProfileEdit() {
           firstname: values.firstname,
           lastname: values.lastname,
           nickname: values.nickname,
-          sunrise: values.sunrise?.toISOString(),
-          sunset: values.sunset?.toISOString(),
+          sunrise: values.sunrise || null,
+          sunset: values.sunset || null,
           is_locked: values.is_locked || false,
           lock_media_comments: values.lock_media_comments || false,
         })
@@ -288,9 +286,9 @@ function ProfileEdit() {
                 label="Birth Date"
                 style={{ marginBottom: "1.5rem" }}
               >
-                <DatePicker
+                <Input
+                  type="date"
                   disabled={!isEditing}
-                  style={{ width: "100%" }}
                   size="large"
                 />
               </Form.Item>
@@ -300,9 +298,9 @@ function ProfileEdit() {
                 label="Death Date"
                 style={{ marginBottom: "1.5rem" }}
               >
-                <DatePicker
+                <Input
+                  type="date"
                   disabled={!isEditing}
-                  style={{ width: "100%" }}
                   size="large"
                 />
               </Form.Item>

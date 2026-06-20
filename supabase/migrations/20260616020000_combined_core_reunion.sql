@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS public.guestbook_post (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     profile_id UUID NOT NULL REFERENCES public.profile(id) ON DELETE CASCADE,
     author_id UUID NOT NULL REFERENCES public.profile(id) ON DELETE CASCADE,
-    content TEXT NOT NULL CHECK (LENGTH(content) <= 240),
+    content TEXT NOT NULL CHECK (LENGTH(TRIM(content)) BETWEEN 1 AND 240),
     location TEXT,
     event_date DATE,
     likes_count INTEGER NOT NULL DEFAULT 0,
@@ -120,6 +120,14 @@ CREATE TABLE IF NOT EXISTS public.report (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.feedback (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profile(id) ON DELETE SET NULL,
+    category TEXT NOT NULL CHECK (category IN ('bug', 'suggestion', 'question', 'compliment', 'other')),
+    message TEXT NOT NULL CHECK (LENGTH(TRIM(message)) BETWEEN 1 AND 1000),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS public.likes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profile(id) ON DELETE CASCADE,
@@ -152,6 +160,7 @@ ALTER TABLE public.state ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profilestate ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profile_relationship ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.report ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 
 -- 4. Insert baseline avatars storage bucket (safe bypass)
 INSERT INTO storage.buckets (id, name, public)
@@ -350,23 +359,30 @@ CREATE POLICY "Anyone can read guestbook posts" ON public.guestbook_post
     );
 
 CREATE POLICY "Authenticated users can write guestbook posts" ON public.guestbook_post
-    FOR INSERT WITH CHECK (
-        auth.role() = 'authenticated'
-        AND auth.uid() = author_id
-        AND auth.uid() != profile_id
-        AND NOT EXISTS (
-            SELECT 1 FROM public.profile WHERE id = profile_id AND is_locked = TRUE
+    FOR INSERT TO authenticated
+    WITH CHECK (
+        (SELECT auth.uid()) = author_id
+        AND EXISTS (
+            SELECT 1
+            FROM public.profile target
+            WHERE target.id = profile_id
+              AND target.is_locked = FALSE
         )
     );
 
 CREATE POLICY "Users can delete their own guestbook posts" ON public.guestbook_post
-    FOR DELETE USING (
-        auth.uid() = author_id
+    FOR DELETE TO authenticated
+    USING (
+        (SELECT auth.uid()) = author_id
     );
 
 CREATE POLICY "Users can update their own guestbook posts" ON public.guestbook_post
-    FOR UPDATE USING (
-        auth.uid() = author_id
+    FOR UPDATE TO authenticated
+    USING (
+        (SELECT auth.uid()) = author_id
+    )
+    WITH CHECK (
+        (SELECT auth.uid()) = author_id
     );
 
 -- E. Media Policies
@@ -497,6 +513,19 @@ CREATE POLICY "Authenticated users can submit reports" ON public.report
     FOR INSERT WITH CHECK (
         auth.role() = 'authenticated'
         AND auth.uid() = reporter_id
+    );
+
+-- H4. Feedback Policies
+CREATE POLICY "Anyone can submit feedback" ON public.feedback
+    FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Admins can view feedback" ON public.feedback
+    FOR SELECT USING (
+        auth.role() = 'authenticated'
+        AND EXISTS (
+            SELECT 1 FROM public.profile
+            WHERE id = auth.uid() AND is_admin = TRUE
+        )
     );
 
 -- I. State Policies
@@ -947,6 +976,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.likes TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.notification TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.profile_relationship TO anon, authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.report TO anon, authenticated;
+GRANT INSERT ON public.feedback TO anon, authenticated;
+GRANT SELECT ON public.feedback TO authenticated;
 GRANT SELECT ON public.state TO anon, authenticated;
 
 -- 11. Create family_broadcast_queue view for unified feed queries

@@ -115,11 +115,8 @@ const NewMosaicSection = () => {
 
     load();
 
-    const interval = setInterval(load, 30000);
-
     return () => {
       cancelled = true;
-      clearInterval(interval);
     };
   }, []);
 

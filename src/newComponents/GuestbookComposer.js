@@ -15,6 +15,7 @@ import { supabase } from "../supabaseClient";
 export default function GuestbookComposer({
   profileId,
   firstname,
+  authorId,
   currentUser,
   onPostCreated,
   getAvatarSrc,
@@ -127,22 +128,21 @@ export default function GuestbookComposer({
 
     setSubmitting(true);
     try {
-      const authorId = currentUser?.id;
       if (!authorId) throw new Error("Must be logged in");
+      const post = {
+        profile_id: profileId,
+        author_id: authorId,
+        content: content.trim(),
+        is_broadcast: isBroadcast,
+      };
+
+      if (taggedProfiles.length > 0) post.tagged_profiles = taggedProfiles;
+      if (location.trim()) post.location = location.trim();
+      if (eventDate) post.event_date = eventDate;
 
       const { data: postData, error } = await supabase
         .from("guestbook_post")
-        .insert([
-          {
-            profile_id: profileId,
-            author_id: authorId,
-            content: content.trim(),
-            tagged_profiles: taggedProfiles.length > 0 ? taggedProfiles : null,
-            location: location.trim() || null,
-            event_date: eventDate || null,
-            is_broadcast: isBroadcast,
-          },
-        ])
+        .insert([post])
         .select(
           `
           id, content, location, event_date, likes_count, is_reported, created_at, tagged_profiles,
@@ -221,7 +221,7 @@ export default function GuestbookComposer({
             ref={textareaRef}
             value={content}
             onChange={handleContentChange}
-            placeholder={profileId === currentUser?.id ? "Write a quick update or note on your wall..." : `Write a quick note for ${firstname}...`}
+            placeholder={profileId === authorId ? "Write a quick update or note on your wall..." : `Write a quick note for ${firstname}...`}
             autoSize={{ minRows: 1, maxRows: 3 }}
             maxLength={MAX_CHARS + 10} // soft limit, we enforce in logic
             style={{

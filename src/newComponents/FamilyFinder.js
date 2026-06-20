@@ -4,25 +4,8 @@ import { SearchOutlined, ArrowLeftOutlined, CloseCircleOutlined } from "@ant-des
 import { supabase } from "../supabaseClient";
 import "./FamilyFinder.css";
 
-// ─── Local Assets (same pattern as Mosaic) ───
-import Alma from "../assets/alma.jpg";
-import Ben from "../assets/ben.jpg";
-import Bobbie from "../assets/bobbie.jpg";
-import Hazel from "../assets/hazel.jpg";
-import James from "../assets/james.jpg";
-import John from "../assets/john.jpg";
-import Joyce from "../assets/joyce.jpg";
-import Lorene from "../assets/lorene.jpg";
-import Loretta from "../assets/loretta.jpg";
-import Mary from "../assets/mary.jpg";
-import Sylvester from "../assets/sylvester.jpg";
 import DefaultAvatar from "../assets/root.png";
-
-const IMAGE_MAP = {
-  alma: Alma, ben: Ben, bobbie: Bobbie, hazel: Hazel,
-  james: James, john: John, joyce: Joyce, lorene: Lorene,
-  loretta: Loretta, mary: Mary, sylvester: Sylvester,
-};
+import { getAvatarSrc } from "../utils/avatarHelper";
 
 const PRESET_BRANCH_COLORS = [
   { bg: "#5b1f40", accent: "#f7dc92" },
@@ -68,19 +51,22 @@ const MONTH_ORDER = [
 
 // ─── Helper Functions ───
 function getFilteredProfiles(allProfiles, activeFilters, excludeCategory) {
-  return allProfiles.filter((profile) =>
-    CATEGORIES.every((cat) => {
+  return allProfiles.filter((profile) => {
+    // Exclude deceased profiles (branch = 0)
+    if (profile.rawBranch === 0) return false;
+
+    return CATEGORIES.every((cat) => {
       if (cat === excludeCategory) return true;
       if (!activeFilters[cat]) return true;
       return profile[cat] === activeFilters[cat];
-    })
-  );
+    });
+  });
 }
 
 function getAvailableValues(allProfiles, activeFilters, category) {
   const pool = getFilteredProfiles(allProfiles, activeFilters, category);
   const values = [...new Set(pool.map((p) => p[category]))];
-  
+
   if (category === "ageGroup") {
     return values.sort((a, b) => AGE_ORDER.indexOf(a) - AGE_ORDER.indexOf(b));
   }
@@ -98,15 +84,12 @@ function getVisibleProfiles(allProfiles, activeFilters, searchText) {
       `${p.first} ${p.nick} ${p.last}`.toLowerCase().includes(q)
     );
   }
-  return pool;
+  // Final filter: exclude deceased profiles
+  return pool.filter(p => p.rawBranch !== 0);
 }
 
 function resolvePhotoUrl(photoKey) {
-  if (!photoKey) return DefaultAvatar;
-  if (typeof photoKey === "string" && IMAGE_MAP[photoKey.toLowerCase()]) {
-    return IMAGE_MAP[photoKey.toLowerCase()];
-  }
-  return photoKey;
+  return photoKey || DefaultAvatar;
 }
 
 function getAvatarColor(name = "") {
@@ -337,7 +320,7 @@ const DeckCarousel = ({ profiles, loading }) => {
     );
   }
 
-  // Slice visible window of cards to maximize rendering speed
+  // Slice visible window of cards to maximize rendering speed (carousel uses profiles prop)
   const visibleCards = [];
   for (let offset = -1; offset <= 1; offset++) {
     const idx = activeIndex + offset;
@@ -361,8 +344,8 @@ const DeckCarousel = ({ profiles, loading }) => {
           // Compute layout offsets based on dragging fraction and index distance
           const dragFraction = pullOffset / (carouselWidth || 350);
           const dist = (index - activeIndex) + dragFraction;
-          
-          const positionOffset = dist * 84; 
+
+          const positionOffset = dist * 84;
           const scale = 1 - Math.abs(dist) * 0.12;
           const opacity = Math.max(0, 1 - Math.abs(dist) * 0.65);
           const zIndex = 10 - Math.abs(index - activeIndex);
@@ -536,15 +519,15 @@ const FilterZoneKeyboard = ({ searchText, onKeyPress, onBackspace, onSpace, onDo
 
   const KEYBOARD_ROWS = isShifted
     ? [
-        ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-        ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-        ["Z", "X", "C", "V", "B", "N", "M", "'", "-"],
-      ]
+      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      ["Z", "X", "C", "V", "B", "N", "M", "'", "-"],
+    ]
     : [
-        ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
-        ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
-        ["z", "x", "c", "v", "b", "n", "m", "'", "-"],
-      ];
+      ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+      ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+      ["z", "x", "c", "v", "b", "n", "m", "'", "-"],
+    ];
 
   return (
     <div className="ff-filter-keyboard">
@@ -613,7 +596,8 @@ const FilterZoneKeyboard = ({ searchText, onKeyPress, onBackspace, onSpace, onDo
 
 // ─── Main Component ───
 const FamilyFinder = () => {
-  const [profiles, setProfiles] = useState([]);
+  const [profiles, setProfiles] = useState([]); // All profiles for filtering
+  const [carouselProfiles, setCarouselProfiles] = useState([]); // 5 random for initial carousel
   const [loading, setLoading] = useState(true);
   const [filterZoneState, setFilterZoneState] = useState("top");
   const [activeCategory, setActiveCategory] = useState(null);
@@ -627,11 +611,77 @@ const FamilyFinder = () => {
     birthMonth: null,
   });
   const [searchText, setSearchText] = useState("");
+  const [isThinking, setIsThinking] = useState(false);
 
   useEffect(() => {
-    const fetchProfiles = async () => {
+    const fetchInitialProfiles = async () => {
       try {
         setLoading(true);
+
+        // 1. Fetch only the IDs of living profiles (excluding branch 0)
+        const { data: idData, error: idError } = await supabase
+          .from("profile")
+          .select("id")
+          .or("branch.neq.0,branch.is.null");
+
+        if (idError) throw idError;
+
+        if (idData && idData.length > 0) {
+          // 2. Pick up to 5 random IDs
+          const randomIds = [];
+          const N = idData.length;
+          while (randomIds.length < Math.min(5, N)) {
+            const randIdx = Math.floor(Math.random() * N);
+            const selectedId = idData[randIdx].id;
+            if (!randomIds.includes(selectedId)) {
+              randomIds.push(selectedId);
+            }
+          }
+
+          // 3. Fetch the full profiles for only these 5 random IDs
+          const { data, error } = await supabase
+            .from("profile")
+            .select(`
+              *,
+              ancestor_profile:ancestor (
+                id,
+                firstname,
+                lastname
+              ),
+              profilestate (
+                city,
+                state (
+                  state_name
+                )
+              )
+            `)
+            .in("id", randomIds);
+
+          if (error) throw error;
+
+          const mapped = mapProfiles(data || []);
+          setCarouselProfiles(mapped);
+        }
+      } catch (err) {
+        console.error("Error fetching initial random profiles for FamilyFinder:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialProfiles();
+  }, []);
+
+  // Lazy-load the entire database from Supabase once when search/filter interface is opened or active
+  useEffect(() => {
+    const fetchAllProfilesForSearch = async () => {
+      const shouldLoad = filterZoneState !== "top" || !!searchText || Object.values(activeFilters).some(v => v !== null);
+      if (profiles.length > 0 || !shouldLoad) return;
+
+      try {
+        setLoading(true);
+        console.log("Lazy loading entire profile database from Supabase for search...");
+
         const { data, error } = await supabase
           .from("profile")
           .select(`
@@ -648,114 +698,106 @@ const FamilyFinder = () => {
               )
             )
           `)
-          .neq('branch', 0)
-          .order("firstname", { ascending: true });
+          .order("firstname", { ascending: true })
+          .limit(1000); // Fetch all profiles (no branch filter here so null branch profiles are included)
 
         if (error) throw error;
 
-        const mapped = data.map((p) => {
-          const first = p.firstname || "";
-          const last = p.lastname || "";
-          const nick = p.nickname || "";
-          const initials = `${first[0] || ""}${last[0] || ""}`.toUpperCase();
-
-          // Determine branch string representation
-          let branchStr = "Roots";
-          if (p.branch === 1) {
-            branchStr = `${first}'s Branch`;
-          } else if (p.branch > 1 && p.ancestor_profile) {
-            branchStr = `${p.ancestor_profile.firstname}'s Branch`;
-          } else if (p.branch > 1) {
-            branchStr = "General Branch";
-          }
-
-          // Extract location from profilestate relationship
-          const stateRow = p.profilestate?.[0];
-          const locationStr = (p.branch === 0 || p.branch === 1) ? "Heaven" : (stateRow?.city || "Unknown");
-
-          // generation calculations mapping
-          let genStr = "Roots";
-          if (p.branch === 1) genStr = "1st gen";
-          else if (p.branch === 2) genStr = "2nd gen";
-          else if (p.branch === 3) genStr = "3rd gen";
-          else if (p.branch > 3) genStr = `${p.branch}th gen`;
-
-          // Determine specific ageGroup based on user comments:
-          // "Add a young adults(18-30, grown folks(30-45),senior adults(45-65)."
-          let ageGroupStr = "Adults (18-64)";
-          if (p.sunrise) {
-            const birthDate = new Date(p.sunrise);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-              age--;
-            }
-            
-            if (age < 12) ageGroupStr = "Kids (Under 12)";
-            else if (age >= 12 && age < 18) ageGroupStr = "Teens (13-17)";
-            else if (age >= 18 && age <= 30) ageGroupStr = "Young adults (18-30)";
-            else if (age > 30 && age <= 45) ageGroupStr = "Grown folks (30-45)";
-            else if (age > 45 && age <= 65) ageGroupStr = "Senior adults (45-65)";
-            else ageGroupStr = "Elders (65+)";
-          }
-
-          // birthMonth calculations mapping
-          let birthMonthStr = "January";
-          if (p.sunrise) {
-            const months = [
-              "January", "February", "March", "April", "May", "June",
-              "July", "August", "September", "October", "November", "December"
-            ];
-            const monthIdx = new Date(p.sunrise).getMonth();
-            birthMonthStr = months[monthIdx] || "January";
-          }
-
-          // Resolve avatar: local asset vs storage bucket
-          let photoUrl = null;
-          const firstWord = first.trim().split(/\s+/)[0].toLowerCase();
-          if (p.branch === 1 && IMAGE_MAP[firstWord]) {
-            photoUrl = IMAGE_MAP[firstWord];
-          } else if (p.avatar_url) {
-            const cleanUrl = p.avatar_url.replace(".jpg", "").toLowerCase();
-            if (p.branch === 1 && IMAGE_MAP[cleanUrl]) {
-              photoUrl = IMAGE_MAP[cleanUrl];
-            } else if (p.avatar_url.startsWith("http")) {
-              photoUrl = p.avatar_url;
-            } else if (p.avatar_url.includes("samplepics")) {
-              photoUrl = p.avatar_url;
-            } else {
-              photoUrl = `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${p.avatar_url}`;
-            }
-          }
-
-          return {
-            id: p.id,
-            first,
-            last,
-            nick,
-            lastname: last,
-            branch: branchStr,
-            rawBranch: p.branch,
-            location: locationStr,
-            gen: genStr,
-            initials,
-            photoKey: photoUrl,
-            ageGroup: ageGroupStr,
-            birthMonth: birthMonthStr,
-          };
-        });
-
+        const mapped = mapProfiles(data || []);
         setProfiles(mapped);
       } catch (err) {
-        console.error("Error fetching profiles for FamilyFinder:", err);
+        console.error("Error loading profiles for search:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfiles();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchAllProfilesForSearch();
+    }, 450); // Debounce buffer (lag filter) to absorb quick clicks/typing
+
+    return () => clearTimeout(timer);
+  }, [searchText, activeFilters, filterZoneState, profiles.length]);
+
+  const mapProfiles = (data) => {
+    return data.map((p) => {
+      const first = p.firstname || "";
+      const last = p.lastname || "";
+      const nick = p.nickname || "";
+      const initials = `${first[0] || ""}${last[0] || ""}`.toUpperCase();
+
+      // Determine branch string representation
+      let branchStr = "Roots";
+      if (p.branch === 1) {
+        branchStr = `${first}'s Branch`;
+      } else if (p.branch > 1 && p.ancestor_profile) {
+        branchStr = `${p.ancestor_profile.firstname}'s Branch`;
+      } else if (p.branch > 1) {
+        branchStr = "General Branch";
+      }
+
+      // Extract location from profilestate relationship
+      const stateRow = p.profilestate?.[0];
+      const locationStr = (p.branch === 0 || p.branch === 1) ? "Heaven" : (stateRow?.city || "Unknown");
+
+      // generation calculations mapping
+      let genStr = "Roots";
+      if (p.branch === 1) genStr = "1st gen";
+      else if (p.branch === 2) genStr = "2nd gen";
+      else if (p.branch === 3) genStr = "3rd gen";
+      else if (p.branch > 3) genStr = `${p.branch}th gen`;
+
+      // Determine specific ageGroup based on user comments:
+      // "Add a young adults(18-30, grown folks(30-45),senior adults(45-65)."
+      let ageGroupStr = "Adults (18-64)";
+      if (p.sunrise) {
+        const birthDate = new Date(p.sunrise);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+
+        if (age < 12) ageGroupStr = "Kids (Under 12)";
+        else if (age >= 12 && age < 18) ageGroupStr = "Teens (13-17)";
+        else if (age >= 18 && age <= 30) ageGroupStr = "Young adults (18-30)";
+        else if (age > 30 && age <= 45) ageGroupStr = "Grown folks (30-45)";
+        else if (age > 45 && age <= 65) ageGroupStr = "Senior adults (45-65)";
+        else ageGroupStr = "Elders (65+)";
+      }
+
+      // birthMonth calculations mapping
+      let birthMonthStr = "January";
+      if (p.sunrise) {
+        const months = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        const monthIdx = new Date(p.sunrise).getMonth();
+        birthMonthStr = months[monthIdx] || "January";
+      }
+
+      // Resolve avatar using centralized utility
+      const photoUrl = getAvatarSrc(p);
+
+      return {
+        id: p.id,
+        first,
+        last,
+        nick,
+        lastname: last,
+        branch: branchStr,
+        rawBranch: p.branch,
+        location: locationStr,
+        gen: genStr,
+        initials,
+        photoKey: photoUrl,
+        ageGroup: ageGroupStr,
+        birthMonth: birthMonthStr,
+      };
+    });
+  };
 
   const visibleProfiles = useMemo(
     () => getVisibleProfiles(profiles, activeFilters, searchText),
@@ -779,10 +821,14 @@ const FamilyFinder = () => {
   }, []);
 
   const handleToggleFilter = useCallback((category, value) => {
-    setActiveFilters((prev) => ({
-      ...prev,
-      [category]: prev[category] === value ? null : value,
-    }));
+    setIsThinking(true);
+    setTimeout(() => {
+      setActiveFilters((prev) => ({
+        ...prev,
+        [category]: prev[category] === value ? null : value,
+      }));
+      setIsThinking(false);
+    }, 380); // 380ms thinking animation buffer
   }, []);
 
   const handleExpandChip = useCallback((cat) => {
@@ -794,11 +840,15 @@ const FamilyFinder = () => {
   }, []);
 
   const handleToggleCrossFilter = useCallback((category, value) => {
-    setActiveFilters((prev) => ({
-      ...prev,
-      [category]: prev[category] === value ? null : value,
-    }));
-    setExpandedChip(null);
+    setIsThinking(true);
+    setTimeout(() => {
+      setActiveFilters((prev) => ({
+        ...prev,
+        [category]: prev[category] === value ? null : value,
+      }));
+      setExpandedChip(null);
+      setIsThinking(false);
+    }, 380); // 380ms thinking animation buffer
   }, []);
 
   const handleKeyPress = useCallback((key) => {
@@ -824,7 +874,19 @@ const FamilyFinder = () => {
       </div>
 
       <div className="ff-carousel">
-        <DeckCarousel profiles={visibleProfiles} loading={loading} />
+        {isThinking ? (
+          <div className="ff-deck ff-deck-thinking">
+            <div className="ff-thinking-card">
+              <div className="ff-thinking-spinner" />
+              <p className="ff-thinking-text">Exploring branches...</p>
+            </div>
+          </div>
+        ) : (
+          <DeckCarousel
+            profiles={(searchText || Object.values(activeFilters).some(v => v !== null)) ? visibleProfiles : carouselProfiles}
+            loading={loading}
+          />
+        )}
       </div>
 
       <div className="ff-filter-zone">

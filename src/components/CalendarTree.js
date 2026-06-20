@@ -10,60 +10,7 @@ import {
 import { supabase } from "../supabaseClient";
 import "./CalendarTree.css";
 
-// Image imports
-import Alma from "../assets/alma.jpg";
-import Ben from "../assets/ben.jpg";
-import Bobbie from "../assets/bobbie.jpg";
-import Hazel from "../assets/hazel.jpg";
-import James from "../assets/james.jpg";
-import John from "../assets/john.jpg";
-import Joyce from "../assets/joyce.jpg";
-import Lorene from "../assets/lorene.jpg";
-import Loretta from "../assets/loretta.jpg";
-import Mary from "../assets/mary.jpg";
-import Sylvester from "../assets/sylvester.jpg";
-
-const imageMap = {
-  alma: Alma,
-  ben: Ben,
-  bobbie: Bobbie,
-  hazel: Hazel,
-  james: James,
-  john: John,
-  joyce: Joyce,
-  lorene: Lorene,
-  loretta: Loretta,
-  mary: Mary,
-  sylvester: Sylvester,
-};
-
-const getAvatarSrc = (profile) => {
-  if (!profile) return null;
-  
-  // Only use imageMap for First Branch members (branch === 1)
-  if (profile.branch === 1) {
-    const firstWord = (profile.firstname || "").trim().split(/\s+/)[0].toLowerCase();
-    if (imageMap[firstWord]) {
-      return imageMap[firstWord];
-    }
-  }
-  
-  if (profile.avatar_url) {
-    const cleanUrl = profile.avatar_url.replace(".jpg", "").toLowerCase();
-    if (imageMap[cleanUrl]) {
-      return imageMap[cleanUrl];
-    }
-    if (profile.avatar_url.startsWith("http")) {
-      return profile.avatar_url;
-    }
-    // Check if it's a sample picture
-    if (profile.avatar_url.includes("samplepics")) {
-      return profile.avatar_url;
-    }
-    return `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${profile.avatar_url}`;
-  }
-  return null;
-};
+import { getAvatarSrc } from "../utils/avatarHelper";
 
 const { Title, Text } = Typography;
 

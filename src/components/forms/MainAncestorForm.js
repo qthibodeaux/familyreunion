@@ -5,31 +5,7 @@ import { useNavigate } from "react-router-dom";
 import AuthConsumer from "../../useSession";
 import useParentDirector from "../../components/director/useParentDirector";
 
-import alma from "../../assets/alma.jpg";
-import ben from "../../assets/ben.jpg";
-import bobbie from "../../assets/bobbie.jpg";
-import hazel from "../../assets/hazel.jpg";
-import james from "../../assets/james.jpg";
-import john from "../../assets/john.jpg";
-import joyce from "../../assets/joyce.jpg";
-import lorene from "../../assets/lorene.jpg";
-import loretta from "../../assets/loretta.jpg";
-import mary from "../../assets/mary.jpg";
-import sylvester from "../../assets/sylvester.jpg";
-
-const imageMap = {
-  Alma: alma,
-  Ben: ben,
-  "Bobbie Jean": bobbie,
-  Hazel: hazel,
-  James: james,
-  John: john,
-  Joyce: joyce,
-  Lorene: lorene,
-  Loretta: loretta,
-  Mary: mary,
-  Sylvester: sylvester,
-};
+import { getAvatarSrc } from "../../utils/avatarHelper";
 
 function MainAncestorForm() {
   useParentDirector();
@@ -65,8 +41,7 @@ function MainAncestorForm() {
   const goBack = () => navigate(`/profile/${session.user.id}`);
 
   const handleAvatarClick = (ancestor) => {
-    const imageSrc =
-      (ancestor.branch === 1 && imageMap[ancestor.firstname]) || "https://via.placeholder.com/150";
+    const imageSrc = getAvatarSrc(ancestor) || "https://via.placeholder.com/150";
     setSelectedAncestor({ ...ancestor, imageSrc });
     setShowWarning(false);
   };
@@ -136,9 +111,7 @@ function MainAncestorForm() {
           </Row>
           <Row gutter={[16, 16]}>
             {profiles.map((profile, index) => {
-              const imageSrc =
-                (profile.branch === 1 && imageMap[profile.firstname]) ||
-                "https://via.placeholder.com/150";
+              const imageSrc = getAvatarSrc(profile) || "https://via.placeholder.com/150";
               return (
                 <Col
                   key={index}

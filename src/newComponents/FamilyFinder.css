@@ -613,3 +613,54 @@
 .ff-keyboard-done:active {
   background: #3f152d;
 }
+
+/* ─── Thinking Card & Spinner ─── */
+.ff-deck-thinking {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.ff-thinking-card {
+  width: 76%;
+  height: 92%;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #ede6dc 0%, #faeed6 100%);
+  border: 1.5px dashed rgba(91, 31, 64, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  box-shadow: inset 0 0 20px rgba(91, 31, 64, 0.05);
+}
+
+.ff-thinking-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(91, 31, 64, 0.1);
+  border-top-color: #5b1f40;
+  border-radius: 50%;
+  animation: ffSpin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+}
+
+.ff-thinking-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #5b1f40;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  animation: ffPulseText 1.4s ease-in-out infinite;
+}
+
+@keyframes ffSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ffPulseText {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
