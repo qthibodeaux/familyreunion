@@ -16,6 +16,7 @@ import {
 import { format } from "date-fns";
 import AuthConsumer from "../useSession";
 import { supabase } from "../supabaseClient";
+import { getAvatarSrc } from "../utils/avatarHelper";
 import "./RecentMilestonesPage.css"; // Reuse milestone layout styles
 
 const RecentGuestbookPage = () => {
@@ -226,9 +227,7 @@ const RecentGuestbookPage = () => {
   };
 
   const getProfileAvatarSrc = (profile) => {
-    if (!profile?.avatar_url) return null;
-    if (profile.avatar_url.startsWith("http")) return profile.avatar_url;
-    return `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${profile.avatar_url}`;
+    return getAvatarSrc(profile);
   };
 
   return (

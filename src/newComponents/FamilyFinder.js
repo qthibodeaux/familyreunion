@@ -727,8 +727,10 @@ const FamilyFinder = () => {
       const initials = `${first[0] || ""}${last[0] || ""}`.toUpperCase();
 
       // Determine branch string representation
-      let branchStr = "Roots";
-      if (p.branch === 1) {
+      let branchStr = "Unconnected";
+      if (p.branch === 0 || p.branch === "0") {
+        branchStr = "Roots";
+      } else if (p.branch === 1) {
         branchStr = `${first}'s Branch`;
       } else if (p.branch > 1 && p.ancestor_profile) {
         branchStr = `${p.ancestor_profile.firstname}'s Branch`;
@@ -741,8 +743,10 @@ const FamilyFinder = () => {
       const locationStr = (p.branch === 0 || p.branch === 1) ? "Heaven" : (stateRow?.city || "Unknown");
 
       // generation calculations mapping
-      let genStr = "Roots";
-      if (p.branch === 1) genStr = "1st gen";
+      let genStr = "Unconnected";
+      if (p.branch === 0 || p.branch === "0") {
+        genStr = "Roots";
+      } else if (p.branch === 1) genStr = "1st gen";
       else if (p.branch === 2) genStr = "2nd gen";
       else if (p.branch === 3) genStr = "3rd gen";
       else if (p.branch > 3) genStr = `${p.branch}th gen`;

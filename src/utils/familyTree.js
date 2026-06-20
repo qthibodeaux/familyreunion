@@ -1,9 +1,10 @@
 import { supabase } from "../supabaseClient";
 
 /**
- * Updates the branch numbers for a family tree starting from the given profile
+ * Updates the branch numbers for a family tree starting from the given profile,
+ * recursively updating all descendants and their spouses.
  * @param {string} profileId - The ID of the profile to start updating from
- * @param {number} newBranch - The new branch number to set
+ * @param {number|null} newBranch - The new branch number to set
  * @param {Set} [processed=new Set()] - Set to track processed profiles and prevent cycles
  */
 export const updateFamilyBranch = async (
@@ -26,7 +27,22 @@ export const updateFamilyBranch = async (
     return;
   }
 
-  // Get all children of the current profile
+  // 1. Fetch active spouse connections to also update their branch
+  const { data: spouseConns, error: spouseError } = await supabase
+    .from("connection")
+    .select("profile_2")
+    .eq("profile_1", profileId)
+    .eq("connection_type", "spouse")
+    .eq("status", "active");
+
+  if (!spouseError && spouseConns) {
+    for (const conn of spouseConns) {
+      const spouseId = conn.profile_2;
+      await updateFamilyBranch(spouseId, newBranch, processed);
+    }
+  }
+
+  // 2. Get all children of the current profile
   const { data: children, error: childrenError } = await supabase
     .from("profile")
     .select("id")
@@ -37,16 +53,17 @@ export const updateFamilyBranch = async (
     return;
   }
 
-  // Recursively update all children with branch + 1
+  // Recursively update all children with branch + 1 (unless newBranch is null)
+  const nextBranch = newBranch !== null && newBranch !== undefined ? newBranch + 1 : null;
   for (const child of children) {
-    await updateFamilyBranch(child.id, newBranch + 1, processed);
+    await updateFamilyBranch(child.id, nextBranch, processed);
   }
 };
 
 /**
- * Updates the ancestor reference for a profile and all its descendants
+ * Updates the ancestor reference for a profile, all its descendants, and their spouses.
  * @param {string} profileId - The ID of the profile to update
- * @param {string} ancestorId - The ID of the ancestor
+ * @param {string|null} ancestorId - The ID of the ancestor
  * @param {Set} [processed=new Set()] - Set to track processed profiles and prevent cycles
  */
 export const updateAncestorReference = async (
@@ -69,7 +86,22 @@ export const updateAncestorReference = async (
     return;
   }
 
-  // Get all children of the current profile
+  // 1. Fetch active spouse connections to also update their ancestor reference
+  const { data: spouseConns, error: spouseError } = await supabase
+    .from("connection")
+    .select("profile_2")
+    .eq("profile_1", profileId)
+    .eq("connection_type", "spouse")
+    .eq("status", "active");
+
+  if (!spouseError && spouseConns) {
+    for (const conn of spouseConns) {
+      const spouseId = conn.profile_2;
+      await updateAncestorReference(spouseId, ancestorId, processed);
+    }
+  }
+
+  // 2. Get all children of the current profile
   const { data: children, error: childrenError } = await supabase
     .from("profile")
     .select("id")

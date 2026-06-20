@@ -15,26 +15,8 @@ import { supabase } from "../../supabaseClient";
 import AuthConsumer from "../../useSession";
 import "./NewCombinedDemoSection.css";
 
-// Import asset photos for first generation mapping
-import Alma from "../../assets/alma.jpg";
-import Ben from "../../assets/ben.jpg";
-import Bobbie from "../../assets/bobbie.jpg";
-import Hazel from "../../assets/hazel.jpg";
-import James from "../../assets/james.jpg";
-import John from "../../assets/john.jpg";
-import Joyce from "../../assets/joyce.jpg";
-import Lorene from "../../assets/lorene.jpg";
-import Loretta from "../../assets/loretta.jpg";
-import Mary from "../../assets/mary.jpg";
-import Sylvester from "../../assets/sylvester.jpg";
+import { getAvatarSrc } from "../../utils/avatarHelper";
 import RootsAvatar from "../../assets/root.png";
-
-const IMAGE_MAP = {
-  alma: Alma, ben: Ben, bobbie: Bobbie, hazel: Hazel,
-  james: James, john: John, joyce: Joyce, lorene: Lorene,
-  loretta: Loretta, mary: Mary, sylvester: Sylvester
-};
-
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
@@ -44,31 +26,6 @@ const getOrdinal = (n) => {
   const s = ["th", "st", "nd", "rd"];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
-};
-
-const getAncestorPhoto = (name) => {
-  if (!name) return RootsAvatar;
-  const firstWord = name.trim().split(/\s+/)[0].toLowerCase();
-  return IMAGE_MAP[firstWord] || RootsAvatar;
-};
-
-const getAvatarSrc = (profile) => {
-  if (!profile) return null;
-  const firstWord = (profile.firstname || "").trim().split(/\s+/)[0].toLowerCase();
-  if (IMAGE_MAP[firstWord]) {
-    return IMAGE_MAP[firstWord];
-  }
-  if (profile.avatar_url) {
-    const cleanUrl = profile.avatar_url.replace(".jpg", "").toLowerCase();
-    if (IMAGE_MAP[cleanUrl]) {
-      return IMAGE_MAP[cleanUrl];
-    }
-    if (profile.avatar_url.startsWith("http")) {
-      return profile.avatar_url;
-    }
-    return `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${profile.avatar_url}`;
-  }
-  return null;
 };
 
 const getInitials = (first, last) => {
@@ -117,14 +74,14 @@ const NewCombinedDemoSection = () => {
     try {
       const ancestorPromise = supabase
         .from("profile")
-        .select("id, firstname, lastname, sunrise, sunset")
+        .select("id, firstname, lastname, sunrise, sunset, avatar_url")
         .eq("id", profile.ancestor)
         .single();
 
       const parentPromise = profile.parent
         ? supabase
             .from("profile")
-            .select("id, firstname, lastname")
+            .select("id, firstname, lastname, avatar_url")
             .eq("id", profile.parent)
             .single()
         : Promise.resolve({ data: null });
@@ -275,7 +232,7 @@ const NewCombinedDemoSection = () => {
     // Ancestor
     chainNodes.push({
       key: "ancestor",
-      photo: getAncestorPhoto(ancestorFirst),
+      photo: getAvatarSrc(ancestor),
       label: ancestorFirst,
       role: "Ancestor",
       onClick: ancestor?.id ? () => navigate(`/profile/${ancestor.id}`) : null
@@ -284,7 +241,7 @@ const NewCombinedDemoSection = () => {
     if (parent && parent.id !== profile?.ancestor) {
       chainNodes.push({
         key: "parent",
-        photo: getAncestorPhoto(parentFirst),
+        photo: getAvatarSrc(parent),
         label: parentFirst,
         role: "Parent",
         onClick: () => navigate(`/profile/${parent.id}`)

@@ -12,6 +12,7 @@ import {
 } from "@ant-design/icons";
 import { supabase } from "../supabaseClient";
 import AuthConsumer from "../useSession";
+import { getAvatarSrc } from "../utils/avatarHelper";
 import "../theme/components/ScrollTree.css";
 
 function ScrollTree() {
@@ -378,12 +379,7 @@ function ScrollTree() {
     }
   };
 
-  // Helper getters for avatars
-  const getAvatarSrc = (avatarUrl) => {
-    if (!avatarUrl) return null;
-    if (avatarUrl.startsWith("http") || avatarUrl.startsWith("/")) return avatarUrl;
-    return `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${avatarUrl}`;
-  };
+  // Helper initials getter
 
   const getInitials = (first, last) => {
     return `${first?.[0] || ""}${last?.[0] || ""}`.toUpperCase();
@@ -430,7 +426,7 @@ function ScrollTree() {
     const isFocused = focusedCardId === member.id;
     const avatarBg = getColorHash(member.id);
     const initials = getInitials(member.firstname, member.lastname);
-    const avatarSrc = getAvatarSrc(member.avatar_url);
+    const avatarSrc = getAvatarSrc(member);
 
     // Display total descendant count or end of line indicator
     const treeNode = nodeMap[member.id];
@@ -635,7 +631,7 @@ function ScrollTree() {
                 >
                   <Avatar
                     shape="square"
-                    src={getAvatarSrc(p.avatar_url)}
+                    src={getAvatarSrc(p)}
                     icon={<UserOutlined />}
                     size={24}
                     style={{ border: "1px solid rgba(234,190,169,0.3)", borderRadius: "4px" }}
@@ -703,7 +699,7 @@ function ScrollTree() {
             <div className="drawer-header-row">
               <Avatar
                 shape="square"
-                src={getAvatarSrc(selectedMember.avatar_url)}
+                src={getAvatarSrc(selectedMember)}
                 icon={<UserOutlined />}
                 size={64}
                 className="drawer-avatar"

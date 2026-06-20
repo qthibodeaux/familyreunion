@@ -409,10 +409,10 @@ function ProfileWizard() {
           profileData.ancestor = anchorId;
         }
 
-        if (parentProfile.branch !== null) {
+        if (parentProfile.branch !== null && parentProfile.branch !== undefined) {
           profileData.branch = parentProfile.branch + 1;
         } else {
-          profileData.branch = 0;
+          profileData.branch = null;
         }
       } catch (err) {
         console.error("Error loading parent details:", err);

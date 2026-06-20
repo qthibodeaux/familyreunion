@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { DownOutlined, RightOutlined } from "@ant-design/icons";
+import { getAvatarSrc } from "../utils/avatarHelper";
 import "../theme/components/FamilyTree.css";
 
 import { useNavigate } from "react-router-dom";
@@ -25,9 +26,9 @@ const ProfileBlock = ({ profile }) => {
       style={{ cursor: "pointer" }}
     >
       <div className="avatar-container">
-        {profile.avatar_url ? (
+        {getAvatarSrc(profile) ? (
           <img
-            src={`${supabase.supabaseUrl}/storage/v1/object/public/avatars/${profile.avatar_url}`}
+            src={getAvatarSrc(profile)}
             alt={profile.firstname}
             onError={(e) => {
               e.target.style.display = "none";
@@ -37,7 +38,7 @@ const ProfileBlock = ({ profile }) => {
         ) : null}
         <div
           className="initials"
-          style={{ display: profile.avatar_url ? "none" : "flex" }}
+          style={{ display: getAvatarSrc(profile) ? "none" : "flex" }}
         >
           {initials}
         </div>

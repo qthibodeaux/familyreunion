@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { supabase } from "../../supabaseClient";
 import AuthConsumer from "../../useSession";
+import { getAvatarSrc } from "../../utils/avatarHelper";
 import "./NewBulletinBoardSection.css";
 
 // Encapsulated Rotating Live Tile Card component
@@ -403,12 +404,7 @@ const NewBulletinBoardSection = () => {
     loadFeedData();
   }, [currentUserId, loadFeedData]);
 
-  // Helper getters for image assets
-  const getAvatarSrc = useCallback((profileObj) => {
-    if (!profileObj?.avatar_url) return null;
-    if (profileObj.avatar_url.startsWith("http")) return profileObj.avatar_url;
-    return `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${profileObj.avatar_url}`;
-  }, []);
+  // Helper getter for milestone photos
 
   const getMilestonePhoto = useCallback((photoUrl) => {
     if (!photoUrl) return null;

@@ -4,6 +4,7 @@ import {
   updateFamilyBranch,
   updateAncestorReference,
 } from "../../utils/familyTree";
+import { getAvatarSrc } from "../../utils/avatarHelper";
 import { supabase } from "../../supabaseClient";
 import { useNavigate, useParams } from "react-router-dom";
 import AuthConsumer from "../../useSession";
@@ -189,8 +190,8 @@ function ParentForm() {
         if (parentProfileError) throw parentProfileError;
 
         // 2. Determine the new branch number
-        let newBranch = 0; // Default to 0 if no branch exists
-        if (parentProfile.branch !== null) {
+        let newBranch = null;
+        if (parentProfile.branch !== null && parentProfile.branch !== undefined) {
           newBranch = parentProfile.branch + 1;
         }
 
@@ -268,9 +269,9 @@ function ParentForm() {
                     justifyContent: "center",
                   }}
                 >
-                  {selectedProfile.avatar_url ? (
+                  {getAvatarSrc(selectedProfile) ? (
                     <img
-                      src={`${supabase.supabaseUrl}/storage/v1/object/public/avatars/${selectedProfile.avatar_url}`}
+                      src={getAvatarSrc(selectedProfile)}
                       alt={`${selectedProfile.firstname} ${selectedProfile.lastname}`}
                       style={{
                         width: "100%",
@@ -286,7 +287,7 @@ function ParentForm() {
                   ) : null}
                   <div
                     style={{
-                      display: selectedProfile.avatar_url ? "none" : "flex",
+                      display: getAvatarSrc(selectedProfile) ? "none" : "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       width: "100%",

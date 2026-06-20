@@ -19,6 +19,7 @@ import { AuthProvider } from "../useSession";
 import AuthConsumer from "../useSession";
 import { supabase } from "../supabaseClient";
 import AuthCallbackHandler from "../components/AuthCallbackHandler";
+import { getAvatarSrc } from "../utils/avatarHelper";
 import "./NewLayout.css";
 
 const NewLayoutContent = () => {
@@ -195,9 +196,7 @@ const NewLayoutContent = () => {
     if (session) {
       const initials =
         `${profile?.firstname?.[0] || ""}${profile?.lastname?.[0] || ""}`.toUpperCase();
-      const avatarUrl = profile?.avatar_url
-        ? `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${profile.avatar_url}`
-        : null;
+      const avatarUrl = getAvatarSrc(profile);
 
       return (
         <div className="identity-card large">

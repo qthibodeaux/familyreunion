@@ -5,6 +5,7 @@ import { CloseOutlined, SearchOutlined, UserOutlined, UserAddOutlined, SafetyOut
 import { supabase } from "../supabaseClient";
 import AuthConsumer from "../useSession";
 import { format } from "date-fns";
+import { getAvatarSrc } from "../utils/avatarHelper";
 import "./Onboarding.css";
 
 const { Title, Text } = Typography;
@@ -50,7 +51,7 @@ const Onboarding = () => {
         .select("id, firstname, nickname, lastname, avatar_url, branch, sunrise, sunset, parent, ancestor")
         .or(`firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`)
         .is("phone", null)
-        .neq('branch', 0) // Cannot claim Branch 0 (The Roots)
+        .or("branch.neq.0,branch.is.null") // Cannot claim Branch 0 (The Roots) but allow null branch profiles
         .order("firstname", { ascending: true })
         .limit(8);
 
@@ -61,8 +62,8 @@ const Onboarding = () => {
             label: (
               <div className="onboarding-search-item" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 4px" }}>
                 <Avatar 
-                  src={p.avatar_url ? `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${p.avatar_url}` : null}
-                  icon={!p.avatar_url && <UserOutlined />}
+                  src={getAvatarSrc(p)}
+                  icon={!getAvatarSrc(p) && <UserOutlined />}
                   size="default"
                   style={{ border: "2px solid rgba(234,190,169,0.3)" }}
                 />
@@ -380,8 +381,8 @@ const Onboarding = () => {
             <div className="onboarding-preview-card" style={{ background: "rgba(255,255,255,0.04)", padding: "28px", borderRadius: "16px", border: "1px solid rgba(234,190,169,0.15)", marginBottom: "24px" }}>
               <Avatar 
                 size={90}
-                src={selectedProfile?.avatar_url ? `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${selectedProfile.avatar_url}` : null}
-                icon={!selectedProfile?.avatar_url && <UserOutlined />}
+                src={getAvatarSrc(selectedProfile)}
+                icon={!getAvatarSrc(selectedProfile) && <UserOutlined />}
                 style={{ border: "3px solid #f3e7b1", background: "#5b1f40" }}
               />
               <div style={{ fontSize: "1.5rem", fontWeight: "bold", marginTop: "14px", color: "#f3e7b1" }}>

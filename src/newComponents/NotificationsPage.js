@@ -11,6 +11,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import AuthConsumer from "../useSession";
 import { supabase } from "../supabaseClient";
+import { getAvatarSrc } from "../utils/avatarHelper";
 import "./NotificationsPage.css";
 
 const NotificationsPage = () => {
@@ -147,9 +148,7 @@ const NotificationsPage = () => {
   };
 
   const getActorAvatarSrc = (actor) => {
-    if (!actor?.avatar_url) return null;
-    if (actor.avatar_url.startsWith("http")) return actor.avatar_url;
-    return `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${actor.avatar_url}`;
+    return getAvatarSrc(actor);
   };
 
   if (!session) {

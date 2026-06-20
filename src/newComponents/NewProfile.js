@@ -1744,12 +1744,12 @@ function NewProfile() {
                     ) : (
                       <div style={{ padding: "8px 0", color: "#EABEA9", fontStyle: "italic", fontSize: "0.9rem" }}>
                         No spouse linked.
-                        {canEdit && (
-                          <Button size="small" type="link" onClick={() => navigate(`/interactive-form/spouse/${userId}`)} style={{ color: "#F7DC92", padding: "0 8px" }}>
-                            <PlusOutlined /> Link Spouse
-                          </Button>
-                        )}
                       </div>
+                    )}
+                    {canEdit && (
+                      <Button size="small" type="link" onClick={() => navigate(`/interactive-form/spouse/${userId}`)} style={{ color: "#F7DC92", padding: "8px 0 0 0", display: "block" }}>
+                        <PlusOutlined /> Link Spouse
+                      </Button>
                     )}
                   </div>
 
@@ -1778,12 +1778,12 @@ function NewProfile() {
                     ) : (
                       <div style={{ padding: "8px 0", color: "#EABEA9", fontStyle: "italic", fontSize: "0.9rem" }}>
                         No children linked.
-                        {canEdit && (
-                          <Button size="small" type="link" onClick={() => navigate(`/interactive-form/child/${userId}`)} style={{ color: "#F7DC92", padding: "0 8px" }}>
-                            <PlusOutlined /> Link Child
-                          </Button>
-                        )}
                       </div>
+                    )}
+                    {canEdit && (
+                      <Button size="small" type="link" onClick={() => navigate(`/interactive-form/child/${userId}`)} style={{ color: "#F7DC92", padding: "8px 0 0 0", display: "block" }}>
+                        <PlusOutlined /> Link Child
+                      </Button>
                     )}
                   </div>
 

@@ -3,6 +3,7 @@ import { CloseOutlined, SearchOutlined, UserOutlined } from "@ant-design/icons";
 import { Avatar, message } from "antd";
 import { supabase } from "../supabaseClient";
 import { updateFamilyBranch, updateAncestorReference } from "../utils/familyTree";
+import { getAvatarSrc } from "../utils/avatarHelper";
 import { useNavigate } from "react-router-dom";
 import "./InPlaceForm.css";
 
@@ -66,13 +67,13 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
     let query = supabase
       .from("profile")
       .select("id, firstname, nickname, lastname, avatar_url, branch")
-      .or(`firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`)
-      .neq('branch', 0); // Always exclude Branch 0 (Roots) from connection search
+      .or(`firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`);
 
-    // Exclude first branch (branch 1) for child/spouse searches if needed, 
-    // but Branch 0 is already handled above for all cases.
+    // Exclude first branch (branch 1) and root branch for child/spouse searches, but allow NULL branches for all
     if (mode === 'child' || mode === 'spouse') {
-      query = query.gt('branch', 1);
+      query = query.or("branch.gt.1,branch.is.null");
+    } else {
+      query = query.or("branch.neq.0,branch.is.null");
     }
 
     const { data, error } = await query
@@ -177,7 +178,7 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
           parentAncestor = dbParent.ancestor;
         }
 
-        let newBranch = 0;
+        let newBranch = null;
         if (parentBranch !== null && parentBranch !== undefined) {
           newBranch = parentBranch + 1;
         }
@@ -201,7 +202,7 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
       }
 
       if (mode === "child") {
-        let childBranch = anchor.branch !== null && anchor.branch !== undefined ? anchor.branch + 1 : 0;
+        let childBranch = anchor.branch !== null && anchor.branch !== undefined ? anchor.branch + 1 : null;
         let childAncestor = anchor.ancestor || anchor.id;
 
         const { error: updateChildError } = await supabase
@@ -269,8 +270,8 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
           <div className="form-context-header" style={{ padding: '20px 20px 0' }}>
             <div className="anchor-node">
               <div className="anchor-avatar">
-                {anchor?.avatar_url ? (
-                  <img src={`${supabase.supabaseUrl}/storage/v1/object/public/avatars/${anchor.avatar_url}`} alt={anchor.firstname} />
+                {getAvatarSrc(anchor) ? (
+                  <img src={getAvatarSrc(anchor)} alt={anchor.firstname} />
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '1.2rem', fontWeight: 'bold' }}>
                     {anchor?.firstname?.[0] || 'G'}
@@ -328,8 +329,8 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
                         onClick={() => onSelectProfile(profile)}
                       >
                         <div className="search-result-avatar">
-                          {profile.avatar_url ? (
-                            <img src={`${supabase.supabaseUrl}/storage/v1/object/public/avatars/${profile.avatar_url}`} alt={profile.firstname} />
+                          {getAvatarSrc(profile) ? (
+                            <img src={getAvatarSrc(profile)} alt={profile.firstname} />
                           ) : (
                             profile.firstname?.[0] || '?'
                           )}
@@ -368,8 +369,8 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
                 <Avatar 
                   shape="square"
                   size={80}
-                  src={selectedProfile?.avatar_url ? `${supabase.supabaseUrl}/storage/v1/object/public/avatars/${selectedProfile.avatar_url}` : null}
-                  icon={!selectedProfile?.avatar_url && <UserOutlined />}
+                  src={getAvatarSrc(selectedProfile)}
+                  icon={!getAvatarSrc(selectedProfile) && <UserOutlined />}
                   style={{ borderRadius: '16px', border: '3px solid #f3e7b1', background: '#5b1f40' }}
                 >
                   {selectedProfile?.firstname?.[0]}
