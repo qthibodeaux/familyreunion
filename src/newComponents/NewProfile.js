@@ -1574,134 +1574,14 @@ function NewProfile() {
                               <div className="timeline-dot general" style={{ border: "2px solid #EABEA9", background: "#30041e", zIndex: 3, width: "12px", height: "12px", borderRadius: "50%" }} />
                             </div>
                             <div className="timeline-right" style={{ marginBottom: "1.5rem" }}>
-                              {!showAddMilestoneForm ? (
-                                <Button 
-                                  type="dashed" 
-                                  onClick={() => setShowAddMilestoneForm(true)} 
-                                  icon={<PlusOutlined />}
-                                  style={{ width: "100%", color: "#f3e7b1", borderColor: "#EABEA9", background: "rgba(255,255,255,0.03)", height: "45px", borderRadius: "8px" }}
-                                >
-                                  Add New Life Milestone
-                                </Button>
-                              ) : (
-                                <form onSubmit={handleAddMilestone} className="add-milestone-form" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(234,190,169,0.15)", padding: "16px", borderRadius: "12px" }}>
-                                  <h3 style={{ color: "#EABEA9", margin: "0 0 12px 0", fontSize: "1.1rem" }}>Add Milestone</h3>
-                                  
-                                  <div className="form-group" style={{ marginBottom: "12px" }}>
-                                    <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Title *</label>
-                                    <Input 
-                                      placeholder="e.g. Graduated from UT Austin" 
-                                      value={newMilestoneTitle} 
-                                      onChange={(e) => setNewMilestoneTitle(e.target.value)} 
-                                      required
-                                      style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)" }}
-                                    />
-                                  </div>
-
-                                  <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
-                                    <div style={{ flex: 1 }}>
-                                      <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Category</label>
-                                      <select 
-                                        value={newMilestoneCategory} 
-                                        onChange={(e) => setNewMilestoneCategory(e.target.value)}
-                                        style={{ width: "100%", height: "32px", padding: "4px 8px", borderRadius: "6px", background: "#4a1934", color: "#fff", border: "1px solid rgba(234,190,169,0.3)" }}
-                                      >
-                                        <option value="school">School</option>
-                                        <option value="career">Career</option>
-                                        <option value="sports">Sports</option>
-                                        <option value="family">Family</option>
-                                        <option value="adventures">Adventures</option>
-                                        <option value="memories">Memories</option>
-                                        <option value="travel">Travel</option>
-                                        <option value="military">Military</option>
-                                        <option value="faith">Faith</option>
-                                        <option value="other">Other</option>
-                                      </select>
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                      <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Subcategory (optional)</label>
-                                      <Input 
-                                        placeholder="e.g. Baptism, B.S. Degree" 
-                                        value={newMilestoneSubcategory} 
-                                        onChange={(e) => setNewMilestoneSubcategory(e.target.value)}
-                                        style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)" }}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
-                                    <div style={{ flex: 1 }}>
-                                      <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Date</label>
-                                      <input 
-                                        type="date"
-                                        value={newMilestoneDate} 
-                                        onChange={(e) => setNewMilestoneDate(e.target.value)}
-                                        style={{ width: "100%", height: "32px", padding: "4px 8px", borderRadius: "6px", background: "#4a1934", color: "#fff", border: "1px solid rgba(234,190,169,0.3)" }}
-                                      />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                      <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Location</label>
-                                      <Input 
-                                        placeholder="e.g. Austin, TX" 
-                                        value={newMilestoneLocation} 
-                                        onChange={(e) => setNewMilestoneLocation(e.target.value)}
-                                        style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)" }}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="form-group" style={{ marginBottom: "12px" }}>
-                                    <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Notes / Memories</label>
-                                    <Input.TextArea 
-                                      placeholder="Add details, memories, or notes about this milestone..." 
-                                      value={newMilestoneNotes} 
-                                      onChange={(e) => setNewMilestoneNotes(e.target.value)}
-                                      rows={3}
-                                      style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", resize: "none" }}
-                                    />
-                                  </div>
-
-                                  <div className="form-group" style={{ marginBottom: "16px" }}>
-                                    <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Attach Event Photo</label>
-                                    <input 
-                                      type="file" 
-                                      accept="image/*"
-                                      onChange={(e) => setNewMilestonePhoto(e.target.files[0])}
-                                      style={{ color: "#EABEA9", fontSize: "0.85rem" }}
-                                    />
-                                  </div>
-
-                                  <div className="form-group" style={{ marginBottom: "16px" }}>
-                                    <Checkbox
-                                      checked={newMilestoneBroadcast}
-                                      onChange={(e) => setNewMilestoneBroadcast(e.target.checked)}
-                                      style={{ color: "#f3e7b1" }}
-                                    >
-                                      Broadcast to Family Feed
-                                    </Checkbox>
-                                  </div>
-
-                                  <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-                                    <Button 
-                                      onClick={() => {
-                                        setShowAddMilestoneForm(false);
-                                        setNewMilestonePhoto(null);
-                                      }} 
-                                      style={{ background: "transparent", color: "#EABEA9", borderColor: "rgba(234,190,169,0.3)" }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button 
-                                      type="primary" 
-                                      htmlType="submit" 
-                                      loading={savingMilestone}
-                                      style={{ backgroundColor: "#F7DC92", color: "#873D62", fontWeight: "bold", border: "none" }}
-                                    >
-                                      Save Event
-                                    </Button>
-                                  </div>
-                                </form>
-                              )}
+                              <Button 
+                                type="dashed" 
+                                onClick={() => setShowAddMilestoneForm(true)} 
+                                icon={<PlusOutlined />}
+                                style={{ width: "100%", color: "#f3e7b1", borderColor: "#EABEA9", background: "rgba(255,255,255,0.03)", height: "45px", borderRadius: "8px" }}
+                              >
+                                Add New Life Milestone
+                              </Button>
                             </div>
                           </div>
                         )}
@@ -2389,6 +2269,146 @@ function NewProfile() {
                   </Button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Add Milestone Form Modal Overlay */}
+      {showAddMilestoneForm && (
+        <div className="photo-detail-overlay-backdrop">
+          <div className="milestone-overlay-modal">
+            <button
+              className="close-overlay-btn"
+              onClick={() => {
+                setShowAddMilestoneForm(false);
+                setNewMilestonePhoto(null);
+              }}
+            >
+              <CloseOutlined />
+            </button>
+            <div style={{ padding: "1.5rem 1.25rem" }}>
+              <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
+                <PlusOutlined style={{ fontSize: "2rem", color: "#F7DC92", marginBottom: "8px" }} />
+                <h2 style={{ color: "#f3e7b1", margin: 0, fontSize: "1.4rem" }}>Add Life Milestone</h2>
+                <p style={{ color: "#EABEA9", fontSize: "0.85rem", marginTop: "4px" }}>Share an event, memory, or milestone in {data.firstname}'s life path.</p>
+              </div>
+
+              <form onSubmit={handleAddMilestone} className="milestone-modal-form-fields">
+                <div className="form-group" style={{ marginBottom: "0.75rem" }}>
+                  <label className="milestone-modal-label">Title *</label>
+                  <Input 
+                    placeholder="e.g. Graduated from UT Austin" 
+                    value={newMilestoneTitle} 
+                    onChange={(e) => setNewMilestoneTitle(e.target.value)} 
+                    required
+                    style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginBottom: "0.75rem" }}>
+                  <div style={{ flex: 1 }}>
+                    <label className="milestone-modal-label">Category</label>
+                    <select 
+                      value={newMilestoneCategory} 
+                      onChange={(e) => setNewMilestoneCategory(e.target.value)}
+                      style={{ width: "100%", height: "36px", padding: "4px 8px", borderRadius: "6px", background: "#4a1934", color: "#fff", border: "1px solid rgba(234,190,169,0.3)" }}
+                    >
+                      <option value="school">School</option>
+                      <option value="career">Career</option>
+                      <option value="sports">Sports</option>
+                      <option value="family">Family</option>
+                      <option value="adventures">Adventures</option>
+                      <option value="memories">Memories</option>
+                      <option value="travel">Travel</option>
+                      <option value="military">Military</option>
+                      <option value="faith">Faith</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label className="milestone-modal-label">Subcategory (optional)</label>
+                    <Input 
+                      placeholder="e.g. Baptism, B.S. Degree" 
+                      value={newMilestoneSubcategory} 
+                      onChange={(e) => setNewMilestoneSubcategory(e.target.value)}
+                      style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginBottom: "0.75rem" }}>
+                  <div style={{ flex: 1 }}>
+                    <label className="milestone-modal-label">Date</label>
+                    <input 
+                      type="date"
+                      value={newMilestoneDate} 
+                      onChange={(e) => setNewMilestoneDate(e.target.value)}
+                      style={{ width: "100%", height: "36px", padding: "4px 8px", borderRadius: "6px", background: "#4a1934", color: "#fff", border: "1px solid rgba(234,190,169,0.3)", fontFamily: "inherit" }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label className="milestone-modal-label">Location</label>
+                    <Input 
+                      placeholder="e.g. Austin, TX" 
+                      value={newMilestoneLocation} 
+                      onChange={(e) => setNewMilestoneLocation(e.target.value)}
+                      style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: "0.75rem" }}>
+                  <label className="milestone-modal-label">Notes / Memories</label>
+                  <Input.TextArea 
+                    placeholder="Add details, memories, or notes..." 
+                    value={newMilestoneNotes} 
+                    onChange={(e) => setNewMilestoneNotes(e.target.value)}
+                    rows={3}
+                    style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", resize: "none" }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: "1rem", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <label className="milestone-modal-label">Attach Event Photo</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={(e) => setNewMilestonePhoto(e.target.files[0])}
+                    style={{ color: "#EABEA9", fontSize: "0.8rem", cursor: "pointer" }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: "1.25rem" }}>
+                  <Checkbox
+                    checked={newMilestoneBroadcast}
+                    onChange={(e) => setNewMilestoneBroadcast(e.target.checked)}
+                    style={{ color: "#f3e7b1" }}
+                  >
+                    Broadcast to Family Feed
+                  </Checkbox>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                  <Button 
+                    onClick={() => {
+                      setShowAddMilestoneForm(false);
+                      setNewMilestonePhoto(null);
+                    }} 
+                    style={{ background: "transparent", color: "#EABEA9", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    loading={savingMilestone}
+                    style={{ backgroundColor: "#F7DC92", color: "#873D62", fontWeight: "bold", border: "none", height: "36px" }}
+                  >
+                    Save Event
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

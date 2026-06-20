@@ -1,7 +1,7 @@
 {
   "homepage": "https://qthibodeaux.github.io/familyreunion",
   "name": "familyreunion",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^5.0.0",

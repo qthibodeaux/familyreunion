@@ -28,13 +28,13 @@ const Avatar = () => {
     setCombo(`${userid}.${fileName}`);
   };
 
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+  const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
 
   const handleSupabaseUpload = async () => {
     if (!file) return;
 
     if (file.size > MAX_FILE_SIZE) {
-      setError("File is too large! Maximum size is 2MB.");
+      setError("File is too large! Maximum size is 15MB.");
       return;
     }
 

@@ -9,58 +9,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import useParentDirector from "../director/useParentDirector";
 import "./ProfileWizard.css";
 
-// Helper components for Custom Date Picker Scroll Tab
-const DrumRollColumn = ({ options, value, onChange, label }) => {
-  const containerRef = useRef(null);
-  const isProgrammaticScroll = useRef(false);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const index = options.indexOf(value);
-    if (index !== -1) {
-      const targetScrollTop = index * 36;
-      if (Math.abs(container.scrollTop - targetScrollTop) > 2) {
-        isProgrammaticScroll.current = true;
-        container.scrollTop = targetScrollTop;
-      }
-    }
-  }, [value, options]);
-
-  const handleScroll = (e) => {
-    if (isProgrammaticScroll.current) {
-      isProgrammaticScroll.current = false;
-      return;
-    }
-    const container = e.target;
-    const index = Math.round(container.scrollTop / 36);
-    if (index >= 0 && index < options.length) {
-      const newValue = options[index];
-      if (newValue !== value) {
-        onChange(newValue);
-      }
-    }
-  };
-
-  return (
-    <div
-      className={`drum-roll-column ${label}-col`}
-      ref={containerRef}
-      onScroll={handleScroll}
-    >
-      {options.map((opt) => (
-        <div
-          key={opt}
-          className={`drum-roll-item ${opt === value ? "selected" : ""}`}
-          style={{ height: 36 }}
-        >
-          {label === "month" ? format(new Date(2000, opt - 1, 1), "MMM") : opt}
-        </div>
-      ))}
-    </div>
-  );
-};
+// Native HTML5 date pickers will be used
 
 function ProfileWizard() {
   useParentDirector();
@@ -97,30 +46,9 @@ function ProfileWizard() {
   const [playingPayoff, setPlayingPayoff] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Viewport tracking for mobile keyboard
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-
   // Profile data of relative
   const [anchorProfile, setAnchorProfile] = useState(null);
   const [ancestor, setAncestor] = useState(null);
-
-  // Date Picker internal values
-  const [datePickerTab, setDatePickerTab] = useState("scroll");
-  const [pickerMonth, setPickerMonth] = useState(6);
-  const [pickerDay, setPickerDay] = useState(15);
-  const [pickerYear, setPickerYear] = useState(1990);
-
-  // Type tab strings
-  const [tempMonthStr, setTempMonthStr] = useState("06");
-  const [tempDayStr, setTempDayStr] = useState("15");
-  const [tempYearStr, setTempYearStr] = useState("1990");
-  const [focusedBox, setFocusedBox] = useState("month");
-  const [boxNeedsClearing, setBoxNeedsClearing] = useState(false);
-
-  // Calendar tab months
-  const [calendarMonth, setCalendarMonth] = useState(6);
-  const [calendarYear, setCalendarYear] = useState(1990);
 
   // Safeguard Regex Rules & Helpers
   const nameRegex = /^[a-zA-Z\s\-']{1,50}$/;
@@ -134,18 +62,7 @@ function ProfileWizard() {
       .join(" ");
   };
 
-  // Detect keyboard state and height
-  useEffect(() => {
-    const handler = () => {
-      const vHeight = window.visualViewport?.height ?? window.innerHeight;
-      setViewportHeight(vHeight);
-      const isKbd = vHeight < (window.screen.height || window.innerHeight) * 0.75;
-      setKeyboardOpen(isKbd);
-    };
-    window.visualViewport?.addEventListener("resize", handler);
-    handler();
-    return () => window.visualViewport?.removeEventListener("resize", handler);
-  }, []);
+  // Viewport resize tracking removed in favor of inline flow
 
   // Fetch anchor profile & ancestor
   useEffect(() => {
@@ -172,44 +89,14 @@ function ProfileWizard() {
     fetchAnchorProfile();
   }, [anchorId]);
 
-  // Sync date picker values & initialize defaults when entering steps
+  // Sync date defaults when entering steps
   useEffect(() => {
-    if (currentStep === "SunriseForm") {
-      const initialDate = sunrise ? new Date(sunrise) : new Date("1990-06-15");
-      const m = initialDate.getMonth() + 1;
-      const d = initialDate.getDate();
-      const y = initialDate.getFullYear();
-      setPickerMonth(m);
-      setPickerDay(d);
-      setPickerYear(y);
-      setTempMonthStr(m.toString().padStart(2, "0"));
-      setTempDayStr(d.toString().padStart(2, "0"));
-      setTempYearStr(y.toString());
-      setDatePickerTab("scroll");
-
-      // Auto-set initial default if empty so click Submit proceeds immediately
-      if (!sunrise) {
-        setSunrise("1990-06-15");
-        setConfirmedSunrise("1990-06-15");
-      }
-    } else if (currentStep === "SunsetForm") {
-      const initialDate = sunset ? new Date(sunset) : new Date("2020-06-15");
-      const m = initialDate.getMonth() + 1;
-      const d = initialDate.getDate();
-      const y = initialDate.getFullYear();
-      setPickerMonth(m);
-      setPickerDay(d);
-      setPickerYear(y);
-      setTempMonthStr(m.toString().padStart(2, "0"));
-      setTempDayStr(d.toString().padStart(2, "0"));
-      setTempYearStr(y.toString());
-      setDatePickerTab("scroll");
-
-      // Auto-set initial default if empty
-      if (!sunset) {
-        setSunset("2020-06-15");
-        setConfirmedSunset("2020-06-15");
-      }
+    if (currentStep === "SunriseForm" && !sunrise) {
+      setSunrise("1990-06-15");
+      setConfirmedSunrise("1990-06-15");
+    } else if (currentStep === "SunsetForm" && !sunset) {
+      setSunset("2020-06-15");
+      setConfirmedSunset("2020-06-15");
     }
   }, [currentStep, sunrise, sunset]);
 
@@ -411,21 +298,12 @@ function ProfileWizard() {
     handleNext("SunriseForm");
   };
 
-  const submitSunrise = (dateStr) => {
-    if (datePickerTab === "type") {
-      const valid = commitTypedDate((formatted) => {
-        setSunrise(formatted);
-        setConfirmedSunrise(formatted);
-        handleNextStepAfterSunrise(formatted);
-      });
-      if (!valid) return;
-    } else {
-      if (!sunrise) {
-        setValidationError("Please select a valid date");
-        return;
-      }
-      handleNextStepAfterSunrise(sunrise);
+  const submitSunrise = () => {
+    if (!sunrise) {
+      setValidationError("Please select a valid date");
+      return;
     }
+    handleNextStepAfterSunrise(sunrise);
   };
 
   const handleNextStepAfterSunrise = (val) => {
@@ -457,21 +335,12 @@ function ProfileWizard() {
     }, 300);
   };
 
-  const submitSunset = (dateStr) => {
-    if (datePickerTab === "type") {
-      const valid = commitTypedDate((formatted) => {
-        setSunset(formatted);
-        setConfirmedSunset(formatted);
-        handleNextStepAfterSunset(formatted);
-      });
-      if (!valid) return;
-    } else {
-      if (!sunset) {
-        setValidationError("Please select a valid date");
-        return;
-      }
-      handleNextStepAfterSunset(sunset);
+  const submitSunset = () => {
+    if (!sunset) {
+      setValidationError("Please select a valid date");
+      return;
     }
+    handleNextStepAfterSunset(sunset);
   };
 
   const handleNextStepAfterSunset = (val) => {
@@ -482,7 +351,7 @@ function ProfileWizard() {
     handleNext("ConfirmCard");
   };
 
-  // Keyboard open pill confirmation
+  // Navigation pill confirmation
   const goNextFromPill = () => {
     if (currentStep === "NameForm") {
       submitNameAsFirstName(firstName);
@@ -492,6 +361,10 @@ function ProfileWizard() {
       submitFirstName(firstName);
     } else if (currentStep === "LastNameForm") {
       submitLastName(lastName);
+    } else if (currentStep === "SunriseForm") {
+      submitSunrise();
+    } else if (currentStep === "SunsetForm") {
+      submitSunset();
     }
   };
 
@@ -643,382 +516,9 @@ function ProfileWizard() {
     return path;
   };
 
-  // Custom Date Picker MM / DD / YYYY typing tab commit with Future Date validation
-  const commitTypedDate = (onDateChange) => {
-    const m = parseInt(tempMonthStr, 10);
-    const d = parseInt(tempDayStr, 10);
-    const y = parseInt(tempYearStr, 10);
-    const currentYear = new Date().getFullYear();
-
-    if (isNaN(m) || m < 1 || m > 12) {
-      setValidationError("Please enter a valid month (01-12)");
-      return false;
-    }
-
-    const maxDays = getDaysInMonth(new Date(y || 2000, m - 1, 1));
-    if (isNaN(d) || d < 1 || d > maxDays) {
-      setValidationError(`Please enter a valid day for this month (01-${maxDays})`);
-      return false;
-    }
-
-    if (isNaN(y) || y < 1800 || y > currentYear) {
-      setValidationError(`Please enter a valid year (1800-${currentYear})`);
-      return false;
-    }
-
-    // Check future bounds (entire date is in the future)
-    const targetDate = new Date(y, m - 1, d);
-    if (isAfter(targetDate, new Date())) {
-      setValidationError("Future dates are not allowed");
-      return false;
-    }
-
-    setPickerMonth(m);
-    setPickerDay(d);
-    setPickerYear(y);
-    setValidationError("");
-
-    const formatted = `${y}-${m.toString().padStart(2, "0")}-${d.toString().padStart(2, "0")}`;
-    onDateChange(formatted);
-    return true;
-  };
-
-  // Select virtual input box
-  const selectBox = (box) => {
-    setFocusedBox(box);
-    setBoxNeedsClearing(true);
-  };
-
-  // Numpad key triggers with overwrite support
-  const handleNumPadPress = (num) => {
-    setValidationError("");
-    let isClearing = boxNeedsClearing;
-    if (isClearing) {
-      setBoxNeedsClearing(false);
-    }
-
-    if (focusedBox === "month") {
-      const currentVal = isClearing ? "" : tempMonthStr;
-      if (currentVal.length === 0) {
-        if (num === "0" || num === "1") {
-          setTempMonthStr(num);
-        } else {
-          setTempMonthStr("0" + num);
-          setFocusedBox("day");
-          setBoxNeedsClearing(true);
-        }
-      } else if (currentVal.length === 1) {
-        const nextVal = currentVal + num;
-        if (parseInt(nextVal, 10) <= 12) {
-          setTempMonthStr(nextVal);
-          setFocusedBox("day");
-          setBoxNeedsClearing(true);
-        }
-      }
-    } else if (focusedBox === "day") {
-      const currentVal = isClearing ? "" : tempDayStr;
-      if (currentVal.length === 0) {
-        if (num === "0" || num === "1" || num === "2" || num === "3") {
-          setTempDayStr(num);
-        } else {
-          setTempDayStr("0" + num);
-          setFocusedBox("year");
-          setBoxNeedsClearing(true);
-        }
-      } else if (currentVal.length === 1) {
-        const nextVal = currentVal + num;
-        if (parseInt(nextVal, 10) <= 31) {
-          setTempDayStr(nextVal);
-          setFocusedBox("year");
-          setBoxNeedsClearing(true);
-        }
-      }
-    } else if (focusedBox === "year") {
-      const currentVal = isClearing ? "" : tempYearStr;
-      if (currentVal.length < 4) {
-        setTempYearStr(currentVal + num);
-      }
-    }
-  };
-
-  const handleNumPadBackspace = () => {
-    setValidationError("");
-    if (focusedBox === "month") {
-      if (tempMonthStr.length > 0) {
-        setTempMonthStr((prev) => prev.slice(0, -1));
-      }
-    } else if (focusedBox === "day") {
-      if (tempDayStr.length > 0) {
-        setTempDayStr((prev) => prev.slice(0, -1));
-      } else {
-        setFocusedBox("month");
-      }
-    } else if (focusedBox === "year") {
-      if (tempYearStr.length > 0) {
-        setTempYearStr((prev) => prev.slice(0, -1));
-      } else {
-        setFocusedBox("day");
-      }
-    }
-  };
-
-  // Calendar cells generation helper
-  const getCalendarDays = (m, y) => {
-    const startOfMonth = new Date(y, m - 1, 1);
-    const startDayOfWeek = startOfMonth.getDay();
-    const daysInMonth = getDaysInMonth(startOfMonth);
-
-    const prevMonthDays = getDaysInMonth(new Date(y, m - 2, 1));
-
-    const cells = [];
-
-    for (let i = startDayOfWeek - 1; i >= 0; i--) {
-      cells.push({
-        day: prevMonthDays - i,
-        month: m === 1 ? 12 : m - 1,
-        year: m === 1 ? y - 1 : y,
-        isCurrentMonth: false,
-      });
-    }
-
-    for (let i = 1; i <= daysInMonth; i++) {
-      cells.push({
-        day: i,
-        month: m,
-        year: y,
-        isCurrentMonth: true,
-      });
-    }
-
-    const nextMonthMomentMonth = m === 12 ? 1 : m + 1;
-    const nextMonthMomentYear = m === 12 ? y + 1 : y;
-    const remaining = 42 - cells.length;
-    for (let i = 1; i <= remaining; i++) {
-      cells.push({
-        day: i,
-        month: nextMonthMomentMonth,
-        year: nextMonthMomentYear,
-        isCurrentMonth: false,
-      });
-    }
-
-    return cells;
-  };
-
-  // Tab views rendering logic for datepicker
-  const renderScrollTab = (handleValueUpdate) => {
-    const daysInMonth = getDaysInMonth(new Date(pickerYear, pickerMonth - 1, 1)) || 31;
-    const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
-    // Years select scroll, restricted up to current year
-    const currentYear = new Date().getFullYear();
-    const yearsCount = currentYear - 1800 + 1;
-    const years = Array.from({ length: yearsCount }, (_, i) => currentYear - i);
-
-    return (
-      <div className="drum-roll-container">
-        <div className="drum-roll-highlight-bar" />
-
-        <DrumRollColumn
-          options={months}
-          value={pickerMonth}
-          onChange={(m) => handleValueUpdate(m, pickerDay, pickerYear)}
-          label="month"
-        />
-
-        <DrumRollColumn
-          options={days}
-          value={pickerDay}
-          onChange={(d) => handleValueUpdate(pickerMonth, d, pickerYear)}
-          label="day"
-        />
-
-        <DrumRollColumn
-          options={years}
-          value={pickerYear}
-          onChange={(y) => handleValueUpdate(pickerMonth, pickerDay, y)}
-          label="year"
-        />
-      </div>
-    );
-  };
-
-  const renderCalendarTab = (handleValueUpdate) => {
-    const calendarDays = getCalendarDays(calendarMonth, calendarYear);
-    const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-    const monthTitle = format(new Date(calendarYear, calendarMonth - 1, 1), "MMMM yyyy");
-
-    const prevMonth = () => {
-      if (calendarMonth === 1) {
-        setCalendarMonth(12);
-        setCalendarYear(calendarYear - 1);
-      } else {
-        setCalendarMonth(calendarMonth - 1);
-      }
-    };
-
-    const nextMonth = () => {
-      const today = new Date();
-      const nextDate = new Date(calendarYear, calendarMonth, 1);
-      if (nextDate.getFullYear() > today.getFullYear() || (nextDate.getFullYear() === today.getFullYear() && nextDate.getMonth() > today.getMonth())) {
-        message.warning("Future months are blocked");
-        return;
-      }
-      setCalendarMonth(nextDate.getMonth() + 1);
-      setCalendarYear(nextDate.getFullYear());
-    };
-
-    const isToday = (day, m, y) => {
-      const today = new Date();
-      return today.getDate() === day && (today.getMonth() + 1) === m && today.getFullYear() === y;
-    };
-
-    return (
-      <div className="calendar-picker-wrap">
-        <div className="calendar-header">
-          <button type="button" className="calendar-nav-btn" onClick={prevMonth}>
-            ‹
-          </button>
-          <span className="calendar-month-title">{monthTitle}</span>
-          <button type="button" className="calendar-nav-btn" onClick={nextMonth}>
-            ›
-          </button>
-        </div>
-        <div className="calendar-grid">
-          {weekdays.map((d) => (
-            <div key={d} className="calendar-weekday-cell">{d}</div>
-          ))}
-          {calendarDays.map((cell, idx) => {
-            const isSelected = pickerDay === cell.day && pickerMonth === cell.month && pickerYear === cell.year;
-            const cellDate = new Date(cell.year, cell.month - 1, cell.day);
-            const isFutureCell = isAfter(cellDate, new Date());
-
-            let cellClass = "calendar-day-cell";
-            if (!cell.isCurrentMonth) cellClass += " other-month";
-            if (isSelected) cellClass += " selected";
-            if (isToday(cell.day, cell.month, cell.year)) cellClass += " today-ring";
-
-            return (
-              <div
-                key={idx}
-                className={cellClass}
-                style={isFutureCell ? { opacity: 0.15, cursor: "not-allowed", pointerEvents: "none" } : {}}
-                onClick={() => {
-                  if (isFutureCell) return;
-                  setCalendarMonth(cell.month);
-                  setCalendarYear(cell.year);
-                  handleValueUpdate(cell.month, cell.day, cell.year);
-                }}
-              >
-                {cell.day}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const renderTypeTab = () => {
-    const focusedStyle = "date-type-input focused";
-    const normalStyle = "date-type-input";
-
-    return (
-      <div style={{ width: "100%" }}>
-        <div className="date-type-inputs-row">
-          <div className="date-type-box-wrap" onClick={() => selectBox("month")}>
-            <div className={focusedBox === "month" ? focusedStyle : normalStyle}>
-              {tempMonthStr || "MM"}
-            </div>
-            <span className="date-type-label">Month</span>
-          </div>
-
-          <div className="date-type-box-wrap" onClick={() => selectBox("day")}>
-            <div className={focusedBox === "day" ? focusedStyle : normalStyle}>
-              {tempDayStr || "DD"}
-            </div>
-            <span className="date-type-label">Day</span>
-          </div>
-
-          <div className="date-type-box-wrap year" onClick={() => selectBox("year")}>
-            <div className={focusedBox === "year" ? focusedStyle : normalStyle}>
-              {tempYearStr || "YYYY"}
-            </div>
-            <span className="date-type-label">Year</span>
-          </div>
-        </div>
-
-        <div className="custom-numpad">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-            <button
-              key={num}
-              type="button"
-              className="numpad-btn"
-              onClick={() => handleNumPadPress(num.toString())}
-            >
-              {num}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="numpad-btn"
-            style={{ visibility: "hidden" }}
-          />
-          <button
-            type="button"
-            className="numpad-btn"
-            onClick={() => handleNumPadPress("0")}
-          >
-            0
-          </button>
-          <button
-            type="button"
-            className="numpad-btn backspace"
-            onClick={handleNumPadBackspace}
-          >
-            ⌫
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // Master date picker widget layout
-  const renderDatePickerWidget = (onDateChange) => {
-    const handleValueUpdate = (m, d, y) => {
-      const days = getDaysInMonth(new Date(y, m - 1, 1)) || 31;
-      const finalDay = d > days ? days : d;
-
-      setPickerMonth(m);
-      setPickerDay(finalDay);
-      setPickerYear(y);
-
-      const formatted = `${y}-${m.toString().padStart(2, "0")}-${finalDay.toString().padStart(2, "0")}`;
-      onDateChange(formatted);
-    };
-
-    return (
-      <div className="custom-date-picker-area">
-        <div className="date-picker-tab-content-wrap">
-          <div className="date-picker-tab-content">
-            {datePickerTab === "calendar"
-              ? renderCalendarTab(handleValueUpdate)
-              : datePickerTab === "type"
-                ? renderTypeTab()
-                : renderScrollTab(handleValueUpdate)}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Dynamic date picker live value formatter helper
+  // Date picker display value helper
   const getPickerDisplayValue = (dateStr) => {
-    if (datePickerTab === "type") {
-      return `${tempMonthStr || "MM"} / ${tempDayStr || "DD"} / ${tempYearStr || "YYYY"}`;
-    }
-    return dateStr ? format(new Date(dateStr), "MMMM d, yyyy") : "Select date";
+    return dateStr ? format(new Date(dateStr + "T00:00:00"), "MMMM d, yyyy") : "Select date";
   };
 
   // Steps rendering methods
@@ -1053,9 +553,6 @@ function ProfileWizard() {
             Nickname?
           </button>
         </div>
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
-        </button>
       </>
     );
   };
@@ -1079,7 +576,7 @@ function ProfileWizard() {
             }}
           />
         </div>
-        <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "16px" }}>
+        <div style={{ display: "flex", gap: "1.0rem", justifyContent: "center", marginTop: "1.0rem" }}>
           <button type="button" className="wizard-primary-btn" onClick={() => submitNickName(nickName)}>
             Submit
           </button>
@@ -1087,9 +584,6 @@ function ProfileWizard() {
             No
           </button>
         </div>
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
-        </button>
       </>
     );
   };
@@ -1119,10 +613,6 @@ function ProfileWizard() {
         </div>
         <button type="button" className="wizard-primary-btn" onClick={() => submitFirstName(firstName)}>
           Submit
-        </button>
-        <br />
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
         </button>
       </>
     );
@@ -1154,10 +644,6 @@ function ProfileWizard() {
         <button type="button" className="wizard-primary-btn" onClick={() => submitLastName(lastName)}>
           Submit
         </button>
-        <br />
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
-        </button>
       </>
     );
   };
@@ -1166,7 +652,7 @@ function ProfileWizard() {
     return (
       <>
         <h2 className="step-question-text">Which side of the family?</h2>
-        <p style={{ color: "var(--text)", marginBottom: "20px" }}>Are they on the Smith side of your lineage?</p>
+        <p style={{ color: "var(--text)", marginBottom: "1.25rem" }}>Are they on the Smith side of your lineage?</p>
         <div className="gone-home-options-row" style={{ marginTop: 0 }}>
           <button type="button" className="gone-home-option-btn" onClick={() => submitSmithSide(true)}>
             Yes, Smith Side
@@ -1175,9 +661,6 @@ function ProfileWizard() {
             No, Other Side
           </button>
         </div>
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
-        </button>
       </>
     );
   };
@@ -1189,22 +672,27 @@ function ProfileWizard() {
     return (
       <>
         <h2 className="step-question-text">{qText}</h2>
-        <div style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--plum)", marginBottom: "8px" }}>
+        <div style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--plum)", marginBottom: "0.5rem" }}>
           {displayVal}
         </div>
-        {validationError && <span className="validation-error-hint" style={{ display: "block", marginBottom: "8px" }}>{validationError}</span>}
+        {validationError && <span className="validation-error-hint" style={{ display: "block", marginBottom: "0.5rem" }}>{validationError}</span>}
 
-        {renderDatePickerWidget((formattedDateStr) => {
-          setSunrise(formattedDateStr);
-          setConfirmedSunrise(formattedDateStr);
-        })}
+        <div className="native-date-picker-container">
+          <input
+            type="date"
+            className="wizard-date-input"
+            value={sunrise}
+            max={new Date().toISOString().split("T")[0]}
+            onChange={(e) => {
+              setSunrise(e.target.value);
+              setConfirmedSunrise(e.target.value);
+              setValidationError("");
+            }}
+          />
+        </div>
 
-        <button type="button" className="wizard-primary-btn" style={{ marginTop: "12px" }} onClick={() => submitSunrise(sunrise)}>
+        <button type="button" className="wizard-primary-btn" style={{ marginTop: "1.25rem" }} onClick={submitSunrise}>
           Submit
-        </button>
-        <br />
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
         </button>
       </>
     );
@@ -1223,9 +711,6 @@ function ProfileWizard() {
             Still with us
           </button>
         </div>
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
-        </button>
       </>
     );
   };
@@ -1237,68 +722,69 @@ function ProfileWizard() {
     return (
       <>
         <h2 className="step-question-text">{qText}</h2>
-        <div style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--plum)", marginBottom: "8px" }}>
+        <div style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--plum)", marginBottom: "0.5rem" }}>
           {displayVal}
         </div>
-        {validationError && <span className="validation-error-hint" style={{ display: "block", marginBottom: "8px" }}>{validationError}</span>}
+        {validationError && <span className="validation-error-hint" style={{ display: "block", marginBottom: "0.5rem" }}>{validationError}</span>}
 
-        {renderDatePickerWidget((formattedDateStr) => {
-          setSunset(formattedDateStr);
-          setConfirmedSunset(formattedDateStr);
-        })}
+        <div className="native-date-picker-container">
+          <input
+            type="date"
+            className="wizard-date-input"
+            value={sunset}
+            max={new Date().toISOString().split("T")[0]}
+            onChange={(e) => {
+              setSunset(e.target.value);
+              setConfirmedSunset(e.target.value);
+              setValidationError("");
+            }}
+          />
+        </div>
 
-        <button type="button" className="wizard-primary-btn" style={{ marginTop: "12px" }} onClick={() => submitSunset(sunset)}>
+        <button type="button" className="wizard-primary-btn" style={{ marginTop: "1.25rem" }} onClick={submitSunset}>
           Submit
-        </button>
-        <br />
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
         </button>
       </>
     );
   };
 
   const renderConfirmCard = () => {
-    const formattedSunriseStr = sunrise ? format(new Date(sunrise), "MMMM d, yyyy") : "N/A";
-    const formattedSunsetStr = sunset ? format(new Date(sunset), "MMMM d, yyyy") : "N/A";
+    const formattedSunriseStr = sunrise ? format(new Date(sunrise + "T00:00:00"), "MMMM d, yyyy") : "N/A";
+    const formattedSunsetStr = sunset ? format(new Date(sunset + "T00:00:00"), "MMMM d, yyyy") : "N/A";
 
     return (
       <>
         <h2 className="step-question-text">Is this information correct?</h2>
 
-        <div style={{ textAlign: "left", width: "100%", maxWidth: "320px", margin: "0 auto 16px", padding: "12px", backgroundColor: "var(--parchment)", borderRadius: "12px", border: "1px solid var(--border)" }}>
-          <div style={{ marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.75rem", color: "var(--plum)", fontWeight: "700", display: "block", textTransform: "uppercase" }}>First Name</span>
-            <span style={{ fontSize: "1rem", color: "var(--text)", fontWeight: "600" }}>{firstName || "N/A"}</span>
+        <div className="confirm-details-card">
+          <div className="confirm-details-row">
+            <span className="confirm-details-label">First Name</span>
+            <span className="confirm-details-value">{firstName || "N/A"}</span>
           </div>
           {nickName && (
-            <div style={{ marginBottom: "8px" }}>
-              <span style={{ fontSize: "0.75rem", color: "var(--plum)", fontWeight: "700", display: "block", textTransform: "uppercase" }}>Nickname</span>
-              <span style={{ fontSize: "1rem", color: "var(--text)", fontWeight: "600" }}>{nickName}</span>
+            <div className="confirm-details-row">
+              <span className="confirm-details-label">Nickname</span>
+              <span className="confirm-details-value">{nickName}</span>
             </div>
           )}
-          <div style={{ marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.75rem", color: "var(--plum)", fontWeight: "700", display: "block", textTransform: "uppercase" }}>Last Name</span>
-            <span style={{ fontSize: "1rem", color: "var(--text)", fontWeight: "600" }}>{lastName || "N/A"}</span>
+          <div className="confirm-details-row">
+            <span className="confirm-details-label">Last Name</span>
+            <span className="confirm-details-value">{lastName || "N/A"}</span>
           </div>
-          <div style={{ marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.75rem", color: "var(--plum)", fontWeight: "700", display: "block", textTransform: "uppercase" }}>Sunrise</span>
-            <span style={{ fontSize: "1rem", color: "var(--text)", fontWeight: "600" }}>{formattedSunriseStr}</span>
+          <div className="confirm-details-row">
+            <span className="confirm-details-label">Sunrise</span>
+            <span className="confirm-details-value">{formattedSunriseStr}</span>
           </div>
           {sunset && (
-            <div style={{ marginBottom: "8px" }}>
-              <span style={{ fontSize: "0.75rem", color: "var(--plum)", fontWeight: "700", display: "block", textTransform: "uppercase" }}>Sunset</span>
-              <span style={{ fontSize: "1rem", color: "var(--text)", fontWeight: "600" }}>{formattedSunsetStr}</span>
+            <div className="confirm-details-row">
+              <span className="confirm-details-label">Sunset</span>
+              <span className="confirm-details-value">{formattedSunsetStr}</span>
             </div>
           )}
         </div>
 
         <button type="button" className="wizard-primary-btn" onClick={handleSaveProfile} disabled={loading}>
           {loading ? "Saving..." : "Create profile"}
-        </button>
-        <br />
-        <button type="button" className="wizard-back-btn" onClick={goBack}>
-          Back
         </button>
       </>
     );
@@ -1459,62 +945,7 @@ function ProfileWizard() {
   return (
     <div className="profile-form-split-container">
       {/* Top/Left Hero Card Preview */}
-      {!keyboardOpen && <ProfileCardPreview />}
-
-      {/* Floating Pill (Anchored above keyboard when open) */}
-      <AnimatePresence>
-        {keyboardOpen && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="keyboard-floating-pill"
-            style={{
-              position: "fixed",
-              bottom: `calc(100vh - ${viewportHeight}px + 12px)`,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 999,
-            }}
-          >
-            <button
-              type="button"
-              className="floating-pill-nav"
-              disabled={history.length === 1}
-              onClick={goBack}
-            >
-              ← Back
-            </button>
-
-            <div className="floating-pill-chips">
-              {confirmedFirstName && (
-                <span className="name-chip" onClick={jumpToFirstName}>
-                  {confirmedFirstName}
-                </span>
-              )}
-              {confirmedNickName && (
-                <span className="name-chip" onClick={() => jumpToStep("NickNameForm")}>
-                  "{confirmedNickName}"
-                </span>
-              )}
-              {confirmedLastName && (
-                <span className="name-chip" onClick={() => jumpToStep("LastNameForm")}>
-                  {confirmedLastName}
-                </span>
-              )}
-            </div>
-
-            <button
-              type="button"
-              className="floating-pill-nav"
-              onClick={goNextFromPill}
-            >
-              Next →
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ProfileCardPreview />
 
       {/* Bottom/Right Step Controller Container */}
       <div className="profile-form-step-container">
@@ -1547,6 +978,45 @@ function ProfileWizard() {
             {renderStepContent()}
           </motion.div>
         </AnimatePresence>
+
+        {/* Inline Navigation Control Bar */}
+        <div className="wizard-navigation-inline-pill">
+          <button
+            type="button"
+            className="floating-pill-nav"
+            disabled={history.length === 1}
+            onClick={goBack}
+          >
+            ← Back
+          </button>
+
+          <div className="floating-pill-chips">
+            {confirmedFirstName && (
+              <span className="name-chip" onClick={jumpToFirstName}>
+                {confirmedFirstName}
+              </span>
+            )}
+            {confirmedNickName && (
+              <span className="name-chip" onClick={() => jumpToStep("NickNameForm")}>
+                "{confirmedNickName}"
+              </span>
+            )}
+            {confirmedLastName && (
+              <span className="name-chip" onClick={() => jumpToStep("LastNameForm")}>
+                {confirmedLastName}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="floating-pill-nav"
+            disabled={currentStep === "ConfirmCard"}
+            onClick={goNextFromPill}
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </div>
   );

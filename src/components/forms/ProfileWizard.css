@@ -18,7 +18,7 @@
   flex-direction: column;
   min-height: 100vh;
   background-color: var(--cream);
-  padding: 12px;
+  padding: 0.75rem;
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
@@ -30,7 +30,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px 0;
+  padding: 0.5rem 0;
   box-sizing: border-box;
   transition: all 0.3s ease-in-out;
 }
@@ -38,19 +38,19 @@
 /* Card Bezel (Stays Dark Plum for High-Contrast Hero Mockup) */
 .preview-card-wrap {
   width: 90%;
-  max-width: 360px;
+  max-width: 22.5rem; /* 360px */
   height: 32vh;
-  min-height: 180px;
-  max-height: 240px;
+  min-height: 11.25rem; /* 180px */
+  max-height: 15rem; /* 240px */
   background-color: var(--plum);
-  border-radius: 18px;
+  border-radius: 1.125rem; /* 18px */
   border: 1px solid rgba(244, 213, 141, 0.2);
   overflow: hidden;
   position: relative;
-  box-shadow: 0 8px 32px rgba(92, 39, 72, 0.18), inset 0 -10px 20px -10px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0.5rem 2rem rgba(92, 39, 72, 0.18), inset 0 -0.625rem 1.25rem -0.625rem rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 1rem;
   box-sizing: border-box;
   transition: all 0.3s ease-out;
 }
@@ -58,15 +58,15 @@
 /* Eyebrow Label */
 .preview-eyebrow {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 0.875rem;
+  left: 0.875rem;
   background: rgba(244, 213, 141, 0.15);
   border: 1px solid rgba(244, 213, 141, 0.3);
   color: var(--gold);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  padding: 3px 8px;
+  padding: 0.1875rem 0.5rem;
   border-radius: 999px;
   text-transform: uppercase;
 }
@@ -83,7 +83,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 3.2rem;
   font-weight: 800;
-  letter-spacing: 2px;
+  letter-spacing: 0.125rem;
   color: var(--gold);
   opacity: 0.3;
   transform: scale(0.5);
@@ -93,7 +93,7 @@
 .preview-spring-initials.active {
   transform: scale(1);
   opacity: 0.8;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.25);
 }
 
 /* Identity overlay bottom-left */
@@ -118,16 +118,16 @@
   font-size: 0.95rem;
   font-style: italic;
   color: var(--blush);
-  margin: 2px 0 0 0;
+  margin: 0.125rem 0 0 0;
 }
 
 .preview-lifespan-text {
   font-size: 0.7rem;
   color: var(--blush);
-  margin-top: 4px;
+  margin-top: 0.25rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   opacity: 0.8;
 }
 
@@ -139,19 +139,19 @@
 @keyframes payoffScale {
   0% {
     transform: scale(1);
-    box-shadow: 0 8px 32px rgba(92, 39, 72, 0.18);
+    box-shadow: 0 0.5rem 2rem rgba(92, 39, 72, 0.18);
   }
   20% {
     transform: scale(1.05);
-    box-shadow: 0 0 40px 10px rgba(244, 213, 141, 0.5), 0 8px 32px rgba(92, 39, 72, 0.25);
+    box-shadow: 0 0 2.5rem 0.625rem rgba(244, 213, 141, 0.5), 0 0.5rem 2rem rgba(92, 39, 72, 0.25);
   }
   80% {
     transform: scale(1.05);
-    box-shadow: 0 0 45px 15px rgba(244, 213, 141, 0.6), 0 8px 32px rgba(92, 39, 72, 0.25);
+    box-shadow: 0 0 2.8rem 0.9375rem rgba(244, 213, 141, 0.6), 0 0.5rem 2rem rgba(92, 39, 72, 0.25);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 8px 32px rgba(92, 39, 72, 0.18);
+    box-shadow: 0 0.5rem 2rem rgba(92, 39, 72, 0.18);
   }
 }
 
@@ -178,8 +178,8 @@
 }
 
 .checkmark-svg {
-  width: 50px;
-  height: 50px;
+  width: 3.125rem;
+  height: 3.125rem;
   stroke: var(--gold);
   stroke-width: 4;
   fill: none;
@@ -195,9 +195,9 @@
 /* Step Container */
 .profile-form-step-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 25rem; /* 400px */
   margin: 0 auto;
-  padding: 8px 0 40px;
+  padding: 0.5rem 0 2.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -208,10 +208,10 @@
 .profile-form-step-container .step-card {
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 1.125rem;
   width: 100%;
-  padding: 18px;
-  box-shadow: 0 12px 32px rgba(92, 39, 72, 0.06);
+  padding: 1.125rem;
+  box-shadow: 0 0.75rem 2rem rgba(92, 39, 72, 0.06);
   box-sizing: border-box;
   text-align: center;
   position: relative;
@@ -223,15 +223,15 @@
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--text);
-  margin-top: 4px;
-  margin-bottom: 16px;
+  margin-top: 0.25rem;
+  margin-bottom: 1rem;
   line-height: 1.25;
   text-align: center;
 }
 
 /* Input Fields styling */
 .wizard-input-container {
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -242,13 +242,13 @@
   background-color: var(--parchment) !important;
   border: 1.5px solid var(--border) !important;
   color: var(--text) !important;
-  border-radius: 12px !important;
-  padding: 10px 14px !important;
+  border-radius: 0.75rem !important;
+  padding: 0.625rem 0.875rem !important;
   font-size: 1rem !important;
   font-weight: 500 !important;
   text-align: center;
   width: 100%;
-  max-width: 280px;
+  max-width: 17.5rem; /* 280px */
   transition: all 0.25s ease !important;
   box-shadow: none !important;
   outline: none !important;
@@ -280,7 +280,7 @@
 .validation-error-hint {
   color: var(--amber);
   font-size: 0.8rem;
-  margin-top: 4px;
+  margin-top: 0.25rem;
   font-weight: 500;
   text-align: center;
 }
@@ -289,8 +289,8 @@
 .secondary-action-pills-row {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 0.625rem;
+  margin-top: 0.5rem;
 }
 
 .secondary-action-pill {
@@ -298,7 +298,7 @@
   border: 1.5px solid var(--border) !important;
   color: var(--gold) !important;
   border-radius: 999px !important;
-  padding: 5px 12px !important;
+  padding: 0.3125rem 0.75rem !important;
   font-size: 0.75rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
@@ -322,7 +322,7 @@
   border: 1.5px solid var(--border) !important;
   color: var(--gold) !important;
   border-radius: 999px !important;
-  padding: 8px 20px !important;
+  padding: 0.5rem 1.25rem !important;
   font-size: 0.75rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
@@ -334,13 +334,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 100px;
+  min-width: 6.25rem;
 }
 
 .wizard-primary-btn:hover {
   background: #4A1B39 !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(92, 39, 72, 0.15) !important;
+  box-shadow: 0 0.25rem 0.75rem rgba(92, 39, 72, 0.15) !important;
 }
 
 .wizard-back-btn {
@@ -348,14 +348,14 @@
   border: 1.5px solid var(--border) !important;
   color: var(--text) !important;
   border-radius: 999px !important;
-  padding: 6px 16px !important;
+  padding: 0.375rem 1rem !important;
   font-size: 0.75rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
   cursor: pointer;
   transition: all 0.2s ease !important;
-  margin-top: 14px;
+  margin-top: 0.875rem;
   height: auto !important;
 }
 
@@ -368,13 +368,13 @@
 .progress-dots-row {
   display: flex;
   justify-content: center;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
 }
 
 .progress-dot {
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
   border-radius: 50%;
   transition: all 0.3s ease;
   box-sizing: border-box;
@@ -394,20 +394,18 @@
   background-color: var(--gold);
 }
 
-/* Floating Pill (Keyboard Open) */
-.keyboard-floating-pill {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+/* Inline Navigation Bar (Bottom of Step Card Flow) */
+.wizard-navigation-inline-pill {
   background-color: var(--plum);
   border-radius: 999px;
-  padding: 6px 12px;
-  z-index: 999;
+  padding: 0.375rem 0.75rem;
   display: flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  transition: bottom 0.1s ease-out;
+  gap: 0.625rem;
+  box-shadow: 0 4px 12px rgba(92, 39, 72, 0.15);
+  margin-top: 1.5rem;
+  width: fit-content;
+  box-sizing: border-box;
 }
 
 .floating-pill-nav {
@@ -421,8 +419,8 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
+  gap: 0.25rem;
+  padding: 0.25rem;
   transition: opacity 0.2s ease;
 }
 
@@ -434,7 +432,7 @@
 .floating-pill-chips {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .name-chip {
@@ -443,7 +441,7 @@
   color: var(--gold);
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 0.2rem 0.5rem;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -454,314 +452,82 @@
   color: var(--plum);
 }
 
-/* Date Picker styling */
-.custom-date-picker-area {
-  display: flex;
-  flex-direction: column;
+/* Native Date Picker styles */
+.native-date-picker-container {
   width: 100%;
-  background-color: var(--parchment);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  margin-top: 8px;
+  max-width: 17.5rem;
+  margin: 0.5rem auto 1rem;
 }
 
-/* Tab Switcher */
-.date-picker-tab-switcher {
-  display: flex;
-  background-color: rgba(61, 26, 46, 0.06);
-  padding: 3px;
-}
-
-.date-picker-tab {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 6px 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease-out;
-}
-
-.date-picker-tab.active {
-  background-color: var(--plum);
-  color: var(--gold);
-}
-
-.date-picker-tab-content-wrap {
-  width: 100%;
-  min-height: 140px;
-  overflow: hidden;
-}
-
-.date-picker-tab-content {
-  padding: 10px;
-  min-height: 140px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-/* Tab 1: Scroll Drum Roll */
-.drum-roll-container {
-  display: flex;
-  width: 100%;
-  max-width: 260px;
-  height: 120px;
-  position: relative;
-  overflow: hidden;
-}
-
-.drum-roll-highlight-bar {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 36px;
-  transform: translateY(-50%);
-  border-top: 1.5px solid var(--border);
-  border-bottom: 1.5px solid var(--border);
-  background-color: rgba(244, 213, 141, 0.1);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.drum-roll-column {
-  flex: 1;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  z-index: 3;
-  padding: 42px 0; /* height offset for 36px bar center alignment */
-}
-
-.drum-roll-column::-webkit-scrollbar {
-  display: none;
-}
-
-.drum-roll-column.month-col {
-  flex: 1.3;
-}
-
-.drum-roll-item {
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  scroll-snap-align: center;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text);
-  opacity: 0.4;
-  transform: scale(0.85);
-  transition: all 0.2s ease;
-  user-select: none;
-}
-
-.drum-roll-item.selected {
-  color: var(--plum);
-  opacity: 1;
-  transform: scale(1.05);
-  font-weight: 700;
-}
-
-/* Tab 2: Calendar */
-.calendar-picker-wrap {
-  width: 100%;
-  max-width: 260px;
-  box-sizing: border-box;
-  margin: 0 auto;
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.calendar-month-title {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--plum);
-}
-
-.calendar-nav-btn {
-  background: transparent;
-  border: none;
-  color: var(--plum);
-  font-weight: bold;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 0 6px;
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+.wizard-date-input {
+  background-color: var(--parchment) !important;
+  border: 1.5px solid var(--border) !important;
+  color: var(--text) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.625rem 0.875rem !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
   text-align: center;
   width: 100%;
   box-sizing: border-box;
-}
-
-.calendar-weekday-cell {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--plum);
-  opacity: 0.6;
-  padding-bottom: 4px;
-}
-
-.calendar-day-cell {
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text);
-  border-radius: 50%;
+  transition: all 0.25s ease !important;
+  outline: none !important;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   cursor: pointer;
-  transition: all 0.2s ease;
+}
+
+.wizard-date-input:focus {
+  border-color: var(--plum) !important;
+  background-color: var(--white) !important;
+  box-shadow: 0 0 0 3px rgba(92, 39, 72, 0.15) !important;
+}
+
+/* Confirm details card responsive styles */
+.confirm-details-card {
+  text-align: left;
   width: 100%;
-  max-width: 28px;
-  margin: 0 auto;
-}
-
-.calendar-day-cell.other-month {
-  opacity: 0.25;
-}
-
-.calendar-day-cell.selected {
-  background-color: var(--plum);
-  color: var(--gold);
-  font-weight: 700;
-}
-
-.calendar-day-cell.today-ring {
-  box-shadow: 0 0 0 2px var(--gold);
-}
-
-/* Tab 3: Type tab with Numeric pad */
-.date-type-inputs-row {
-  display: flex;
-  gap: 10px;
-  margin: 4px 0 12px;
-  justify-content: center;
-}
-
-.date-type-box-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 52px;
-}
-
-.date-type-box-wrap.year {
-  width: 72px;
-}
-
-.date-type-input {
-  width: 100%;
-  height: 38px;
+  max-width: 20rem; /* 320px */
+  margin: 0 auto 1rem;
+  padding: 1rem;
   background-color: var(--parchment);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  font-size: 1.25rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--plum);
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.date-type-input.focused {
-  border-color: var(--plum);
-  background-color: var(--white);
-  box-shadow: 0 0 0 3px rgba(92, 39, 72, 0.15);
-}
-
-/* Flashing custom cursor */
-.date-type-input.focused::after {
-  content: '|';
-  position: absolute;
-  right: 6px;
-  color: var(--plum);
-  font-weight: 300;
-  animation: cursorBlink 1s step-end infinite;
-}
-
-@keyframes cursorBlink {
-  from, to { opacity: 0; }
-  50% { opacity: 1; }
-}
-
-.date-type-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-top: 3px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-/* Custom Numeric Pad styling */
-.custom-numpad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  width: 100%;
-  max-width: 220px;
-  margin: 0 auto;
-}
-
-.numpad-btn {
-  background: var(--plum);
+  border-radius: 0.75rem;
   border: 1px solid var(--border);
-  color: var(--gold);
-  border-radius: 10px;
-  height: 38px;
-  font-size: 1.1rem;
+  box-sizing: border-box;
+}
+
+.confirm-details-row {
+  margin-bottom: 0.75rem;
+}
+
+.confirm-details-row:last-child {
+  margin-bottom: 0;
+}
+
+.confirm-details-label {
+  font-size: 0.7rem;
+  color: var(--plum);
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.15s ease;
-}
-
-.numpad-btn:active {
-  background: #4A1B39;
-  transform: scale(0.95);
-}
-
-.numpad-btn.backspace {
-  font-size: 0.85rem;
-  letter-spacing: 0.05em;
+  display: block;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.confirm-details-value {
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 600;
+  word-break: break-word;
 }
 
 /* Has gone home step options */
 .gone-home-options-row {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 0.625rem;
+  margin-top: 1rem;
   width: 100%;
-  max-width: 260px;
+  max-width: 16.25rem;
   margin-left: auto;
   margin-right: auto;
 }
@@ -770,8 +536,8 @@
   background: var(--parchment) !important;
   border: 1.5px solid var(--border) !important;
   color: var(--text) !important;
-  border-radius: 12px !important;
-  padding: 12px !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem !important;
   font-size: 1rem !important;
   font-weight: 700 !important;
   cursor: pointer;
@@ -787,11 +553,11 @@
   color: var(--gold) !important;
   border-color: var(--plum) !important;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(92, 39, 72, 0.12) !important;
+  box-shadow: 0 0.375rem 1rem rgba(92, 39, 72, 0.12) !important;
 }
 
 /* Responsive splits for larger screens */
-@media (min-width: 768px) {
+@media (min-width: 48rem) { /* 768px */
   .profile-form-split-container {
     flex-direction: row;
     align-items: stretch;
@@ -802,22 +568,22 @@
   .profile-card-preview-container {
     width: 45%;
     height: 100%;
-    padding: 40px;
+    padding: 2.5rem;
     background: rgba(92, 39, 72, 0.02);
     border-right: 1px solid rgba(135, 61, 98, 0.1);
   }
 
   .preview-card-wrap {
     width: 100%;
-    max-width: 380px;
-    height: 260px;
+    max-width: 23.75rem;
+    height: 16.25rem;
   }
 
   .profile-form-step-container {
     width: 55%;
     height: 100%;
     overflow-y: auto;
-    padding: 60px 40px 40px;
+    padding: 3.75rem 2.5rem 2.5rem;
     justify-content: center;
   }
 }

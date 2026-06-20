@@ -1145,14 +1145,33 @@
   transform: scale(1.04);
 }
 
-/* Timeline Forms Styling */
-.add-milestone-form {
-  background: rgba(255, 255, 255, 0.04);
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(234, 190, 169, 0.2);
-  margin-bottom: 1.5rem;
-  box-sizing: border-box;
+/* Timeline Forms Styling - Full Screen Overlay Modal */
+.milestone-overlay-modal {
+  background: #5b1f40;
+  border: 1px solid rgba(234, 190, 169, 0.25);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  animation: modalEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.milestone-modal-label {
+  display: block;
+  color: #EABEA9;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.milestone-modal-form-fields {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ==========================================

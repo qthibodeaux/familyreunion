@@ -29,9 +29,9 @@ function AntAvatar() {
       message.error("You can only upload JPG/PNG files!");
       return Upload.LIST_IGNORE;
     }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error("Image must be smaller than 2MB!");
+    const isLt15M = file.size / 1024 / 1024 < 15;
+    if (!isLt15M) {
+      message.error("Image must be smaller than 15MB!");
       return Upload.LIST_IGNORE;
     }
 
