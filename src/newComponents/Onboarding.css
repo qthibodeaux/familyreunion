@@ -144,3 +144,21 @@
   outline: 2px solid #F7DC92;
   outline-offset: 2px;
 }
+
+@media (max-width: 480px) {
+  .onboarding-page-shell {
+    padding: 16px 8px !important;
+    background: #4e1237 !important; /* Unified dark background */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important; /* Allow scroll from top */
+  }
+
+  .onboarding-bezel-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+}

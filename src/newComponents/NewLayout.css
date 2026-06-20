@@ -475,6 +475,15 @@
   font-style: italic;
 }
 
+.footer-version {
+  color: #EABEA9;
+  opacity: 0.4;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.05rem;
+}
+
 /* Feedback section & Trigger Button */
 .menu-feedback-section {
   text-align: center;
@@ -766,5 +775,10 @@
   .footer-tagline {
     font-size: 0.72rem;
     margin-top: 0.2rem;
+  }
+
+  .footer-version {
+    font-size: 0.68rem;
+    margin-top: 0.3rem;
   }
 }

@@ -551,8 +551,7 @@ function ProfileWizard() {
       if (type === "self") {
         ({ error: profileError } = await supabase
           .from("profile")
-          .update(profileData)
-          .eq("id", userId));
+          .upsert({ id: userId, ...profileData }));
       } else {
         ({ error: profileError } = await supabase
           .from("profile")

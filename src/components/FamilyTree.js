@@ -11,7 +11,11 @@ const ProfileBlock = ({ profile }) => {
     `${profile.firstname?.[0] || ""}${profile.lastname?.[0] || ""}`.toUpperCase();
 
   const handleProfileClick = () => {
-    navigate(`/profile/${profile.id}`);
+    if (Number(profile.branch) === 1) {
+      navigate(`/branch/${profile.id}`);
+    } else {
+      navigate(`/profile/${profile.id}`);
+    }
   };
 
   return (

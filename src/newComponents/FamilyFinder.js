@@ -139,7 +139,7 @@ const HeroCard = ({ profile, style }) => {
         cursor: "pointer",
         ...style,
       }}
-      onClick={() => navigate(`/profile/${profile.id}`)}
+      onClick={() => navigate(Number(profile.rawBranch) === 1 ? `/branch/${profile.id}` : `/profile/${profile.id}`)}
     >
       <div className="ff-hero-card-visual" style={{ background: fallbackColor }}>
         {!imgError && photoUrl ? (
@@ -163,7 +163,7 @@ const HeroCard = ({ profile, style }) => {
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            navigate(`/profile/${profile.id}`);
+            navigate(Number(profile.rawBranch) === 1 ? `/branch/${profile.id}` : `/profile/${profile.id}`);
           }}
         >
           View profile
@@ -671,7 +671,7 @@ const FamilyFinder = () => {
 
           // Extract location from profilestate relationship
           const stateRow = p.profilestate?.[0];
-          const locationStr = stateRow?.city || "Unknown";
+          const locationStr = (p.branch === 0 || p.branch === 1) ? "Heaven" : (stateRow?.city || "Unknown");
 
           // generation calculations mapping
           let genStr = "Roots";
@@ -736,6 +736,7 @@ const FamilyFinder = () => {
             nick,
             lastname: last,
             branch: branchStr,
+            rawBranch: p.branch,
             location: locationStr,
             gen: genStr,
             initials,

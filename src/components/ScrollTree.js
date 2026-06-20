@@ -678,7 +678,6 @@ function ScrollTree() {
         </div>
       </div>
 
-      {/* Profile Details Bottom Drawer Sheet */}
       <Drawer
         placement="bottom"
         onClose={() => setSelectedMember(null)}
@@ -686,6 +685,18 @@ function ScrollTree() {
         className="tree-member-drawer"
         height="auto"
         closable={false}
+        styles={{
+          content: {
+            backgroundColor: "#30041e",
+            color: "#eabea9",
+            borderTop: "1px solid rgba(234, 190, 169, 0.2)",
+            borderTopLeftRadius: "1.25rem",
+            borderTopRightRadius: "1.25rem",
+          },
+          body: {
+            padding: "1.2rem 1.2rem 1.8rem 1.2rem",
+          }
+        }}
       >
         {selectedMember && (
           <div className="drawer-inner-content">
@@ -740,9 +751,11 @@ function ScrollTree() {
                 <div className="stat-info">
                   <span className="stat-lbl">RESIDENCE</span>
                   <span className="stat-val">
-                    {selectedMember.city && selectedMember.state
-                      ? `${selectedMember.city}, ${selectedMember.state}`
-                      : selectedMember.location || "Location unknown"}
+                    {Number(selectedMember.branch) === 0 || Number(selectedMember.branch) === 1
+                      ? "Heaven"
+                      : (selectedMember.city && selectedMember.state
+                        ? `${selectedMember.city}, ${selectedMember.state}`
+                        : selectedMember.location || "Location unknown")}
                   </span>
                 </div>
               </div>
@@ -773,7 +786,13 @@ function ScrollTree() {
               </Button>
               <Button
                 icon={<TeamOutlined />}
-                onClick={() => navigate(`/profile/${selectedMember.id}`)}
+                onClick={() => {
+                  if (Number(selectedMember.branch) === 1) {
+                    navigate(`/branch/${selectedMember.id}`);
+                  } else {
+                    navigate(`/profile/${selectedMember.id}`);
+                  }
+                }}
                 className="drawer-btn view-profile-btn"
               >
                 View Profile

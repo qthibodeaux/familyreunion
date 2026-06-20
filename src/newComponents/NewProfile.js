@@ -80,7 +80,7 @@ const getAvatarSrc = (profile) => {
 
 const getProfileLink = (profile) => {
   if (!profile) return "#";
-  if (profile.branch === 1) {
+  if (Number(profile.branch) === 1) {
     return `/branch/${profile.id}`;
   }
   return `/profile/${profile.id}`;
@@ -832,7 +832,12 @@ function NewProfile() {
 
       if (profileErr) throw profileErr;
       if (profileData && profileData.length > 0) {
-        setData(profileData[0]);
+        const prof = profileData[0];
+        if (Number(prof.branch) === 1) {
+          navigate(`/branch/${prof.id}`, { replace: true });
+          return;
+        }
+        setData(prof);
       }
 
       if (session) {

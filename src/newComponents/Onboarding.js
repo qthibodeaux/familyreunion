@@ -130,8 +130,7 @@ const Onboarding = () => {
 
       const { error: copyError } = await supabase
         .from("profile")
-        .update(updateData)
-        .eq("id", p_user_id);
+        .upsert({ id: p_user_id, ...updateData });
 
       if (copyError) throw copyError;
 

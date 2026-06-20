@@ -34,7 +34,17 @@ export default function AuthCallbackHandler() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const hash = window.location.hash;
+      let hash = window.location.hash;
+      
+      // Auto-recover if Supabase URL-encoded the hash fragment to %23
+      if (hash.includes("%23")) {
+        const cleanHash = hash.substring(hash.indexOf("%23") + 3);
+        if (cleanHash.includes("access_token")) {
+          window.location.hash = cleanHash;
+          return;
+        }
+      }
+
       const queryParams = parseQueryParams(location.search);
       const magicToken = queryParams.magic_token || queryParams.token_hash;
 
