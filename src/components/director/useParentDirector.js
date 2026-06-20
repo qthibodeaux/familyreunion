@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AuthConsumer from '../../useSession';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthConsumer from "../../useSession";
 
 const useParentDirector = () => {
   const { session } = AuthConsumer();
@@ -8,7 +8,7 @@ const useParentDirector = () => {
 
   useEffect(() => {
     if (!session) {
-      navigate('/register');
+      navigate("/register");
     }
   }, [session, navigate]);
 };

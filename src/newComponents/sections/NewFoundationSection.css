@@ -1,0 +1,218 @@
+@import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap");
+
+/* Slide 2 Viewport - Flat Dark Color (Contrast against Slide 3) */
+.new-foundation-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  padding: 4.5rem 1.5rem 2.5rem 1.5rem;
+  /* REM spacing, top clears menu button */
+  box-sizing: border-box;
+  background-color: #30041e;
+  /* Flat dark burgundy-black */
+  color: #f3e7b1;
+  /* Warm Gold */
+}
+
+/* Single Unified Plaque Card */
+.foundation-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 0.1875rem double rgba(243, 231, 177, 0.4);
+  /* Elegant double gold border */
+  border-radius: 1.5rem;
+  padding: 1.8rem 1.3rem;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Typography for the Foundation portion */
+.foundation-title {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #f3e7b1;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.06rem;
+  text-transform: uppercase;
+}
+
+.foundation-text {
+  font-family: "Dancing Script", cursive;
+  font-size: 1.35rem;
+  line-height: 1.8rem;
+  font-weight: 700;
+  color: #eabea9;
+  margin: 0 0 1.2rem 0;
+  text-align: center;
+}
+
+.foundation-tribute {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.foundation-signature {
+  font-family: "Dancing Script", cursive;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #d4a5ff;
+  letter-spacing: 0.02rem;
+  margin-bottom: 0.4rem;
+  text-align: center;
+}
+
+/* Soft Divider Line inside the card */
+.card-divider {
+  height: 0.0625rem;
+  /* Exactly 1px equivalent */
+  width: 85%;
+  background: linear-gradient(90deg, rgba(234, 190, 169, 0) 0%, rgba(234, 190, 169, 0.25) 50%, rgba(234, 190, 169, 0) 100%);
+  margin: 1.2rem 0;
+}
+
+/* Dynamic Invitation Flow */
+.foundation-invite-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.4rem;
+}
+
+.invite-subtext {
+  font-size: 0.9rem;
+  color: #eabea9;
+  opacity: 0.85;
+}
+
+.invite-highlight {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f3e7b1;
+  margin-bottom: 0.6rem;
+}
+
+/* Dynamic Action Buttons */
+.portal-action-btn {
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.6rem 2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  box-sizing: border-box;
+}
+
+/* State A: Join Us - Solid Gold Pulsing Button */
+.portal-btn-join {
+  background-color: #f3e7b1;
+  color: #30041e;
+  border: none;
+  box-shadow: 0 0 0 0 rgba(243, 231, 177, 0.5);
+  animation: gold-pulse 2s infinite;
+}
+
+.portal-btn-join:hover {
+  background-color: #eabea9;
+  color: #220516;
+  transform: translateY(-0.0625rem);
+}
+
+@keyframes gold-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(243, 231, 177, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 0.6rem rgba(243, 231, 177, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(243, 231, 177, 0);
+  }
+}
+
+/* State B: Update Profile - Amber Warning Dashed Button */
+.portal-btn-update {
+  background-color: transparent;
+  color: #eabea9;
+  border: 0.125rem dashed #eabea9;
+  /* 2px */
+}
+
+.portal-btn-update:hover {
+  background-color: rgba(234, 190, 169, 0.1);
+  transform: translateY(-0.0625rem);
+}
+
+/* State C: View Profile - Gold Wireframe Outline Button */
+.portal-btn-view {
+  background-color: transparent;
+  color: #f3e7b1;
+  border: 0.0625rem solid #f3e7b1;
+  /* 1px */
+}
+
+.portal-btn-view:hover {
+  background-color: rgba(243, 231, 177, 0.08);
+  transform: translateY(-0.0625rem);
+}
+
+/* Responsiveness: Scale down paddings and font sizes for extra-short viewports (e.g. iPhone SE) */
+@media (max-height: 42rem) {
+  .new-foundation-container {
+    padding: 3.8rem 1rem 1.5rem 1rem;
+  }
+
+  .foundation-card {
+    padding: 1.2rem 1rem;
+    border-radius: 1.25rem;
+  }
+
+  .foundation-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .foundation-text {
+    font-size: 1.15rem;
+    line-height: 1.5rem;
+    margin-bottom: 0.8rem;
+    text-align: center;
+  }
+  
+  .foundation-signature {
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .card-divider {
+    margin: 0.8rem 0;
+  }
+
+  .invite-subtext {
+    font-size: 0.8rem;
+  }
+
+  .invite-highlight {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .portal-action-btn {
+    font-size: 0.85rem;
+    padding: 0.5rem 1.5rem;
+  }
+}

@@ -1,0 +1,146 @@
+/* Onboarding Page Styles */
+
+.onboarding-bezel-card {
+  border: 1px solid rgba(234, 190, 169, 0.15) !important;
+}
+
+.onboarding-choice-btn {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.onboarding-choice-btn:hover {
+  transform: translateY(-2px);
+  background-color: #5b1f40 !important;
+  border-color: #F7DC92 !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.onboarding-choice-btn:hover span {
+  color: #fff !important;
+}
+
+.onboarding-choice-btn:hover span:last-child {
+  color: #F7DC92 !important;
+}
+
+.onboarding-choice-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.onboarding-input::placeholder {
+  color: rgba(234, 190, 169, 0.5);
+}
+
+.onboarding-search-dropdown {
+  background-color: #6c254c !important;
+  border: 1px solid #EABEA9 !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.onboarding-search-dropdown .ant-select-item {
+  transition: background-color 0.2s ease;
+}
+
+.onboarding-search-dropdown .ant-select-item-option-active {
+  background-color: rgba(234, 190, 169, 0.1) !important;
+}
+
+.onboarding-preview-card {
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.close-onboarding-btn {
+  transition: all 0.2s ease;
+}
+
+.close-onboarding-btn:hover {
+  color: #fff !important;
+  transform: scale(1.1);
+}
+
+.onboarding-page-shell {
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(91, 31, 64, 0.15);
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Step indicator dots */
+.onboarding-step-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.onboarding-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(234, 190, 169, 0.3);
+  transition: all 0.3s ease;
+}
+
+.onboarding-step-dot.active {
+  background: #F7DC92;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Search results count */
+.onboarding-search-hint {
+  color: rgba(234, 190, 169, 0.6);
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+/* Confirm card branch badge */
+.onboarding-branch-badge {
+  display: inline-block;
+  background: rgba(247, 220, 146, 0.15);
+  color: #F7DC92;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* Loading skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.onboarding-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* Empty search state */
+.onboarding-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: rgba(234, 190, 169, 0.5);
+}
+
+.onboarding-empty-state-icon {
+  font-size: 2rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+/* Keyboard focus styles for accessibility */
+.onboarding-choice-btn:focus-visible,
+.onboarding-input:focus-visible,
+.close-onboarding-btn:focus-visible {
+  outline: 2px solid #F7DC92;
+  outline-offset: 2px;
+}

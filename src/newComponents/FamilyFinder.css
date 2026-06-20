@@ -1,0 +1,615 @@
+/* ─── FamilyFinder Container ─── */
+.ff-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(180deg, #fffaf5 0%, #faeed6 100%);
+  color: #5b1f40;
+  overflow: hidden;
+  font-family: "Titillium Web", sans-serif;
+}
+
+/* ─── Header ─── */
+.ff-header {
+  flex-shrink: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.ff-header-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #5b1f40;
+}
+
+/* ─── Carousel / Deck Area ─── */
+.ff-carousel {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 16px 4px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ─── Deck Container ─── */
+.ff-deck {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0;
+  position: relative;
+  user-select: none;
+  touch-action: pan-x;
+  min-height: 0;
+}
+
+.ff-deck-empty {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #5b1f40;
+  font-size: 0.95rem;
+  opacity: 0.7;
+}
+
+/* ─── Track Container ─── */
+.ff-deck-track {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.ff-hero-card {
+  height: 92%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(145deg, var(--card-bg), rgba(135, 61, 98, 0.95));
+  box-shadow: 0 12px 32px rgba(91, 31, 64, 0.25), 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: #fff6d8;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.ff-hero-card-visual {
+  width: 100%;
+  height: 58%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ff-hero-card-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.ff-hero-card:hover .ff-hero-card-photo {
+  transform: scale(1.05);
+}
+
+.ff-hero-card-initials {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--card-accent);
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ff-hero-card-body {
+  flex: 1;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ff-hero-card-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ff-hero-card-meta {
+  font-size: 0.78rem;
+  color: var(--card-accent);
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.ff-hero-card-btn {
+  margin-top: 4px;
+  align-self: center;
+  padding: 7px 18px;
+  border: none;
+  border-radius: 999px;
+  background: var(--card-accent);
+  color: var(--card-bg);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ff-hero-card-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Progress Dots ─── */
+.ff-deck-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0 6px;
+  flex-shrink: 0;
+}
+
+.ff-deck-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(91, 31, 64, 0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.ff-deck-dot-active {
+  background: #5b1f40;
+  width: 18px;
+  border-radius: 999px;
+}
+
+/* ─── Hero Skeleton ─── */
+.ff-hero-skeleton {
+  width: 76%;
+  height: 92%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #ede6dc;
+  animation: ffSkeletonPulse 1.4s ease-in-out infinite;
+}
+
+.ff-hero-skeleton-visual {
+  width: 100%;
+  height: 58%;
+  background: #ddd5c8;
+}
+
+.ff-hero-skeleton-body {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.ff-hero-skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: #ddd5c8;
+}
+
+.ff-hero-skeleton-line-short {
+  width: 50%;
+}
+
+.ff-hero-skeleton-line-long {
+  width: 80%;
+}
+
+.ff-hero-skeleton-btn {
+  width: 90px;
+  height: 28px;
+  border-radius: 999px;
+  background: #ddd5c8;
+  margin-top: 4px;
+}
+
+@keyframes ffSkeletonPulse {
+  0% { opacity: 0.55; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.55; }
+}
+
+/* ─── Empty State ─── */
+.ff-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  text-align: center;
+  padding: 20px;
+  color: #5b1f40;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* ─── Filter Zone ─── */
+.ff-filter-zone {
+  flex-shrink: 0;
+  height: 280px;
+  background: #f7e4d8;
+  border-top: 1px solid rgba(91, 31, 64, 0.08);
+  padding: 16px 18px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ─── State A: Top Pill Cloud ─── */
+.ff-filter-top {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ff-pill-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 14px;
+  max-width: 100%;
+}
+
+.ff-pill {
+  padding: 10px 20px;
+  border: 1.5px solid rgba(91, 31, 64, 0.2);
+  border-radius: 999px;
+  background: #fff;
+  color: #5b1f40;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ff-pill:active {
+  transform: scale(0.95);
+}
+
+.ff-pill-active {
+  background: #5b1f40;
+  color: #f7dc92;
+  border-color: #5b1f40;
+}
+
+.ff-pill-offset {
+  margin-top: 6px;
+}
+
+.ff-pill-search {
+  background: #5b1f40;
+  color: #f7dc92;
+  border-color: #5b1f40;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+/* ─── State B: Drilled View ─── */
+.ff-filter-drilled {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ff-drilled-row1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.ff-back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #5b1f40;
+  color: #f7dc92;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  transition: transform 0.1s ease;
+}
+
+.ff-back-btn:active {
+  transform: scale(0.92);
+}
+
+.ff-value-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.ff-drilled-row2 {
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.ff-drilled-row2::-webkit-scrollbar {
+  display: none;
+}
+
+.ff-chip-row {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 2px;
+}
+
+.ff-chip {
+  padding: 8px 16px;
+  border: 1.5px solid rgba(91, 31, 64, 0.2);
+  border-radius: 999px;
+  background: #fff;
+  color: #5b1f40;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ff-chip:active {
+  transform: scale(0.95);
+}
+
+.ff-chip-active {
+  background: #5b1f40;
+  color: #f7dc92;
+  border-color: #5b1f40;
+}
+
+.ff-chip-pinned {
+  background: #5b1f40;
+  color: #f7dc92;
+  border-color: #5b1f40;
+}
+
+/* ─── State C: Keyboard ─── */
+.ff-filter-keyboard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/*.ff-keyboard-display styles updated below*/
+.ff-keyboard-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.ff-keyboard-back-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: #5b1f40;
+  color: #f7dc92;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.1s ease;
+  flex-shrink: 0;
+}
+
+.ff-keyboard-back-btn:active {
+  transform: scale(0.9);
+}
+
+.ff-keyboard-display {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1.5px solid rgba(91, 31, 64, 0.15);
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+.ff-keyboard-clear-btn {
+  background: transparent;
+  border: none;
+  color: #5b1f40;
+  opacity: 0.6;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-left: auto;
+}
+
+.ff-keyboard-clear-btn:hover {
+  opacity: 1;
+}
+
+.ff-keyboard-placeholder {
+  color: rgba(91, 31, 64, 0.4);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.ff-keyboard-search-icon {
+  color: #5b1f40;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.ff-keyboard-text {
+  flex: 1;
+  font-size: 1.1rem;
+  color: #5b1f40;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ff-keyboard-cursor {
+  width: 2px;
+  height: 22px;
+  background: #5b1f40;
+  animation: ffBlink 1s step-end infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ffBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ff-keyboard-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ff-keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.ff-keyboard-row-bottom {
+  margin-top: 2px;
+}
+
+.ff-keyboard-key {
+  flex: 1;
+  max-width: 32px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  color: #5b1f40;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+.ff-keyboard-key:active {
+  background: #5b1f40;
+  color: #f7dc92;
+  transform: scale(0.95);
+}
+
+.ff-keyboard-space {
+  flex: 2;
+  max-width: 140px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.ff-keyboard-delete {
+  flex: 1;
+  max-width: 54px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #fff;
+  color: #5b1f40;
+}
+
+.ff-keyboard-delete:active {
+  background: #eee;
+}
+
+.ff-keyboard-shift {
+  flex: 1;
+  max-width: 54px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #fff;
+  color: #5b1f40;
+  transition: all 0.15s ease;
+}
+
+.ff-keyboard-shift.ff-keyboard-key-active {
+  background: #5b1f40;
+  color: #f7dc92;
+}
+
+.ff-keyboard-done {
+  flex: 1.2;
+  max-width: 70px;
+  background: #5b1f40;
+  color: #f7dc92;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.ff-keyboard-done:active {
+  background: #3f152d;
+}

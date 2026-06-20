@@ -1,6 +1,85 @@
-# Getting Started with Create React App
+# Family Reunion Website
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, interactive family reunion platform that helps families stay connected, share memories, and explore their family tree. This application provides a centralized hub for family members to view profiles, browse historical timelines, and share important family moments.
+
+## 🚀 Features
+
+- **Interactive Family Tree**: Visualize family connections and relationships
+- **Member Profiles**: Detailed profiles with personal information and family connections
+- **Timeline View**: Explore family history through an interactive timeline
+- **Photo Gallery**: Share and view family photos and memories
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Secure Authentication**: Protected routes and user authentication
+
+## 🛠️ Tech Stack
+
+- **Frontend**: 
+  - React.js
+  - React Router v6 for navigation
+  - Ant Design for UI components
+  - CSS Modules for styling
+  - Supabase for backend services
+
+- **Backend**:
+  - Supabase (Authentication & Database)
+  - RESTful API
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- npm or yarn
+- Supabase account (for backend services)
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone [your-repository-url]
+   cd familyreunion
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Set up environment variables:
+   Create a `.env` file in the root directory and add your Supabase credentials:
+   ```
+   REACT_APP_SUPABASE_URL=your_supabase_url
+   REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Start the development server:
+   ```bash
+   npm start
+   # or
+   yarn start
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+## 📂 Project Structure
+
+```
+src/
+├── components/         # Reusable UI components
+├── pages/             # Page components
+├── assets/            # Images, fonts, etc.
+├── hooks/             # Custom React hooks
+├── context/           # React context providers
+├── utils/             # Utility functions
+├── services/          # API services
+└── styles/            # Global styles and themes
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Available Scripts
 

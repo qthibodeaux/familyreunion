@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../../supabaseClient';
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
 import {
   Button,
   Col,
@@ -10,15 +10,15 @@ import {
   Row,
   Select,
   Typography,
-} from 'antd';
+} from "antd";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 
 function ResidenceForm() {
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [stateName, setStateName] = useState('');
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [stateName, setStateName] = useState("");
   const [stateData, setStateData] = useState([]);
   const [showError, setShowError] = useState(false);
   const navigate = useNavigate();
@@ -30,9 +30,9 @@ function ResidenceForm() {
 
   useEffect(() => {
     async function fetchStates() {
-      const { data, error } = await supabase.from('state').select('*');
+      const { data, error } = await supabase.from("state").select("*");
       if (error) {
-        console.error('Error fetching state data:', error);
+        console.error("Error fetching state data:", error);
         return;
       }
       setStateData(data);
@@ -49,9 +49,9 @@ function ResidenceForm() {
   };
 
   const handleReset = () => {
-    setCity('');
-    setState('');
-    setStateName('');
+    setCity("");
+    setState("");
+    setStateName("");
   };
 
   const handleSubmit = async () => {
@@ -62,19 +62,19 @@ function ResidenceForm() {
 
     try {
       const { error } = await supabase
-        .from('profilestate')
+        .from("profilestate")
         .insert([{ profile_id: userid, state_id: state, city: city }]);
 
       if (error) {
-        console.error('Error inserting data:', error);
-        message.error('Failed to submit the form.');
+        console.error("Error inserting data:", error);
+        message.error("Failed to submit the form.");
       } else {
-        message.success('Form submitted successfully!');
+        message.success("Form submitted successfully!");
         navigate(`/profile/${userid}`);
       }
     } catch (error) {
-      console.error('Error inserting data:', error);
-      message.error('Failed to submit the form.');
+      console.error("Error inserting data:", error);
+      message.error("Failed to submit the form.");
     }
   };
 
@@ -82,38 +82,38 @@ function ResidenceForm() {
     <Row
       justify="center"
       align="start"
-      style={{ padding: '1rem', height: '100%' }}
+      style={{ padding: "1rem", height: "100%" }}
     >
-      <Col span={24} style={{ backgroundColor: 'transparent' }}>
+      <Col span={24} style={{ backgroundColor: "transparent" }}>
         <Card
           style={{
-            padding: '24px',
-            backgroundColor: '#5b1f40',
-            border: 'none',
+            padding: "24px",
+            backgroundColor: "#5b1f40",
+            border: "none",
           }}
         >
           <Row>
             <Title
               level={3}
               style={{
-                textAlign: 'center',
-                color: '#f3e7b1',
-                fontWeight: 'bold',
-                fontSize: '2rem',
+                textAlign: "center",
+                color: "#f3e7b1",
+                fontWeight: "bold",
+                fontSize: "2rem",
               }}
             >
               Where do you currently live?
             </Title>
           </Row>
-          <Row gutter={8} style={{ paddingBottom: '.8rem' }}>
+          <Row gutter={8} style={{ paddingBottom: ".8rem" }}>
             {city && (
               <Col>
                 <Text
                   style={{
-                    textAlign: 'center',
-                    color: '#f3e7b1',
-                    fontWeight: 'bold',
-                    fontSize: '1rem',
+                    textAlign: "center",
+                    color: "#f3e7b1",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
                   }}
                 >
                   {city} ,
@@ -124,10 +124,10 @@ function ResidenceForm() {
             <Col>
               <Text
                 style={{
-                  textAlign: 'center',
-                  color: '#f3e7b1',
-                  fontWeight: 'bold',
-                  fontSize: '1rem',
+                  textAlign: "center",
+                  color: "#f3e7b1",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
                 }}
               >
                 {stateName}
@@ -135,13 +135,13 @@ function ResidenceForm() {
             </Col>
           </Row>
           <Row>
-            <Col style={{ width: '100%' }}>
+            <Col style={{ width: "100%" }}>
               <Select
                 placeholder="Select a state"
                 onChange={handleStateChange}
                 value={state}
                 size="large"
-                style={{ width: '100%' }}
+                style={{ width: "100%" }}
               >
                 {stateData.map((state) => (
                   <Option key={state.id} value={state.id}>
@@ -152,7 +152,7 @@ function ResidenceForm() {
             </Col>
           </Row>
           {state && (
-            <Row justify="center" style={{ marginTop: '.8rem' }}>
+            <Row justify="center" style={{ marginTop: ".8rem" }}>
               <Col>
                 <Input
                   onChange={(e) => {
@@ -162,32 +162,32 @@ function ResidenceForm() {
                   placeholder="Enter the city"
                   size="large"
                   style={{
-                    background: '#6c254c',
-                    border: 'none',
-                    color: '#f3e7b1',
-                    fontWeight: 'bold',
-                    fontSize: '1.5rem',
-                    borderRadius: '0',
+                    background: "#6c254c",
+                    border: "none",
+                    color: "#f3e7b1",
+                    fontWeight: "bold",
+                    fontSize: "1.5rem",
+                    borderRadius: "0",
                   }}
                 />
               </Col>
             </Row>
           )}
-          {showError && (city === '' || state === '') && (
-            <Row justify="center" style={{ marginTop: '1rem' }}>
+          {showError && (city === "" || state === "") && (
+            <Row justify="center" style={{ marginTop: "1rem" }}>
               <Col>
                 <Text type="danger">City & State cannot be blank.</Text>
               </Col>
             </Row>
           )}
-          <Row justify="center" gutter={16} style={{ marginTop: '16px' }}>
+          <Row justify="center" gutter={16} style={{ marginTop: "16px" }}>
             <Col>
               <Button
                 style={{
-                  color: '#873D62',
-                  background: '#F7DC92',
-                  border: 'solid #EABEA9',
-                  fontWeight: 'bold',
+                  color: "#873D62",
+                  background: "#F7DC92",
+                  border: "solid #EABEA9",
+                  fontWeight: "bold",
                 }}
                 onClick={handleReset}
               >
@@ -197,13 +197,13 @@ function ResidenceForm() {
             <Col>
               <Button
                 style={{
-                  color: '#873D62',
-                  background: '#F7DC92',
-                  border: 'solid #EABEA9',
-                  fontWeight: 'bold',
+                  color: "#873D62",
+                  background: "#F7DC92",
+                  border: "solid #EABEA9",
+                  fontWeight: "bold",
                 }}
                 onClick={() => {
-                  console.log('Submit Clicked');
+                  console.log("Submit Clicked");
                   if (!state || !city) {
                     setShowError(true); // Show error if city is blank
                     return;
@@ -215,13 +215,13 @@ function ResidenceForm() {
               </Button>
             </Col>
           </Row>
-          <Row justify="center" style={{ paddingTop: '3rem' }}>
+          <Row justify="center" style={{ paddingTop: "3rem" }}>
             <Button
               style={{
-                background: 'none',
-                border: 'solid #EABEA9',
-                color: '#F7DC92',
-                fontWeight: 'bold',
+                background: "none",
+                border: "solid #EABEA9",
+                color: "#F7DC92",
+                fontWeight: "bold",
               }}
               onClick={goToProfile}
             >

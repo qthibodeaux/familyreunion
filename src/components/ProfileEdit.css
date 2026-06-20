@@ -1,0 +1,299 @@
+/* ProfileEdit Theme Customizations */
+
+.profile-edit-bezel {
+  background-color: #5b1f40;
+  color: #f3e7b1;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-edit-container {
+  color: #f3e7b1;
+}
+
+/* Header style */
+.profile-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.profile-edit-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-edit-back-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(234, 190, 169, 0.25) !important;
+  color: #f3e7b1 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px !important;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-edit-back-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fff !important;
+}
+
+.profile-edit-title {
+  color: #f3e7b1 !important;
+  margin: 0 !important;
+  font-family: 'Titillium Web', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* Edit / Action Button */
+.profile-edit-action-btn {
+  background-color: #F7DC92 !important;
+  border-color: #EABEA9 !important;
+  color: #873D62 !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+}
+
+.profile-edit-action-btn:hover {
+  background-color: #EABEA9 !important;
+  border-color: #F7DC92 !important;
+  color: #5b1f40 !important;
+}
+
+.profile-edit-cancel-btn {
+  background: transparent !important;
+  border-color: rgba(234, 190, 169, 0.4) !important;
+  color: #EABEA9 !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
+
+.profile-edit-cancel-btn:hover {
+  color: #fff !important;
+  border-color: rgba(234, 190, 169, 0.7) !important;
+}
+
+/* Card customizations */
+.profile-edit-card {
+  background: #30041e !important;
+  border: 1px solid rgba(234, 190, 169, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  overflow: hidden;
+}
+
+.profile-edit-card .ant-card-head {
+  border-bottom: 1px solid rgba(234, 190, 169, 0.15) !important;
+  background: rgba(0, 0, 0, 0.15) !important;
+}
+
+.profile-edit-card .ant-card-head-title {
+  color: #f3e7b1 !important;
+  font-family: 'Titillium Web', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.profile-edit-card .ant-card-body {
+  padding: 24px !important;
+}
+
+/* Form Item Label */
+.profile-edit-container .ant-form-item-label > label {
+  color: #eabea9 !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* Input Fields overrides */
+.profile-edit-container .ant-input,
+.profile-edit-container .ant-picker {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(234, 190, 169, 0.2) !important;
+  border-radius: 8px !important;
+  color: #fff !important;
+  transition: all 0.2s ease;
+}
+
+.profile-edit-container .ant-input:focus,
+.profile-edit-container .ant-input-focused,
+.profile-edit-container .ant-picker-focused {
+  border-color: #f3e7b1 !important;
+  box-shadow: 0 0 0 2px rgba(243, 231, 177, 0.1) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Disabled Input overrides */
+.profile-edit-container .ant-input-disabled,
+.profile-edit-container .ant-picker-disabled {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(234, 190, 169, 0.1) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  cursor: not-allowed !important;
+}
+
+.profile-edit-container .ant-picker-input > input {
+  color: inherit !important;
+}
+
+.profile-edit-container .ant-picker-suffix {
+  color: #eabea9 !important;
+}
+
+/* Switch customization */
+.profile-edit-container .ant-switch {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.profile-edit-container .ant-switch-checked {
+  background-color: #F7DC92 !important;
+}
+
+.profile-edit-container .ant-switch-checked .ant-switch-handle::before {
+  background-color: #873D62 !important;
+}
+
+/* Avatar Border */
+.profile-edit-avatar-border {
+  border: 3px solid #f3e7b1;
+  background: #5b1f40;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Save Changes Button */
+.profile-edit-save-btn {
+  background-color: #F7DC92 !important;
+  border-color: #EABEA9 !important;
+  color: #873D62 !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  width: 100%;
+}
+
+.profile-edit-save-btn:hover {
+  background-color: #EABEA9 !important;
+  border-color: #F7DC92 !important;
+  color: #5b1f40 !important;
+}
+
+/* Connections Row and Styling */
+.connection-item-row {
+  border-bottom: 1px solid rgba(234, 190, 169, 0.15);
+  padding: 12px 0;
+  width: 100%;
+}
+
+.connection-item-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.connection-name {
+  color: #f3e7b1 !important;
+  font-weight: 600;
+}
+
+.connection-type {
+  color: #eabea9 !important;
+  opacity: 0.8;
+}
+
+.remove-conn-btn {
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+}
+
+.remove-conn-btn:hover {
+  background-color: #ff4d4f !important;
+  border-color: #ff4d4f !important;
+  color: #fff !important;
+}
+
+/* Ant Design DatePicker Popup Theming for Plum/Gold-Rose Theme */
+.ant-picker-dropdown {
+  z-index: 1050 !important;
+}
+
+.ant-picker-dropdown .ant-picker-panel-container {
+  background: #30041e !important;
+  border: 1px solid rgba(250, 238, 214, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+.ant-picker-dropdown .ant-picker-panel {
+  border: none !important;
+  background: transparent !important;
+}
+
+.ant-picker-dropdown .ant-picker-header {
+  border-bottom: 1px solid rgba(250, 238, 214, 0.15) !important;
+  color: #faeed6 !important;
+}
+
+.ant-picker-dropdown .ant-picker-header button {
+  color: #eabea9 !important;
+}
+
+.ant-picker-dropdown .ant-picker-header button:hover {
+  color: #faeed6 !important;
+}
+
+.ant-picker-dropdown .ant-picker-header-view {
+  color: #faeed6 !important;
+  font-weight: bold !important;
+}
+
+.ant-picker-dropdown .ant-picker-content th {
+  color: #eabea9 !important;
+  font-weight: bold !important;
+}
+
+.ant-picker-dropdown .ant-picker-content td {
+  color: #faeed6 !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell {
+  color: rgba(250, 238, 214, 0.3) !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view {
+  color: #faeed6 !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+  background: #F7DC92 !important;
+  color: #873D62 !important;
+  font-weight: bold !important;
+  border-radius: 6px !important;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before {
+  border: 1px solid #F7DC92 !important;
+  border-radius: 6px !important;
+}
+
+.ant-picker-dropdown .ant-picker-footer {
+  border-top: 1px solid rgba(250, 238, 214, 0.15) !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
+.ant-picker-dropdown .ant-picker-today-btn {
+  color: #F7DC92 !important;
+  font-weight: 600 !important;
+}
+
+.ant-picker-dropdown .ant-picker-today-btn:hover {
+  color: #eabea9 !important;
+}
+

@@ -1,8 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-//const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-//const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY
-const supabaseUrl2 = process.env.REACT_APP_SUPABASE_URL2;
-const supabaseKey2 = process.env.REACT_APP_SUPABASE_ANON_KEY2;
+const supabaseUrl = "https://fmwlwvdughyivbosubcs.supabase.co";
+const supabaseKey = "sb_publishable_Qx3yWJoyeVyQIog87D5v4w_vazL_8OV";
 
-export const supabase = createClient(supabaseUrl2, supabaseKey2);
+if (!supabaseUrl || !supabaseKey) {
+  console.error("Missing Supabase environment variables. Check your .env or .env.local file.");
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  },
+});

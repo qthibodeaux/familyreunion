@@ -1,0 +1,26 @@
+.register-page-shell {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(135deg, #873d62 0%, #b98797 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .register-page-shell {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-page-shell {
+    padding: 12px;
+  }
+}

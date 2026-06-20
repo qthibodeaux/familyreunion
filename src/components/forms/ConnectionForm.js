@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../../supabaseClient';
-import AuthConsumer from '../../useSession';
-import useParentDirector from '../director/useParentDirector';
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { message } from "antd";
+import { supabase } from "../../supabaseClient";
+import AuthConsumer from "../../useSession";
+import useParentDirector from "../director/useParentDirector";
 
 function ConnectionForm() {
   useParentDirector();
   const { type, userid } = useParams();
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   const [showError, setShowError] = useState(false);
   const [profile, setProfile] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,7 @@ function ConnectionForm() {
   const goToCreate = (createType) => navigate(`/createform/${createType}`);
 
   const onChange = (event) => {
-    if (value === '') setShowError(true);
+    if (value === "") setShowError(true);
     else setShowError(false);
 
     setValue(event.target.value);
@@ -30,19 +31,25 @@ function ConnectionForm() {
   async function namesearch() {
     setProfile([]);
     setShowError(false); // Reset error state
-    if (value === '') return setShowError(true);
+    if (value === "") return setShowError(true);
 
     setLoading(true); // Set loading state to true before starting the search
 
     try {
-      let { data, error } = await supabase
-        .from('profile')
-        .select('*')
+      let query = supabase
+        .from("profile")
+        .select("*")
         .or(
-          `firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`
+          `firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`,
         )
-        //.neq('branch', 0) // Exclude profiles with branch value of 0
-        .order('sunrise', { ascending: true });
+        .neq("branch", 0); // Always exclude Root (Branch 0)
+
+      // Exclude Branch 1 for spouse/child searches
+      if (type === "spouse" || type === "child") {
+        query = query.gt("branch", 1);
+      }
+
+      let { data, error } = await query.order("sunrise", { ascending: true });
 
       if (error) {
         throw error;
@@ -54,7 +61,7 @@ function ConnectionForm() {
         setProfile(data);
       }
     } catch (error) {
-      console.error('Error searching profiles:', error.message);
+      console.error("Error searching profiles:", error.message);
       setShowError(true); // Show error if an error occurs
     } finally {
       setLoading(false); // Set loading state to false after the search is complete
@@ -62,28 +69,38 @@ function ConnectionForm() {
   }
 
   async function getAllProfiles() {
-    console.log('we gettin them all');
+    console.log("we gettin them all");
     setProfile([]);
     setLoading(true); // Set loading state to true before starting the search
 
     try {
-      let { data, error } = await supabase.from('profile').select('*');
+      let query = supabase
+        .from("profile")
+        .select("*")
+        .neq("branch", 0); // Always exclude Root (Branch 0)
+
+      // Exclude Branch 1 for spouse/child searches
+      if (type === "spouse" || type === "child") {
+        query = query.gt("branch", 1);
+      }
+
+      let { data, error } = await query;
 
       if (error) {
         throw error;
       }
 
-      console.log('data results', data);
+      console.log("data results", data);
 
       if (data.length === 0) {
         setShowError(true); // Show error if no profiles are found
-        console.log('No profiles found');
+        console.log("No profiles found");
       } else {
         setProfile(data);
-        console.log('data results', data);
+        console.log("data results", data);
       }
     } catch (error) {
-      console.error('Error searching profiles:', error.message);
+      console.error("Error searching profiles:", error.message);
       setShowError(true); // Show error if an error occurs
     } finally {
       setLoading(false); // Set loading state to false after the search is complete
@@ -102,155 +119,150 @@ function ConnectionForm() {
 
   const handleConfirm = async () => {
     try {
-      // Fetch connection type IDs
-      const fetchConnectionType = async (connectionName) => {
-        const { data, error } = await supabase
-          .from('connection_type')
-          .select('id')
-          .eq('connection_name', connectionName)
-          .single();
+      const selectedProfile = profile.find((p) => p.id === selectedProfileId);
+      const isClaimed = selectedProfile && (selectedProfile.email || selectedProfile.phone);
+      const isDeceased = selectedProfile && selectedProfile.sunset;
+      const isBranch1 = selectedProfile && selectedProfile.branch === 1;
 
-        if (error) {
-          console.log(error);
-          return null;
-        }
+      // Auto-connect if not claimed, OR if deceased, OR if Branch 1 (admin/master branch)
+      const autoConnect = !isClaimed || isDeceased || isBranch1;
 
-        return data.id;
-      };
+      const childType = "child";
+      const parentType = "parent";
+      const spouseType = "spouse";
 
-      const childType = await fetchConnectionType('child');
-      const parentType = await fetchConnectionType('parent');
-      const spouseType = await fetchConnectionType('spouse');
+      if (type === "smithparent") {
+        if (!autoConnect) {
+          // Send consensual request, do NOT update parent field yet
+          const { error: connError } = await supabase.from("connection").insert({
+            profile_1: selectedProfileId,
+            profile_2: userid,
+            connection_type: childType,
+            status: "pending",
+            requested_by: userid,
+          });
+          if (connError) throw connError;
+          message.success("Parent request sent! Waiting for their approval.");
+        } else {
+          // Standard active connection and parent update
+          const { error } = await supabase
+            .from("profile")
+            .update({ parent: selectedProfileId })
+            .eq("id", userid);
+          if (error) throw error;
 
-      if (!childType || !parentType || !spouseType) {
-        console.error('Failed to fetch connection types');
-        return;
-      }
-
-      if (type === 'smithparent') {
-        // Update parent column in profile table
-        const { error } = await supabase
-          .from('profile')
-          .update({ parent: selectedProfileId })
-          .eq('id', userid);
-
-        if (error) {
-          console.log(error);
-          return;
-        }
-
-        // Insert into connection table
-        const { error: connError } = await supabase.from('connection').insert({
-          profile_1: selectedProfileId,
-          profile_2: userid,
-          connection_type: childType,
-        });
-
-        if (connError) {
-          console.log(connError);
+          const { error: connError } = await supabase.from("connection").insert({
+            profile_1: selectedProfileId,
+            profile_2: userid,
+            connection_type: childType,
+            status: "active",
+          });
+          if (connError) throw connError;
+          message.success("Connection added successfully!");
         }
       } else {
-        if (type === 'parent') {
+        const connStatus = autoConnect ? "active" : "pending";
+        const requestedBy = autoConnect ? null : userid;
+
+        if (type === "parent") {
           // Insert parent connection
           const { error: parentError } = await supabase
-            .from('connection')
+            .from("connection")
             .insert({
               profile_1: userid,
               profile_2: selectedProfileId,
               connection_type: parentType,
+              status: connStatus,
+              requested_by: requestedBy,
             });
-
-          if (parentError) {
-            console.log(parentError);
-            return;
-          }
+          if (parentError) throw parentError;
 
           // Insert child connection
           const { error: childError } = await supabase
-            .from('connection')
+            .from("connection")
             .insert({
               profile_1: selectedProfileId,
               profile_2: userid,
               connection_type: childType,
+              status: connStatus,
+              requested_by: requestedBy,
             });
-
-          if (childError) {
-            console.log(childError);
-          }
-        } else if (type === 'spouse') {
+          if (childError) throw childError;
+        } else if (type === "spouse") {
           // Insert spouse connection (both directions)
           const { error: spouseError1 } = await supabase
-            .from('connection')
+            .from("connection")
             .insert({
               profile_1: userid,
               profile_2: selectedProfileId,
               connection_type: spouseType,
+              status: connStatus,
+              requested_by: requestedBy,
             });
-
-          if (spouseError1) {
-            console.log(spouseError1);
-            return;
-          }
+          if (spouseError1) throw spouseError1;
 
           const { error: spouseError2 } = await supabase
-            .from('connection')
+            .from("connection")
             .insert({
               profile_1: selectedProfileId,
               profile_2: userid,
               connection_type: spouseType,
+              status: connStatus,
+              requested_by: requestedBy,
             });
-
-          if (spouseError2) {
-            console.log(spouseError2);
-          }
-        } else if (type === 'child') {
+          if (spouseError2) throw spouseError2;
+        } else if (type === "child") {
           // Insert child connection
           const { error: childError } = await supabase
-            .from('connection')
+            .from("connection")
             .insert({
               profile_1: userid,
               profile_2: selectedProfileId,
               connection_type: childType,
+              status: connStatus,
+              requested_by: requestedBy,
             });
-
-          if (childError) {
-            console.log(childError);
-            return;
-          }
+          if (childError) throw childError;
 
           // Insert parent connection
           const { error: parentError } = await supabase
-            .from('connection')
+            .from("connection")
             .insert({
               profile_1: selectedProfileId,
               profile_2: userid,
               connection_type: parentType,
+              status: connStatus,
+              requested_by: requestedBy,
             });
+          if (parentError) throw parentError;
+        }
 
-          if (parentError) {
-            console.log(parentError);
-          }
+        if (connStatus === "pending") {
+          message.success("Connection request sent! Waiting for their approval.");
+        } else {
+          message.success("Connection added successfully!");
         }
       }
 
       goToProfile();
     } catch (error) {
-      console.error('Error updating profile:', error.message);
+      console.error("Error updating profile:", error.message);
+      message.error("Failed to create connection: " + error.message);
     }
   };
 
   const getHeadingText = () => {
     switch (type) {
-      case 'smithparent':
-        return 'Does your Smith side parent have a profile?';
-      case 'parent':
-        return 'Does your parent have a profile?';
-      case 'spouse':
-        return 'Does your spouse have a profile?';
-      case 'child':
-        return 'Does your child have a profile?';
+      case "smithparent":
+        return "Does your Smith side parent have a profile?";
+      case "parent":
+        return "Does your parent have a profile?";
+      case "spouse":
+        return "Does your spouse have a profile?";
+      case "child":
+        return "Does your child have a profile?";
       default:
-        return 'Does the profile exist?';
+        return "Does the profile exist?";
     }
   };
 
@@ -261,7 +273,7 @@ function ConnectionForm() {
           <h1 textAlign="center">{getHeadingText()}</h1>
           <div gap="medium">
             <input type="text" onChange={onChange} />
-            <div style={{ visibility: showError ? 'visible' : 'hidden' }}>
+            <div style={{ visibility: showError ? "visible" : "hidden" }}>
               <p color="red" weight="bold">
                 Required
               </p>
@@ -324,14 +336,14 @@ function ConnectionForm() {
                               pad="small"
                               background={
                                 selectedProfileId === profile.id
-                                  ? 'light-3'
-                                  : 'white'
+                                  ? "light-3"
+                                  : "white"
                               }
                               onClick={() => handleProfileClick(profile.id)}
                               key={profile.id}
                             >
                               <p>
-                                {profile.firstname} {profile.nickname}{' '}
+                                {profile.firstname} {profile.nickname}{" "}
                                 {profile.lastname}
                               </p>
                               {selectedProfileId === profile.id && (
@@ -345,7 +357,7 @@ function ConnectionForm() {
                         </li>
                         {!showMore && profile.length > 5 && (
                           <div
-                            margin={{ top: 'medium' }}
+                            margin={{ top: "medium" }}
                             width="small"
                             pad="medium"
                             background="#84543C"
@@ -359,8 +371,8 @@ function ConnectionForm() {
                                 weight="bold"
                                 onClick={() => handleShowMore()}
                               >
-                                {' '}
-                                +{profile.length - 5} more{' '}
+                                {" "}
+                                +{profile.length - 5} more{" "}
                               </p>
                             </button>
                           </div>

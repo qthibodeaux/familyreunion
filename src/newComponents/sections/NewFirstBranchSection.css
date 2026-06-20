@@ -1,0 +1,223 @@
+.new-first-branch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  padding: 4.5rem 1.5rem 2.5rem 1.5rem; /* Clear notch menu */
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #faeed6 0%, #faf6f0 100%);
+  color: #5b1f40;
+  overflow: hidden;
+}
+
+/* Branch SVG Ornament */
+.branch-ornament {
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+  width: 90px;
+  opacity: 0.8;
+}
+
+.ornament-svg {
+  width: 100%;
+  height: auto;
+}
+
+.new-first-branch-header {
+  text-align: center;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.new-first-branch-title {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #5b1f40;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  margin: 0 0 0.1rem 0;
+}
+
+.new-first-branch-subtitle {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.1rem;
+  font-weight: 300;
+  color: #6a2f4d;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.new-first-branch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.3rem 0.25rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding-bottom: 0;
+  flex: 1;
+  min-height: 0;
+  align-content: start;
+}
+
+.new-first-branch-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  text-align: center;
+  
+  /* Smooth scaling for touch active feedback */
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent; /* Remove default tap highlight overlay */
+}
+
+/* Tactile touch response for mobile */
+.new-first-branch-item:active {
+  transform: scale(0.94);
+}
+
+.new-first-branch-avatar-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 5.5rem; /* Limit size on desktop */
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 1.25rem; /* Elegant 20px squircle shape */
+  border: 1.5px solid rgba(91, 31, 64, 0.25); /* Thin, elegant plum border */
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(91, 31, 64, 0.08); /* Soft depth shadow */
+  background-color: rgba(91, 31, 64, 0.03);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, opacity 0.15s ease;
+}
+
+/* Accent highlight when tapped */
+.new-first-branch-item:active .new-first-branch-avatar-wrapper {
+  border-color: #5b1f40;
+  box-shadow: 0 2px 8px rgba(91, 31, 64, 0.15);
+  opacity: 0.85;
+}
+
+.new-first-branch-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.new-first-branch-name {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5b1f40;
+  margin-top: 0.35rem;
+}
+
+/* Custom Loading Spinner matching light gold/cream theme */
+.new-first-branch-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 12rem;
+}
+
+.custom-loader {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0.2rem solid rgba(91, 31, 64, 0.1);
+  border-radius: 50%;
+  border-top-color: #5b1f40;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile responsive scaling */
+@media (max-width: 480px) {
+  .new-first-branch-container {
+    padding: 3.8rem 1rem 1rem 1rem;
+  }
+  
+  .branch-ornament {
+    margin-bottom: 0.25rem;
+    width: 60px;
+  }
+
+  .new-first-branch-header {
+    margin-bottom: 0.4rem;
+  }
+
+  .new-first-branch-title {
+    font-size: 1.25rem;
+  }
+
+  .new-first-branch-subtitle {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .new-first-branch-grid {
+    gap: 0.4rem 0.25rem;
+  }
+
+  .new-first-branch-avatar-wrapper {
+    max-width: 4rem;
+  }
+
+  .new-first-branch-name {
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+  }
+}
+
+/* Height constraints: scale down dynamically to fit layout viewport height */
+@media (max-height: 42rem) {
+  .new-first-branch-container {
+    padding: 3.8rem 1rem 1rem 1rem;
+  }
+
+  .branch-ornament {
+    margin-bottom: 0.25rem;
+    width: 60px;
+  }
+
+  .new-first-branch-header {
+    margin-bottom: 0.4rem;
+  }
+
+  .new-first-branch-title {
+    font-size: 1.2rem;
+  }
+
+  .new-first-branch-subtitle {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .new-first-branch-grid {
+    gap: 0.3rem 0.25rem;
+  }
+
+  .new-first-branch-avatar-wrapper {
+    max-width: 4rem;
+  }
+
+  .new-first-branch-name {
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .new-first-branch-grid {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 36rem;
+  }
+}

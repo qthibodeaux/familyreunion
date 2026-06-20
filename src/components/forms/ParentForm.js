@@ -1,38 +1,47 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from "react";
+import { AutoComplete, Button, Card, Col, Input, Row, Typography } from "antd";
 import {
-  AutoComplete,
-  Avatar,
-  Button,
-  Card,
-  Col,
-  Input,
-  Row,
-  Typography,
-} from 'antd';
-import { UserOutlined } from '@ant-design/icons';
-import { supabase } from '../../supabaseClient';
-import { useNavigate, useParams } from 'react-router-dom';
-import AuthConsumer from '../../useSession';
-import useParentDirector from '../director/useParentDirector';
-import moment from 'moment';
+  updateFamilyBranch,
+  updateAncestorReference,
+} from "../../utils/familyTree";
+import { supabase } from "../../supabaseClient";
+import { useNavigate, useParams } from "react-router-dom";
+import AuthConsumer from "../../useSession";
+import useParentDirector from "../director/useParentDirector";
+import { format } from "date-fns";
+
+const connectionTitles = {
+  smithparent: "Who is your Smith family parent?",
+  parent: "Who is your parent?",
+  spouse: "Who is your spouse/partner?",
+  child: "Who is your child?",
+};
+
+const connectionMessages = {
+  smithparent: "Search for your Smith family parent",
+  parent: "Search for your parent",
+  spouse: "Who is your spouse/partner?",
+  child: "Who is your child?",
+};
+
+const isSmithParent = (type) => type === "smithparent";
 
 function ParentForm() {
   useParentDirector();
   const navigate = useNavigate();
   const { session } = AuthConsumer();
   const { Title } = Typography;
-  const { userid } = useParams();
+  const { type, userid } = useParams();
 
   const goToProfile = () => navigate(`/profile/${session.user.id}`);
-  const goToProfileForm = () => navigate('/profileform/smithparent');
+  const goToProfileForm = () => navigate(`/profileform/${type}/${userid}`);
 
   const [options, setOptions] = useState([]);
-  const [searchText, setSearchText] = useState('');
   const [selectedProfile, setSelectedProfile] = useState(null);
   const inputRef = useRef(null);
-  const [inputValue, setInputValue] = useState('');
-  const [formattedSunrise, setFormattedSunrise] = useState('');
-  const [formattedSunset, setFormattedSunset] = useState('');
+  const [inputValue, setInputValue] = useState("");
+  const [formattedSunrise, setFormattedSunrise] = useState("");
+  const [formattedSunset, setFormattedSunset] = useState("");
 
   const debounceTimeout = useRef(null);
 
@@ -46,7 +55,6 @@ function ParentForm() {
 
   const handleSearch = (value) => {
     setInputValue(value);
-    setSearchText(value);
 
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
@@ -54,22 +62,28 @@ function ParentForm() {
 
     debounceTimeout.current = setTimeout(async () => {
       if (value) {
-        const { data, error } = await supabase
-          .from('profile')
-          .select('*')
+        let query = supabase
+          .from("profile")
+          .select("*")
           .or(
-            `firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`
+            `firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`,
           )
-          .or('branch.is.null,branch.neq.0')
-          .order('sunrise', { ascending: true });
+          .neq("branch", 0); // Always exclude Roots (Branch 0) from connection forms
+
+        // Exclude Branch 1 for spouse/child searches
+        if (type === "spouse" || type === "child") {
+          query = query.gt("branch", 1);
+        }
+
+        const { data, error } = await query.order("sunrise", { ascending: true });
 
         if (!error) {
           const formattedOptions = data.map((profile) => ({
             value: `${profile.firstname} ${
-              profile.nickname ? `(${profile.nickname})` : ''
+              profile.nickname ? `(${profile.nickname})` : ""
             } ${profile.lastname}`,
             label: `${profile.firstname} ${
-              profile.nickname ? `(${profile.nickname})` : ''
+              profile.nickname ? `(${profile.nickname})` : ""
             } ${profile.lastname}`,
             profile: profile,
           }));
@@ -86,9 +100,9 @@ function ParentForm() {
     if (selected) {
       setSelectedProfile(selected.profile);
 
-      let fSunrise = moment(selected.sunrise).format('MMMM D, YYYY');
+      let fSunrise = selected.sunrise ? format(new Date(selected.sunrise), "MMMM d, yyyy") : "Unknown";
       let fSunset = selected.profile.sunset
-        ? moment(selected.profile.sunset).format('MMMM D, YYYY')
+        ? format(new Date(selected.profile.sunset), "MMMM d, yyyy")
         : null;
 
       setFormattedSunrise(fSunrise);
@@ -98,185 +112,201 @@ function ParentForm() {
 
   const handleReset = () => {
     setOptions([]);
-    setSearchText('');
     setSelectedProfile(null);
-    setInputValue('');
+    setInputValue("");
   };
 
   const handleConfirm = async () => {
-    const { data: parentProfile, error: parentProfileError } = await supabase
-      .from('profile')
-      .select('branch')
-      .eq('id', selectedProfile.id)
-      .single();
-
-    if (parentProfileError) {
-      console.error('Error fetching parent profile:', parentProfileError);
-      return;
-    }
-
-    let newBranch = null;
-
-    if (parentProfile && parentProfile.branch !== null) {
-      newBranch = parentProfile.branch + 1;
-    }
-
-    const updateProfile = async (profileId, branchValue) => {
-      const { error: updateError } = await supabase
-        .from('profile')
-        .update({
-          branch: branchValue,
-        })
-        .eq('id', profileId);
-
-      if (updateError) {
-        console.error(`Error updating profile ${profileId}:`, updateError);
-        return;
-      }
-
-      const { data: descendants, error: descendantsError } = await supabase
-        .from('profile')
-        .select('id')
-        .eq('parent', profileId);
-
-      if (descendantsError) {
-        console.error(
-          `Error fetching descendants of profile ${profileId}:`,
-          descendantsError
+    try {
+      // Check if a connection already exists
+      const { data: existingConnections, error: checkError } = await supabase
+        .from("connection")
+        .select("*")
+        .or(
+          `and(profile_1.eq.${selectedProfile.id},profile_2.eq.${userid},connection_type.eq.child),and(profile_1.eq.${userid},profile_2.eq.${selectedProfile.id},connection_type.eq.parent)`,
         );
-        return;
+
+      if (checkError) throw checkError;
+
+      // Only create new connections if they don't exist
+      if (existingConnections.length === 0) {
+        // Determine the correct connection direction based on type
+        let connectionData;
+
+        if (type === "child") {
+          // For child connections:
+          // - profile_1 is the parent
+          // - profile_2 is the child
+          connectionData = [
+            {
+              profile_1: userid,
+              profile_2: selectedProfile.id,
+              connection_type: "child",
+            },
+            {
+              profile_1: selectedProfile.id,
+              profile_2: userid,
+              connection_type: "parent",
+            },
+          ];
+        } else {
+          // For parent and smithparent connections:
+          // - profile_1 is the parent
+          // - profile_2 is the child
+          connectionData = [
+            {
+              profile_1: selectedProfile.id,
+              profile_2: userid,
+              connection_type: "child",
+            },
+            {
+              profile_1: userid,
+              profile_2: selectedProfile.id,
+              connection_type: "parent",
+            },
+          ];
+        }
+
+        // Insert connections
+        const { error: connectionError } = await supabase
+          .from("connection")
+          .insert(connectionData);
+
+        if (connectionError) throw connectionError;
       }
 
-      for (const descendant of descendants) {
-        await updateProfile(descendant.id, branchValue + 1);
-      }
-    };
+      // For smithparent connections, update the profile's parent field and handle branches
+      if (isSmithParent(type) || type === "parent") {
+        // 1. Get the parent's branch and ancestor info
+        const { data: parentProfile, error: parentProfileError } =
+          await supabase
+            .from("profile")
+            .select("branch, ancestor")
+            .eq("id", selectedProfile.id)
+            .single();
 
-    await updateProfile(userid, newBranch);
+        if (parentProfileError) throw parentProfileError;
 
-    const { error: parentUpdateError } = await supabase
-      .from('profile')
-      .update({ parent: selectedProfile.id })
-      .eq('id', userid);
+        // 2. Determine the new branch number
+        let newBranch = 0; // Default to 0 if no branch exists
+        if (parentProfile.branch !== null) {
+          newBranch = parentProfile.branch + 1;
+        }
 
-    if (parentUpdateError) {
-      console.error('Error updating parent profile:', parentUpdateError);
-      return;
-    }
+        // 3. Update the current user's profile with parent, branch, and ancestor info
+        const { error: updateError } = await supabase
+          .from("profile")
+          .update({
+            parent: selectedProfile.id,
+            branch: newBranch,
+            ancestor: parentProfile.ancestor || selectedProfile.id, // If parent has no ancestor, use parent's ID as ancestor
+          })
+          .eq("id", userid);
 
-    const { data: selectedProfileData, error: selectedProfileError } =
-      await supabase
-        .from('profile')
-        .select('ancestor')
-        .eq('id', selectedProfile.id)
-        .single();
+        if (updateError) throw updateError;
 
-    if (selectedProfileError) {
-      console.error(
-        'Error fetching selected profile ancestor:',
-        selectedProfileError
-      );
-      return;
-    }
+        // 4. If this is a new branch, update all descendants with the new branch numbers
+        if (parentProfile.ancestor === null) {
+          // This is a new branch, so update all descendants
+          await updateFamilyBranch(userid, newBranch);
+        }
 
-    const selectedProfileAncestor = selectedProfileData.ancestor;
-
-    const { data: userProfileData, error: userProfileError } = await supabase
-      .from('profile')
-      .select('ancestor')
-      .eq('id', userid)
-      .single();
-
-    if (userProfileError) {
-      console.error('Error fetching user profile ancestor:', userProfileError);
-      return;
-    }
-
-    const userProfileAncestor = userProfileData.ancestor;
-
-    if (!userProfileAncestor && selectedProfileAncestor) {
-      const { error: updateAncestorError } = await supabase
-        .from('profile')
-        .update({ ancestor: selectedProfileAncestor })
-        .eq('id', userid);
-
-      if (updateAncestorError) {
-        console.error(
-          'Error updating user profile ancestor:',
-          updateAncestorError
+        // 5. Update ancestor reference for all descendants if this is a new root
+        await updateAncestorReference(
+          userid,
+          parentProfile.ancestor || selectedProfile.id,
         );
-        return;
       }
+
+      goToProfile();
+    } catch (error) {
+      console.error("Error creating connection:", error);
+      // Handle error (show toast/notification)
     }
-
-    const { data: connectionTypeData, error: connectionTypeError } =
-      await supabase
-        .from('connection_type')
-        .select('id')
-        .eq('connection_name', 'child')
-        .single();
-
-    if (connectionTypeError) {
-      console.error('Error fetching connection type:', connectionTypeError);
-      return;
-    }
-
-    const childConnectionTypeId = connectionTypeData.id;
-
-    const { error: insertError } = await supabase.from('connection').insert([
-      {
-        profile_1: selectedProfile.id,
-        profile_2: userid,
-        connection_type: childConnectionTypeId,
-      },
-    ]);
-
-    if (insertError) {
-      console.error('Error inserting connection:', insertError);
-      return;
-    }
-
-    goToProfile();
   };
 
   return (
-    <div style={{ padding: '1rem' }}>
+    <div style={{ padding: "1rem" }}>
       <Card
         style={{
-          background: '#5b1f40',
-          border: 'none',
-          borderRadius: '8px',
-          padding: '8px',
+          background: "#5b1f40",
+          border: "none",
+          borderRadius: "8px",
+          padding: "8px",
         }}
       >
-        <Title level={3} style={{ textAlign: 'center', color: '#f3e7b1' }}>
-          Who is your Smith family parent?
+        <Title level={3} style={{ textAlign: "center", color: "#f3e7b1" }}>
+          {connectionTitles[type] || "Add Connection"}
         </Title>
+        <p
+          style={{
+            textAlign: "center",
+            color: "#f3e7b1",
+            marginBottom: "1rem",
+          }}
+        >
+          {connectionMessages[type] || "Search for this person in the family"}
+        </p>
 
         {selectedProfile && (
           <Col>
             <Row>
               <Col>
-                <div>
-                  <Avatar
-                    icon={<UserOutlined />}
-                    shape="square"
+                <div
+                  style={{
+                    width: "5rem",
+                    height: "5rem",
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    backgroundColor: selectedProfile.avatar_url
+                      ? "transparent"
+                      : "#EABEA9",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {selectedProfile.avatar_url ? (
+                    <img
+                      src={`${supabase.supabaseUrl}/storage/v1/object/public/avatars/${selectedProfile.avatar_url}`}
+                      alt={`${selectedProfile.firstname} ${selectedProfile.lastname}`}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <div
                     style={{
-                      borderRadius: '8px',
-                      width: '5rem',
-                      height: '5rem',
+                      display: selectedProfile.avatar_url ? "none" : "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      height: "100%",
+                      fontSize: "24px",
+                      fontWeight: "bold",
+                      color: "#5B1F40",
                     }}
-                  />
+                  >
+                    {`${selectedProfile.firstname?.[0] || ""}${selectedProfile.lastname?.[0] || ""}`.toUpperCase()}
+                  </div>
                 </div>
               </Col>
               <Col>
-                <Row style={{ marginLeft: '1rem' }}>
+                <Row style={{ marginLeft: "1rem" }}>
                   <Col span={24}>
                     <div
                       style={{
-                        fontWeight: 'bold',
-                        fontSize: '1.5rem',
-                        color: '#f3e7b1',
+                        fontWeight: "bold",
+                        fontSize: "1.5rem",
+                        color: "#f3e7b1",
                       }}
                     >
                       {selectedProfile.nickname
@@ -285,13 +315,13 @@ function ParentForm() {
                     </div>
                   </Col>
                 </Row>
-                <Row style={{ marginLeft: '1rem' }}>
+                <Row style={{ marginLeft: "1rem" }}>
                   <Col span={24}>
                     <div
                       style={{
-                        fontWeight: 'bold',
-                        fontSize: '1.5rem',
-                        color: '#f3e7b1',
+                        fontWeight: "bold",
+                        fontSize: "1.5rem",
+                        color: "#f3e7b1",
                       }}
                     >
                       {selectedProfile.lastname}
@@ -300,37 +330,38 @@ function ParentForm() {
                 </Row>
               </Col>
             </Row>
-            <Row style={{ marginTop: '.3rem' }}>
+            <Row style={{ marginTop: ".3rem" }}>
               <Col span={12}>
-                <Row style={{ color: '#f3e7b1' }}>Sunrise</Row>
-                <Row style={{ color: 'white' }}>{formattedSunrise}</Row>
+                <Row style={{ color: "#f3e7b1" }}>Sunrise</Row>
+                <Row style={{ color: "white" }}>{formattedSunrise}</Row>
               </Col>
               <Col span={12}>
                 {formattedSunset && (
                   <div>
-                    <Row justify="end" style={{ color: '#f3e7b1' }}>
+                    <Row justify="end" style={{ color: "#f3e7b1" }}>
                       Sunset
                     </Row>
-                    <Row justify="end" style={{ color: 'white' }}>
+                    <Row justify="end" style={{ color: "white" }}>
                       {formattedSunset}
                     </Row>
                   </div>
                 )}
               </Col>
             </Row>
-            <Row justify="center" style={{ marginTop: '.5rem' }}>
+            <Row justify="center" style={{ marginTop: ".5rem" }}>
               <Col>
                 <Button
                   type="primary"
                   style={{
-                    color: '#873D62',
-                    background: '#F7DC92',
-                    border: '.15rem solid #EABEA9',
-                    fontWeight: 'bold',
+                    color: "#873D62",
+                    background: "#F7DC92",
+                    border: ".15rem solid #EABEA9",
+                    fontWeight: "bold",
                   }}
                   onClick={handleConfirm}
                 >
-                  Choose {selectedProfile.nickname || selectedProfile.firstname}
+                  {type === "parent" ? "Choose" : "Connect with"}{" "}
+                  {selectedProfile.nickname || selectedProfile.firstname}
                 </Button>
               </Col>
             </Row>
@@ -340,32 +371,35 @@ function ParentForm() {
         <AutoComplete
           options={options}
           onSearch={handleSearch}
-          placeholder="Search for names"
+          placeholder={connectionMessages[type] || "Search for names"}
           onSelect={handleSelect}
           value={inputValue}
-          style={{ marginTop: '.5rem' }}
+          style={{ marginTop: ".5rem", width: "100%" }}
+          filterOption={(inputValue, option) =>
+            option.value.toLowerCase().includes(inputValue.toLowerCase())
+          }
         >
           <Input
             ref={inputRef}
             style={{
-              background: '#6c254c',
-              border: 'none',
-              color: '#f3e7b1',
-              fontWeight: 'bold',
-              fontSize: '1.5rem',
-              borderRadius: '0',
+              background: "#6c254c",
+              border: "none",
+              color: "#f3e7b1",
+              fontWeight: "bold",
+              fontSize: "1.5rem",
+              borderRadius: "0",
             }}
           />
         </AutoComplete>
 
-        <Row justify="center" gutter={16} style={{ marginTop: '2rem' }}>
+        <Row justify="center" gutter={16} style={{ marginTop: "2rem" }}>
           <Col>
             <Button
               style={{
-                color: '#F7DC92',
-                background: 'none',
-                border: '.15rem solid #EABEA9',
-                fontWeight: 'bold',
+                color: "#F7DC92",
+                background: "none",
+                border: ".15rem solid #EABEA9",
+                fontWeight: "bold",
               }}
               onClick={handleReset}
             >
@@ -376,10 +410,10 @@ function ParentForm() {
             <Button
               type="primary"
               style={{
-                color: '#873D62',
-                background: '#F7DC92',
-                border: '.15rem solid #EABEA9',
-                fontWeight: 'bold',
+                color: "#873D62",
+                background: "#F7DC92",
+                border: ".15rem solid #EABEA9",
+                fontWeight: "bold",
               }}
               onClick={goToProfileForm}
             >
@@ -388,14 +422,14 @@ function ParentForm() {
           </Col>
         </Row>
 
-        <Row justify="center" style={{ marginTop: '24px' }}>
+        <Row justify="center" style={{ marginTop: "24px" }}>
           <Button
             onClick={goToProfile}
             style={{
-              background: 'none',
-              border: 'solid #EABEA9',
-              color: '#F7DC92',
-              fontWeight: 'bold',
+              background: "none",
+              border: "solid #EABEA9",
+              color: "#F7DC92",
+              fontWeight: "bold",
             }}
           >
             Back

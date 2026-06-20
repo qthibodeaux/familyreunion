@@ -1,0 +1,240 @@
+.milestones-page-container {
+  padding: 5rem 1.5rem 1.5rem 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background: radial-gradient(circle at top, #4a1534 0%, #30041e 100%);
+}
+
+/* Custom rose-gold themed spinner */
+.milestones-spinner-wrap .ant-spin-dot-item {
+  background-color: #eabea9 !important;
+}
+
+.milestones-header {
+  margin-bottom: 32px;
+}
+
+.milestones-title {
+  font-family: "Titillium Web", sans-serif;
+  color: #f3e7b1;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 8px 0 4px 0;
+}
+
+.milestones-subtitle {
+  color: #EABEA9;
+  font-size: 1rem;
+  opacity: 0.8;
+  margin: 0;
+}
+
+.milestones-spinner-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 0;
+}
+
+.milestones-empty {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(234, 190, 169, 0.15);
+  border-radius: 16px;
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.milestone-feed-card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(234, 190, 169, 0.15) !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: hidden;
+}
+
+.milestone-feed-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(234, 190, 169, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.milestone-feed-card .ant-card-body {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* User Identity Header */
+.milestone-card-user-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(234, 190, 169, 0.12);
+}
+
+.user-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  transition: opacity 0.2s ease;
+}
+
+.user-link:hover {
+  opacity: 0.9;
+  color: #F7DC92;
+}
+
+/* Moderation Improvements */
+.mod-trigger-btn {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 4px 8px !important;
+  height: auto !important;
+}
+
+.mod-trigger-btn:hover {
+  background: rgba(234, 190, 169, 0.1) !important;
+}
+
+.ant-dropdown-menu {
+  background: #3d0e2c !important;
+  border: 1px solid rgba(234, 190, 169, 0.2) !important;
+  padding: 4px !important;
+  border-radius: 8px !important;
+}
+
+.ant-dropdown-menu-item {
+  color: #EABEA9 !important;
+  border-radius: 4px !important;
+}
+
+.ant-dropdown-menu-item:hover {
+  background: rgba(234, 190, 169, 0.1) !important;
+  color: #f3e7b1 !important;
+}
+
+.ant-dropdown-menu-item-danger {
+  color: #ff4d4f !important;
+}
+
+.ant-dropdown-menu-item-danger:hover {
+  background: rgba(255, 77, 79, 0.1) !important;
+}
+
+.user-avatar {
+  border: 1.5px solid #EABEA9 !important;
+  background-color: #4e1237 !important;
+  color: #f3e7b1 !important;
+  border-radius: 6px !important;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.card-category-badge {
+  font-size: 0.75rem;
+  color: #F7DC92;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Card Body Content */
+.milestone-card-body {
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.milestone-card-title {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+}
+
+.milestone-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #EABEA9;
+  opacity: 0.85;
+  margin-bottom: 12px;
+}
+
+.milestone-card-notes {
+  font-size: 0.9rem;
+  color: #f3e7b1;
+  line-height: 1.55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* Milestone Image */
+.milestone-card-img-wrap {
+  width: 100%;
+  max-height: 200px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(234, 190, 169, 0.12);
+}
+
+.milestone-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.milestone-feed-card:hover .milestone-card-img {
+  transform: scale(1.03);
+}
+
+/* Milestone Card Actions Footer */
+.milestone-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(234, 190, 169, 0.12);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.view-profile-link {
+  color: #EABEA9;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.view-profile-link:hover {
+  color: #F7DC92;
+}

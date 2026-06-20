@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Avatar } from 'antd';
-import { supabase } from '../supabaseClient';
+import React, { useEffect, useState } from "react";
+import { Card, Row, Col, Avatar } from "antd";
+import { supabase } from "../supabaseClient";
 
 function YearTree() {
   const [profiles, setProfiles] = useState([]);
@@ -9,11 +9,11 @@ function YearTree() {
   useEffect(() => {
     const fetchProfiles = async () => {
       const { data, error } = await supabase
-        .from('profile')
-        .select('id, firstname, avatar_url, sunrise'); // Adjust the select query based on your table structure
+        .from("profile")
+        .select("id, firstname, avatar_url, sunrise"); // Adjust the select query based on your table structure
 
       if (error) {
-        console.error('Error fetching profiles:', error);
+        console.error("Error fetching profiles:", error);
       } else {
         setProfiles(data);
       }

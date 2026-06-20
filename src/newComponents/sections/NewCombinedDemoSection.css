@@ -1,0 +1,692 @@
+/* Combined Demo Slide — merges Your Family Line + Johnny's Heritage */
+.ncd-container {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4.5rem 1.5rem 2.5rem 1.5rem;
+  background: linear-gradient(180deg, #4a1033 0%, #30041e 100%);
+  font-family: "Titillium Web", sans-serif;
+  color: #f3e7b1;
+  opacity: 0;
+  transform: translateY(1rem);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.ncd-container.mounted {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Plaque — taller to use vertical space */
+.ncd-plaque {
+  width: 100%;
+  max-width: 28rem;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 0.1875rem double rgba(243, 231, 177, 0.4);
+  border-radius: 1.5rem;
+  padding: 1.75rem 1.4rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  gap: 1.1rem;
+}
+
+/* Header */
+.ncd-header {
+  text-align: center;
+  width: 100%;
+}
+
+.ncd-title {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+  color: #f3e7b1;
+  text-transform: uppercase;
+  letter-spacing: 0.06rem;
+}
+
+.ncd-subtitle {
+  font-size: 0.95rem;
+  color: #eabea9;
+  margin: 0;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* ─── Decorative Tree Ornament ─── */
+.ncd-tree-ornament {
+  width: 100%;
+  max-width: 8.75rem;
+  height: 3.125rem;
+  opacity: 0.8;
+}
+
+.ncd-tree-ornament svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Onboarding Messages ─── */
+.ncd-onboarding-message {
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: center;
+  color: #eabea9;
+  padding: 0 0.5rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Connect prompt for no-tree state */
+.ncd-connect-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.7rem;
+  background: rgba(247, 220, 146, 0.08);
+  border: 0.0625rem dashed rgba(247, 220, 146, 0.3);
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+  color: #f7dc92;
+  text-align: center;
+}
+
+.ncd-connect-icon {
+  font-size: 1.1rem;
+  color: #f7dc92;
+  flex-shrink: 0;
+}
+
+/* ─── CTA Button Group (for guest/no-profile/no-tree states) ─── */
+.ncd-cta-group {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.7rem;
+}
+
+.ncd-btn {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 0.6rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+.ncd-btn-primary {
+  background-color: #f3e7b1;
+  color: #4a1033;
+  box-shadow: 0 0 0 0 rgba(243, 231, 177, 0.4);
+}
+
+.ncd-btn-primary:hover {
+  background-color: #eabea9;
+  color: #2c051d;
+  transform: translateY(-0.0625rem);
+}
+
+.ncd-btn-primary:active {
+  transform: scale(0.97);
+}
+
+.ncd-btn-secondary {
+  background-color: transparent;
+  color: #f3e7b1;
+  border: 1px solid #f3e7b1;
+}
+
+.ncd-btn-secondary:hover {
+  background-color: rgba(243, 231, 177, 0.08);
+  transform: translateY(-0.0625rem);
+}
+
+.ncd-btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* ─── Lineage Chain ─── */
+.ncd-chain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 0.25rem;
+  box-sizing: border-box;
+}
+
+/* Preview chain for guest state — dimmed */
+.preview-chain .ncd-node.dimmed {
+  opacity: 0.4;
+}
+
+.preview-chain .ncd-chain-connector.dimmed {
+  opacity: 0.25;
+}
+
+.ncd-node-placeholder-icon {
+  font-size: 1.5rem;
+  color: #eabea9;
+  opacity: 0.5;
+}
+
+.ncd-placeholder-wrap {
+  background: rgba(250, 238, 214, 0.08);
+  border: 0.125rem dashed rgba(234, 190, 169, 0.3);
+}
+
+.ncd-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 5rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.ncd-node.clickable {
+  cursor: pointer;
+}
+
+.ncd-node.clickable:hover {
+  transform: scale(1.05);
+}
+
+.ncd-node.clickable:active {
+  transform: scale(0.98);
+}
+
+/* SQUARE avatars with rounded corners (not circles) */
+.ncd-node-photo-wrap {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  background: rgba(250, 238, 214, 0.15);
+  border: 0.125rem solid rgba(234, 190, 169, 0.4);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ncd-node.clickable:hover .ncd-node-photo-wrap {
+  border-color: #f7dc92;
+  box-shadow: 0 0.25rem 0.75rem rgba(247, 220, 146, 0.2);
+}
+
+/* User avatar gets a gold accent border */
+.user-avatar-border {
+  border: 0.125rem solid #f7dc92;
+  background: rgba(247, 220, 146, 0.15);
+  color: #f3e7b1;
+}
+
+.ncd-node-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ncd-user-initials {
+  font-family: "Outfit", sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: #f3e7b1;
+}
+
+.ncd-node-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  color: #f3e7b1;
+}
+
+.ncd-node-role {
+  font-size: 0.72rem;
+  color: #eabea9;
+  opacity: 0.75;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03125rem;
+  margin-top: 0.125rem;
+}
+
+.highlight-user {
+  color: #f7dc92;
+  font-weight: 700;
+  opacity: 1;
+}
+
+.ncd-chain-connector {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(234, 190, 169, 0.35);
+  font-size: 1rem;
+}
+
+/* ─── Macro Stats (from Heritage slide) ─── */
+.ncd-macro-stats {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.7rem;
+}
+
+.ncd-macro-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 0.0625rem solid rgba(234, 190, 169, 0.15);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.ncd-macro-stat-row:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ncd-macro-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #f7dc92;
+  width: 2.6rem;
+  height: 2.6rem;
+  background: rgba(247, 220, 146, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ncd-icon-svg {
+  font-size: 1.5rem;
+  color: #f7dc92;
+}
+
+.ncd-macro-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.ncd-macro-value {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f3e7b1;
+  line-height: 1.2;
+}
+
+.ncd-macro-label {
+  font-size: 0.85rem;
+  color: #eabea9;
+  font-weight: 500;
+  opacity: 0.9;
+  line-height: 1.2;
+}
+
+/* ─── Personal Mini Stats ─── */
+.ncd-personal-stats {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  gap: 0.7rem;
+}
+
+.ncd-personal-stat-card {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 0.0625rem solid rgba(234, 190, 169, 0.15);
+  min-width: 0;
+}
+
+.ncd-personal-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #f7dc92;
+  width: 2rem;
+  height: 2rem;
+  background: rgba(247, 220, 146, 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ncd-card-icon-svg {
+  font-size: 1.2rem;
+  color: #f7dc92;
+}
+
+.ncd-personal-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ncd-personal-value {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f3e7b1;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ncd-personal-label {
+  font-size: 0.75rem;
+  color: #eabea9;
+  font-weight: 500;
+  opacity: 0.9;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Footer CTA ─── */
+.ncd-footer-cta {
+  width: 100%;
+  margin-top: 0.3rem;
+}
+
+.ncd-explore-btn {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 0.6rem;
+  background-color: transparent;
+  color: #f3e7b1;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: 0.0625rem solid #f3e7b1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}
+
+.ncd-explore-btn:hover {
+  background-color: rgba(243, 231, 177, 0.08);
+  transform: translateY(-0.0625rem);
+}
+
+.ncd-explore-btn:active {
+  transform: scale(0.97);
+}
+
+/* Gold pulse animation */
+.gold-pulse {
+  animation: gold-pulse-ncd 2.5s infinite;
+}
+
+@keyframes gold-pulse-ncd {
+  0% {
+    box-shadow: 0 0 0 0 rgba(243, 231, 177, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 0.5rem rgba(243, 231, 177, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(243, 231, 177, 0);
+  }
+}
+
+/* ─── Responsive Adjustments ─── */
+@media (max-width: 480px) {
+  .ncd-plaque {
+    padding: 1.2rem 1rem;
+    gap: 0.6rem;
+  }
+
+  .ncd-title {
+    font-size: 1.25rem;
+  }
+
+  .ncd-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .ncd-tree-ornament {
+    display: none;
+  }
+
+  .ncd-node {
+    width: 4.25rem;
+  }
+
+  .ncd-node-photo-wrap {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .ncd-user-initials {
+    font-size: 1.1rem;
+  }
+
+  .ncd-node-label {
+    font-size: 0.75rem;
+  }
+
+  .ncd-node-role {
+    font-size: 0.65rem;
+  }
+
+  .ncd-macro-stats {
+    gap: 0.5rem;
+  }
+
+  .ncd-macro-stat-row {
+    padding: 0.4rem 0.65rem;
+    gap: 0.75rem;
+  }
+
+  .ncd-macro-icon-wrap {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .ncd-icon-svg {
+    font-size: 1.2rem;
+  }
+
+  .ncd-macro-value {
+    font-size: 1rem;
+  }
+
+  .ncd-macro-label {
+    font-size: 0.75rem;
+  }
+
+  .ncd-personal-stats {
+    gap: 0.5rem;
+  }
+
+  .ncd-personal-stat-card {
+    padding: 0.4rem 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .ncd-personal-icon-wrap {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .ncd-card-icon-svg {
+    font-size: 1rem;
+  }
+
+  .ncd-personal-value {
+    font-size: 0.85rem;
+  }
+
+  .ncd-personal-label {
+    font-size: 0.65rem;
+  }
+
+  .ncd-explore-btn,
+  .ncd-btn {
+    font-size: 0.8rem;
+    padding: 0.65rem;
+  }
+
+  .ncd-onboarding-message {
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+
+  .ncd-connect-prompt {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+@media (max-height: 42rem) {
+  .ncd-container {
+    padding: 3.8rem 1rem 1.5rem 1rem;
+  }
+
+  .ncd-plaque {
+    padding: 1.1rem 1rem;
+    border-radius: 1.2rem;
+    gap: 0.5rem;
+  }
+
+  .ncd-title {
+    font-size: 1.25rem;
+  }
+
+  .ncd-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .ncd-tree-ornament {
+    display: none;
+  }
+
+  .ncd-node {
+    width: 4.25rem;
+  }
+
+  .ncd-node-photo-wrap {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .ncd-user-initials {
+    font-size: 1.1rem;
+  }
+
+  .ncd-node-label {
+    font-size: 0.75rem;
+  }
+
+  .ncd-macro-stats {
+    gap: 0.45rem;
+  }
+
+  .ncd-macro-stat-row {
+    padding: 0.4rem 0.65rem;
+    gap: 0.75rem;
+  }
+
+  .ncd-macro-icon-wrap {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+
+  .ncd-icon-svg {
+    font-size: 1.2rem;
+  }
+
+  .ncd-macro-value {
+    font-size: 1rem;
+  }
+
+  .ncd-macro-label {
+    font-size: 0.75rem;
+  }
+
+  .ncd-personal-stats {
+    gap: 0.5rem;
+  }
+
+  .ncd-personal-stat-card {
+    padding: 0.4rem 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .ncd-personal-icon-wrap {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .ncd-card-icon-svg {
+    font-size: 1rem;
+  }
+
+  .ncd-personal-value {
+    font-size: 0.85rem;
+  }
+
+  .ncd-personal-label {
+    font-size: 0.65rem;
+  }
+
+  .ncd-explore-btn,
+  .ncd-btn {
+    font-size: 0.8rem;
+    padding: 0.6rem;
+  }
+
+  .ncd-onboarding-message {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .ncd-connect-prompt {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+}

@@ -1,198 +1,86 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "./supabaseClient"
-import { useNavigate } from "react-router-dom";
-
-const AuthContext = createContext()
-
-export function useSession () {
-    const [session, setSession] = useState(null)
-    const [profile, setProfile] = useState()
-    const [channel, setChannel] = useState(null)
-    const navigate = useNavigate()
-    
-    const handleSignOut = async () => {
-        const { error } = await supabase.auth.signOut()
-
-        if (error) {
-            console.log(error)
-        } 
-        navigate('/')
-    }
-
-    useEffect(() => {
-        supabase.auth.getSession()
-            .then(({ data: { session } }) => {
-                setSession(session)
-            })
-
-        supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session)
-            setProfile(null)
-        })
-            
-    }, [])
-
-    useEffect(() => {
-        if (session?.user && !profile?.firstname) {
-            listenToProfileChanges(session.user.id)
-            .then(
-                (newChannel) => {
-                    if (channel) {
-                        channel.unsubscribe()
-                    }
-                    setChannel()
-                }
-            )
-        } else if (session?.user) {
-            channel?.unsubscribe()
-            setChannel(null)
-        }
-    }, [session])
-
-    async function listenToProfileChanges (userId) {
-        const { data } = await supabase
-            .from("profile")
-            .select("*")
-            .filter("id", "eq", userId)
-        
-        if (!data?.length) {
-            navigate(`/profile/${userId}`)
-        }
-        setProfile(data?.[0])
-
-        return supabase
-            .channel(`public:profile`)
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "profiles",
-                    filter: `id=eq.${userId}`,
-                },
-                (payload) => {
-                    setProfile({ profile: payload.new })
-                }
-            )
-            .subscribe()
-    }
-    return {
-        session,
-        profile,
-        handleSignOut,
-        setProfile,
-    }
-}
-
-export function AuthProvider ({ children }) {
-    const { profile, session, handleSignOut, setProfile } = useSession()
-
-    return (
-        <AuthContext.Provider value={{ profile, session, handleSignOut, setProfile }}>
-            {children}
-        </AuthContext.Provider>
-    )
-}
-
-export default function AuthConsumer () {
-    return useContext(AuthContext)
-}
-/*
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { supabase } from "./supabaseClient";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
 export function useSession() {
-    const [session, setSession] = useState(null);
-    const [profile, setProfile] = useState();
-    const [channel, setChannel] = useState(null);
-    const navigate = useNavigate();
-    
-    const handleSignOut = async () => {
-        const { error } = await supabase.auth.signOut();
+  const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true); // Tracks initial session loading
+  const navigate = useNavigate();
 
-        if (error) {
-            console.log(error);
-        } 
-        navigate('/');
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.log(error);
+    }
+    navigate("/");
+  };
+
+  // 1. Check current login session and listen to changes
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setProfile(null);
+      setLoading(false);
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // 2. Fetch the profile details once the user session is active
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (session?.user) {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("profile")
+          .select("*")
+          .eq("id", session.user.id);
+
+        if (!error && data && data.length > 0) {
+          setProfile(data[0]);
+        } else {
+          setProfile(null);
+        }
+        setLoading(false);
+      } else {
+        setProfile(null);
+      }
     };
 
-    useEffect(() => {
-        supabase.auth.getSession()
-            .then(({ data: { session } }) => {
-                setSession(session);
-            });
+    fetchProfile();
+  }, [session]);
 
-        supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setProfile(null);
-        });
-            
-    }, []);
-
-    const listenToProfileChanges = useCallback(async (userId) => {
-        const { data } = await supabase
-            .from("profile")
-            .select("*")
-            .filter("id", "eq", userId);
-        
-        if (!data?.length) {
-            
-        }
-        setProfile(data?.[0]);
-
-        return supabase
-            .channel(`public:profile`)
-            .on(
-                "postgres_changes",
-                {
-                    event: "*",
-                    schema: "public",
-                    table: "profile",
-                    filter: `id=eq.${userId}`,
-                },
-                (payload) => {
-                    setProfile(payload.new);
-                }
-            )
-            .subscribe();
-    }, [navigate]);
-
-    useEffect(() => {
-        if (session?.user && !profile?.firstname) {
-            listenToProfileChanges(session.user.id)
-                .then((newChannel) => {
-                    if (channel) {
-                        channel.unsubscribe();
-                    }
-                    setChannel(newChannel);
-                });
-        } else if (session?.user) {
-            channel?.unsubscribe();
-            setChannel(null);
-        }
-    }, [session, profile?.firstname, listenToProfileChanges, channel]);
-
-    return {
-        session,
-        profile,
-        handleSignOut,
-        setProfile,
-    };
+  return {
+    session,
+    profile,
+    loading, // Expose loading state to the app
+    handleSignOut,
+    setProfile,
+  };
 }
 
 export function AuthProvider({ children }) {
-    const { profile, session, handleSignOut, setProfile } = useSession();
+  const { profile, session, loading, handleSignOut, setProfile } = useSession();
 
-    return (
-        <AuthContext.Provider value={{ profile, session, handleSignOut, setProfile }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider
+      value={{ profile, session, loading, handleSignOut, setProfile }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export default function AuthConsumer() {
-    return useContext(AuthContext);
-}*/
+  return useContext(AuthContext);
+}
