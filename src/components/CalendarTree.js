@@ -39,10 +39,15 @@ const imageMap = {
 
 const getAvatarSrc = (profile) => {
   if (!profile) return null;
-  const firstWord = (profile.firstname || "").trim().split(/\s+/)[0].toLowerCase();
-  if (imageMap[firstWord]) {
-    return imageMap[firstWord];
+  
+  // Only use imageMap for First Branch members (branch === 1)
+  if (profile.branch === 1) {
+    const firstWord = (profile.firstname || "").trim().split(/\s+/)[0].toLowerCase();
+    if (imageMap[firstWord]) {
+      return imageMap[firstWord];
+    }
   }
+  
   if (profile.avatar_url) {
     const cleanUrl = profile.avatar_url.replace(".jpg", "").toLowerCase();
     if (imageMap[cleanUrl]) {

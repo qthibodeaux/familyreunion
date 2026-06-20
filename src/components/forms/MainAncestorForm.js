@@ -66,7 +66,7 @@ function MainAncestorForm() {
 
   const handleAvatarClick = (ancestor) => {
     const imageSrc =
-      imageMap[ancestor.firstname] || "https://via.placeholder.com/150";
+      (ancestor.branch === 1 && imageMap[ancestor.firstname]) || "https://via.placeholder.com/150";
     setSelectedAncestor({ ...ancestor, imageSrc });
     setShowWarning(false);
   };
@@ -137,7 +137,7 @@ function MainAncestorForm() {
           <Row gutter={[16, 16]}>
             {profiles.map((profile, index) => {
               const imageSrc =
-                imageMap[profile.firstname] ||
+                (profile.branch === 1 && imageMap[profile.firstname]) ||
                 "https://via.placeholder.com/150";
               return (
                 <Col

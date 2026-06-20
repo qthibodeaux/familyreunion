@@ -714,11 +714,11 @@ const FamilyFinder = () => {
           // Resolve avatar: local asset vs storage bucket
           let photoUrl = null;
           const firstWord = first.trim().split(/\s+/)[0].toLowerCase();
-          if (IMAGE_MAP[firstWord]) {
+          if (p.branch === 1 && IMAGE_MAP[firstWord]) {
             photoUrl = IMAGE_MAP[firstWord];
           } else if (p.avatar_url) {
             const cleanUrl = p.avatar_url.replace(".jpg", "").toLowerCase();
-            if (IMAGE_MAP[cleanUrl]) {
+            if (p.branch === 1 && IMAGE_MAP[cleanUrl]) {
               photoUrl = IMAGE_MAP[cleanUrl];
             } else if (p.avatar_url.startsWith("http")) {
               photoUrl = p.avatar_url;

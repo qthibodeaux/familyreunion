@@ -94,7 +94,7 @@ const NewFirstBranchSection = () => {
         <div className="new-first-branch-grid">
           {profiles.map((profile) => {
             const firstWord = (profile.firstname || "").trim().split(/\s+/)[0].toLowerCase();
-            const imageSrc = imageMap[firstWord] || DefaultAvatar;
+            const imageSrc = (profile.branch === 1 && imageMap[firstWord]) || DefaultAvatar;
 
             return (
               <div

@@ -409,7 +409,7 @@ const NewLayoutContent = () => {
           <div className="drawer-footer">
             <div className="footer-brand">Smith Family Reunion 2026</div>
             <div className="footer-tagline">"Preserving our legacy since 1885"</div>
-            <div className="footer-version">v1.0.3</div>
+            <div className="footer-version">v1.0.4</div>
           </div>
         </div>
       </main>
