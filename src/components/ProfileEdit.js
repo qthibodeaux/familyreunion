@@ -31,6 +31,7 @@ function ProfileEdit() {
   useEffect(() => {
     fetchProfileData();
     fetchConnections();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchProfileData = async () => {

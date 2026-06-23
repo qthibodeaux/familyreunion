@@ -20,6 +20,7 @@ import AuthConsumer from "../useSession";
 import { supabase } from "../supabaseClient";
 import AuthCallbackHandler from "../components/AuthCallbackHandler";
 import { getAvatarSrc } from "../utils/avatarHelper";
+import packageJson from "../../package.json";
 import "./NewLayout.css";
 
 const NewLayoutContent = () => {
@@ -35,7 +36,23 @@ const NewLayoutContent = () => {
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   // Load auth session and profile data
-  const { session, profile, handleSignOut } = AuthConsumer();
+  const { session, profile, loading, handleSignOut } = AuthConsumer();
+
+  // Redirect newly signed-in users with no profile to onboarding
+  useEffect(() => {
+    if (!loading && session) {
+      const path = location.pathname;
+      const isExempt =
+        path === "/onboarding" ||
+        path.startsWith("/profileform/self") ||
+        path === "/register" ||
+        path.startsWith("/auth/callback");
+
+      if (!isExempt && (!profile || !profile.firstname)) {
+        navigate("/onboarding", { replace: true });
+      }
+    }
+  }, [session, profile, loading, location.pathname, navigate]);
 
   // Fetch unread notifications count and subscribe to table updates
   useEffect(() => {
@@ -408,7 +425,7 @@ const NewLayoutContent = () => {
           <div className="drawer-footer">
             <div className="footer-brand">Smith Family Reunion 2026</div>
             <div className="footer-tagline">"Preserving our legacy since 1885"</div>
-            <div className="footer-version">v1.0.7</div>
+            <div className="footer-version">v{packageJson.version}</div>
           </div>
         </div>
       </main>

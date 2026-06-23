@@ -352,16 +352,23 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-.branch-border-0 { border: 1.5px solid #f3e7b1 !important; } /* Roots */
-.branch-border-1 { border: 1.5px solid #eabea9 !important; }
-.branch-border-2 { border: 1.5px solid #d4a5ff !important; }
-.branch-border-3 { border: 1.5px solid #873d62 !important; }
-.branch-border-4 { border: 1.5px solid #b27db2 !important; }
-.branch-border-5 { border: 1.5px solid #a6d8d4 !important; }
-.branch-border-6 { border: 1.5px solid #fbc8bd !important; }
-.branch-border-7 { border: 1.5px solid #cde6a5 !important; }
-.branch-border-8 { border: 1.5px solid #ffdeb3 !important; }
-.branch-border-9 { border: 1.5px solid #f6a7c1 !important; }
+/* Branch Border Colors - Plum Progression (Dark to Light) */
+.branch-border-0 { border: 1.5px solid #5b1f40 !important; } /* Dark Plum - Founders */
+.branch-border-1 { border: 1.5px solid #5b1f40 !important; } /* Dark Plum */
+.branch-border-2 { border: 1.5px solid #6b2d4f !important; } /* Darker Plum */
+.branch-border-3 { border: 1.5px solid #7a3b5e !important; } /* Dark Plum */
+.branch-border-4 { border: 1.5px solid #89496d !important; } /* Medium-Dark Plum */
+.branch-border-5 { border: 1.5px solid #98577c !important; } /* Medium Plum */
+.branch-border-6 { border: 1.5px solid #a7658b !important; } /* Medium Plum Light */
+.branch-border-7 { border: 1.5px solid #b6739a !important; } /* Light Plum */
+.branch-border-8 { border: 1.5px solid #c581a9 !important; } /* Lighter Plum */
+.branch-border-9 { border: 1.5px solid #d48fb8 !important; } /* Pale Plum */
+
+/* Orphaned Card Styling */
+.tree-member-card.orphaned-card {
+  border: 1.5px solid #ccc !important;
+  opacity: 0.85;
+}
 
 /* Active Center focus highlight */
 .tree-member-card.focus-active {

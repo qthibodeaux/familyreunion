@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Input, Button, Drawer, Spin } from "antd";
 import {
@@ -64,28 +64,29 @@ function ScrollTree() {
     loadTreeData();
   }, []);
 
-  // Compute multi-branch colors
-  const getBranchColor = (branch) => {
-    if (branch === undefined || branch === null) return "#b27db2";
+  // Compute multi-branch colors - Plum progression from dark to light
+  const getBranchColor = (branch, isOrphaned = false) => {
+    if (isOrphaned) return "#ffffff"; // White for orphaned profiles
+    if (branch === undefined || branch === null) return "#5b1f40"; // Dark plum default
     let b = branch;
     if (typeof branch === "string") {
       const match = branch.match(/\d+/);
       b = match ? parseInt(match[0], 10) : 0;
     }
-    // Set up a palette of 10 modern colors for family branches
-    const colors = [
-      "#f3e7b1", // Founders: Warm Gold
-      "#eabea9", // Branch 1: Rose Gold
-      "#d4a5ff", // Branch 2: Soft Lavender
-      "#873d62", // Branch 3: Deep Plum
-      "#b27db2", // Branch 4: Orchid
-      "#a6d8d4", // Branch 5: Soft Teal
-      "#fbc8bd", // Branch 6: Pastel Coral
-      "#cde6a5", // Branch 7: Sage Green
-      "#ffdeb3", // Branch 8: Cream Yellow
-      "#f6a7c1", // Branch 9: Soft Pink
+    // Plum progression: dark to light as we go down branches
+    const plumColors = [
+      "#5b1f40", // Branch 0-1: Dark Plum (Founders)
+      "#6b2d4f", // Branch 2: Darker Plum
+      "#7a3b5e", // Branch 3: Dark Plum
+      "#89496d", // Branch 4: Medium-Dark Plum
+      "#98577c", // Branch 5: Medium Plum
+      "#a7658b", // Branch 6: Medium Plum Light
+      "#b6739a", // Branch 7: Light Plum
+      "#c581a9", // Branch 8: Lighter Plum
+      "#d48fb8", // Branch 9: Pale Plum
+      "#e39dc7", // Branch 10: Very Light Plum
     ];
-    return colors[b % colors.length];
+    return plumColors[Math.min(b, plumColors.length - 1)];
   };
 
   const getBranchLabel = (branch) => {
@@ -94,9 +95,9 @@ function ScrollTree() {
   };
 
   // Compile hierarchical relationships in-memory using useMemo
-  const { spouseMap, parentsOf, childrenOf, rootTrees, nodeMap } = useMemo(() => {
+  const { parentsOf, connectedTrees, orphanedTrees, nodeMap, connectedProfileIds } = useMemo(() => {
     if (profiles.length === 0) {
-      return { spouseMap: {}, parentsOf: {}, childrenOf: {}, rootTrees: [], nodeMap: {} };
+      return { parentsOf: {}, connectedTrees: [], orphanedTrees: [], nodeMap: {}, connectedProfileIds: new Set() };
     }
 
     // 1. Spouses Map from connections
@@ -168,35 +169,35 @@ function ScrollTree() {
       });
     });
 
-    // 4. Resolve Roots Candidates (profiles with no parents in database)
-    const rootCandidates = profiles.filter((p) => (parentsOf[p.id] || []).length === 0);
-    const visitedRoots = new Set();
-    const roots = [];
-
-    rootCandidates.forEach((p) => {
-      if (visitedRoots.has(p.id)) return;
-      const spouseId = spouseMap[p.id];
-      if (spouseId) visitedRoots.add(spouseId);
-      visitedRoots.add(p.id);
-      roots.push(p);
+    // 4. Identify Primary Roots (branch = 0, the founders)
+    const primaryRoots = profiles.filter((p) => {
+      const branch = typeof p.branch === "string" ? parseInt(p.branch.replace(/\D/g, ""), 10) : p.branch;
+      return branch === 0;
     });
 
-    // Sort roots by sunrise or branch priority
-    roots.sort((a, b) => {
-      const bA = typeof a.branch === "string" ? parseInt(a.branch.replace(/\D/g, ""), 10) || 0 : a.branch || 0;
-      const bB = typeof b.branch === "string" ? parseInt(b.branch.replace(/\D/g, ""), 10) || 0 : b.branch || 0;
-      return bA - bB;
-    });
-
-    // 5. Build Recursive Trees
+    // 5. Initialize the Pool and Tracking
+    const remainingPool = new Set(profiles.map((p) => p.id));
+    const connectedProfileIds = new Set();
     const nodeMap = {};
-    const buildTreeNode = (profile, gen = 0, visited = new Set()) => {
-      if (visited.has(profile.id)) return null;
-      visited.add(profile.id);
+
+    // 6. Build Recursive Trees with Pool Depletion
+    const buildTreeNode = (profile, gen = 0, isOrphaned = false) => {
+      if (!remainingPool.has(profile.id)) return null;
+      remainingPool.delete(profile.id);
 
       const spouseId = spouseMap[profile.id];
       const spouse = spouseId ? profiles.find((p) => p.id === spouseId) : null;
-      if (spouseId) visited.add(spouseId);
+      if (spouseId) {
+        remainingPool.delete(spouseId);
+      }
+
+      // Track connectivity for badges
+      if (!isOrphaned) {
+        connectedProfileIds.add(profile.id);
+        if (spouseId) {
+          connectedProfileIds.add(spouseId);
+        }
+      }
 
       const childProfiles = [];
       const seenChildren = new Set();
@@ -221,7 +222,7 @@ function ScrollTree() {
       });
 
       const childrenNodes = childProfiles
-        .map((child) => buildTreeNode(child, gen + 1, visited))
+        .map((child) => buildTreeNode(child, gen + 1, isOrphaned))
         .filter(Boolean);
 
       const node = {
@@ -232,6 +233,7 @@ function ScrollTree() {
         children: childrenNodes,
         descendantDepth: 0,
         totalDescendants: 0,
+        isOrphaned: isOrphaned,
       };
 
       nodeMap[profile.id] = node;
@@ -242,9 +244,69 @@ function ScrollTree() {
       return node;
     };
 
-    const rootTrees = roots.map((r) => buildTreeNode(r, 0, new Set())).filter(Boolean);
+    // Build connected trees starting from primary roots
+    primaryRoots.sort((a, b) => {
+      const bA = typeof a.branch === "string" ? parseInt(a.branch.replace(/\D/g, ""), 10) || 0 : a.branch || 0;
+      const bB = typeof b.branch === "string" ? parseInt(b.branch.replace(/\D/g, ""), 10) || 0 : b.branch || 0;
+      return bA - bB;
+    });
 
-    // 6. Precompute Descendant depths
+    const connectedTrees = primaryRoots
+      .map((r) => buildTreeNode(r, 0, false))
+      .filter(Boolean);
+
+    // Build orphaned/unconnected trees from the remaining pool
+    const orphanedTrees = [];
+    while (remainingPool.size > 0) {
+      // Find candidate roots in the remaining pool (no parents in the pool)
+      const candidates = [];
+      for (const pId of remainingPool) {
+        const parents = parentsOf[pId] || [];
+        const hasParentInPool = parents.some((pParentId) => remainingPool.has(pParentId));
+        if (!hasParentInPool) {
+          candidates.push(pId);
+        }
+      }
+
+      // If no candidates (e.g. cycle), break the cycle by using the first pool member
+      if (candidates.length === 0) {
+        const cycleBreakerId = remainingPool.values().next().value;
+        candidates.push(cycleBreakerId);
+      }
+
+      // Prioritize candidates who are NOT spouses of descendants with parents in the pool
+      let nextRootId = null;
+      const primaryCandidates = candidates.filter((cId) => {
+        const sId = spouseMap[cId];
+        if (!sId) return true; // No spouse, fine as primary
+        // If spouse is in pool, check if spouse has parents in pool
+        if (remainingPool.has(sId)) {
+          const spouseParents = parentsOf[sId] || [];
+          const spouseHasParentInPool = spouseParents.some((pParentId) => remainingPool.has(pParentId));
+          return !spouseHasParentInPool; // If spouse has parent in pool, this spouse should be secondary
+        }
+        return true;
+      });
+
+      if (primaryCandidates.length > 0) {
+        nextRootId = primaryCandidates[0];
+      } else {
+        nextRootId = candidates[0];
+      }
+
+      const nextRootProfile = profiles.find((p) => p.id === nextRootId);
+      if (nextRootProfile) {
+        const treeNode = buildTreeNode(nextRootProfile, 0, true);
+        if (treeNode) {
+          orphanedTrees.push(treeNode);
+        }
+      } else {
+        // Safety fallback to prevent infinite loops
+        remainingPool.delete(nextRootId);
+      }
+    }
+
+    // 8. Precompute Descendant depths
     const computeTreeNodeDepths = (node) => {
       if (!node) return;
       if (node.children.length === 0) {
@@ -257,9 +319,10 @@ function ScrollTree() {
       node.totalDescendants = node.children.reduce((sum, c) => sum + 1 + c.totalDescendants, 0);
     };
 
-    rootTrees.forEach(computeTreeNodeDepths);
+    connectedTrees.forEach(computeTreeNodeDepths);
+    orphanedTrees.forEach(computeTreeNodeDepths);
 
-    return { spouseMap, parentsOf, childrenOf, rootTrees, nodeMap };
+    return { spouseMap, parentsOf, childrenOf, connectedTrees, orphanedTrees, nodeMap, connectedProfileIds };
   }, [profiles, connections]);
 
   // Recursively expand all parents of a profile
@@ -276,23 +339,24 @@ function ScrollTree() {
 
   // Initialize focus member and expand their lineage trail on data load
   useEffect(() => {
-    if (profiles.length > 0 && rootTrees.length > 0 && !focusedCardId) {
+    if (profiles.length > 0 && connectedTrees.length > 0 && !focusedCardId) {
       const defaultId =
         currentUserId && profiles.some((p) => p.id === currentUserId)
           ? currentUserId
           : profiles.find((p) => p.branch === 0 || p.branch === "0" || p.branch === "Branch 0")?.id ||
-            rootTrees[0]?.id;
+            connectedTrees[0]?.id;
 
       setFocusedCardId(defaultId);
 
       const initialExpanded = expandAncestors(defaultId, {});
       // Make sure the primary roots themselves are expanded by default
-      rootTrees.forEach((root) => {
+      connectedTrees.forEach((root) => {
         initialExpanded[root.id] = true;
       });
       setExpandedNodes(initialExpanded);
     }
-  }, [profiles, rootTrees, currentUserId, focusedCardId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profiles, connectedTrees, currentUserId, focusedCardId]);
 
   // Handle Search Queries
   useEffect(() => {
@@ -340,6 +404,7 @@ function ScrollTree() {
 
     while (currentId && !visited.has(currentId)) {
       visited.add(currentId);
+      // eslint-disable-next-line no-loop-func
       const profile = profiles.find((p) => p.id === currentId);
       if (!profile) break;
 
@@ -348,6 +413,7 @@ function ScrollTree() {
       const parents = parentsOf[currentId] || [];
       if (parents.length > 0) {
         // Prefer parents with matching branch to follow branch lineage naturally
+        // eslint-disable-next-line no-loop-func
         const sameBranchParent = parents.find((pId) => {
           const parentProfile = profiles.find((p) => p.id === pId);
           return parentProfile && parentProfile.branch === profile.branch;
@@ -373,7 +439,7 @@ function ScrollTree() {
   };
 
   const handleResetToRoots = () => {
-    const defaultRoot = rootTrees[0]?.id;
+    const defaultRoot = connectedTrees[0]?.id;
     if (defaultRoot) {
       handleSelectAndScrollToNode(defaultRoot);
     }
@@ -390,38 +456,8 @@ function ScrollTree() {
     return colors[Math.abs(id.charCodeAt(0)) % colors.length];
   };
 
-  // Find cousins in the same generation under other parents (aunt/uncle branches)
-  const getCousinBranchesForNode = (parentMemberId) => {
-    if (!parentMemberId) return [];
-    const parents = parentsOf[parentMemberId] || [];
-    if (parents.length === 0) return [];
-
-    const cousinBranches = [];
-    const seenAuntUncles = new Set();
-
-    parents.forEach((gpId) => {
-      const siblings = childrenOf[gpId] || [];
-      siblings.forEach((sib) => {
-        if (sib.id === parentMemberId) return;
-        if (seenAuntUncles.has(sib.id)) return;
-        seenAuntUncles.add(sib.id);
-
-        const cousinKids = childrenOf[sib.id] || [];
-        if (cousinKids.length > 0) {
-          cousinBranches.push({
-            parent: sib, // Aunt/Uncle
-            count: cousinKids.length,
-            firstCousinId: cousinKids[0].id,
-          });
-        }
-      });
-    });
-
-    return cousinBranches;
-  };
-
   // Renders a single Member Card (works for members and spouses)
-  const renderMemberCard = (member, roleLabel) => {
+  const renderMemberCard = (member, roleLabel, isOrphaned = false) => {
     if (!member) return null;
     const isFocused = focusedCardId === member.id;
     const avatarBg = getColorHash(member.id);
@@ -443,7 +479,7 @@ function ScrollTree() {
         key={member.id}
         className={`tree-member-card branch-border-${member.branch || 0} ${
           isFocused ? "focus-active" : ""
-        }`}
+        } ${isOrphaned ? "orphaned-card" : ""}`}
         onClick={(e) => {
           e.stopPropagation();
           setFocusedCardId(member.id);
@@ -485,7 +521,6 @@ function ScrollTree() {
     const hasChildren = node.children.length > 0;
     const isExpanded = !!expandedNodes[node.id];
     const hasSpouse = !!node.spouse;
-    const cousinBranches = getCousinBranchesForNode(node.id);
 
     return (
       <div key={node.id} className="tree-node-wrapper">
@@ -495,13 +530,13 @@ function ScrollTree() {
 
           <div className="tree-node-row">
             {/* Primary Member */}
-            {renderMemberCard(node.member, null)}
+            {renderMemberCard(node.member, null, node.isOrphaned)}
 
             {/* Spouse node side-by-side */}
             {hasSpouse && (
               <>
                 <div className="spouse-ring-divider">⚭</div>
-                {renderMemberCard(node.spouse, "Spouse")}
+                {renderMemberCard(node.spouse, "Spouse", node.isOrphaned)}
               </>
             )}
 
@@ -529,27 +564,6 @@ function ScrollTree() {
 
             <div className="tree-children-list">
               {node.children.map((childNode) => renderTreeNode(childNode))}
-
-              {/* Cousin Peeks Banner in the same generation */}
-              {cousinBranches.length > 0 && (
-                <div className="tree-cousin-peeks-banner">
-                  <div className="cousin-banner-header">
-                    👥 Cousins in Gen {node.generation + 2}:
-                  </div>
-                  <div className="cousin-chips-row">
-                    {cousinBranches.map((br) => (
-                      <button
-                        key={br.parent.id}
-                        className="cousin-peek-chip"
-                        style={{ border: `1px solid ${getBranchColor(br.parent.branch)}` }}
-                        onClick={() => handleSelectAndScrollToNode(br.firstCousinId, br.parent.id)}
-                      >
-                        {br.parent.firstname}'s line ({br.count}) ➔
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -670,7 +684,31 @@ function ScrollTree() {
       {/* Main Generational Pedigree Canvas Viewport */}
       <div className="tree-viewport-canvas vertical-tree-scrollable">
         <div className="tree-vertical-viewport-content">
-          {rootTrees.map((rootNode) => renderTreeNode(rootNode))}
+          {/* Connected Trees Section */}
+          {connectedTrees.map((rootNode) => renderTreeNode(rootNode))}
+
+          {/* Orphaned Trees Section */}
+          {orphanedTrees.length > 0 && (
+            <div style={{
+              marginTop: "3rem",
+              padding: "2rem",
+              backgroundColor: "#ffffff",
+              borderRadius: "0.5rem",
+              border: "1px solid #ddd",
+            }}>
+              <h3 style={{
+                color: "#333",
+                marginBottom: "1.5rem",
+                fontSize: "1.1rem",
+                fontWeight: "600",
+              }}>
+                ⚠️ Unconnected Profiles
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                {orphanedTrees.map((rootNode) => renderTreeNode(rootNode))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -704,7 +742,7 @@ function ScrollTree() {
                 size={64}
                 className="drawer-avatar"
                 style={{
-                  border: `2.5px solid ${getBranchColor(selectedMember.branch)}`,
+                  border: `2.5px solid ${getBranchColor(selectedMember.branch, !connectedProfileIds.has(selectedMember.id))}`,
                 }}
               />
               <div className="drawer-title-block">
@@ -716,7 +754,7 @@ function ScrollTree() {
                 )}
                 <span
                   className="drawer-branch-badge"
-                  style={{ color: getBranchColor(selectedMember.branch) }}
+                  style={{ color: getBranchColor(selectedMember.branch, !connectedProfileIds.has(selectedMember.id)) }}
                 >
                   {getBranchLabel(selectedMember.branch)}
                 </span>

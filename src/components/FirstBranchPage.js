@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Card, Typography } from "antd";
 import FamilyTree from "./FamilyTree";
 import "../newComponents/NewProfile.css";
@@ -10,26 +10,26 @@ import { getAvatarSrc } from "../utils/avatarHelper";
 
 const { Title } = Typography;
 
+// Demo mode - set to false when done testing
+const DEMO_MODE = false;
+const demoData = {
+  id: "demo-alma",
+  firstname: "Alma",
+  lastname: "Smith",
+  avatar_url: "alma.jpg",
+  sunrise: "1955-12-03",
+  sunset: "2003-02-08",
+  profilestate: {
+    city: "Memphis",
+    state: { state_name: "Tennessee" },
+  },
+};
+
 function FirstBranchPage() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const { branchId: userId } = useParams();
-
-  // Demo mode - set to false when done testing
-  const DEMO_MODE = false;
-  const demoData = {
-    id: "demo-alma",
-    firstname: "Alma",
-    lastname: "Smith",
-    avatar_url: "alma.jpg",
-    sunrise: "1955-12-03",
-    sunset: "2003-02-08",
-    profilestate: {
-      city: "Memphis",
-      state: { state_name: "Tennessee" },
-    },
-  };
 
   useEffect(() => {
     const fetchData = async () => {

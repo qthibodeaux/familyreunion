@@ -935,7 +935,7 @@ function NewProfile() {
     } finally {
       setLoading(false);
     }
-  }, [userId, session, fetchMilestones]);
+  }, [userId, session, fetchMilestones, navigate]);
 
   useEffect(() => {
     fetchData();

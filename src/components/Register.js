@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Row, Col, Typography, Input, Button } from "antd";
-import { MailOutlined, GoogleOutlined } from "@ant-design/icons";
+import { Row, Col, Typography, Button } from "antd";
+import { GoogleOutlined } from "@ant-design/icons";
 import { supabase } from "../supabaseClient";
 import { buildMagicLinkRedirectUrl } from "../utils/authRedirect";
 import "./Register.css";

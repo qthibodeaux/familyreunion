@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Typography, Button, Modal } from "antd";
+import { Typography } from "antd";
 import { 
-  LeftOutlined, 
   RightOutlined, 
   UserOutlined,
-  CalendarOutlined,
-  CloseCircleOutlined
+  CalendarOutlined
 } from "@ant-design/icons";
 import { supabase } from "../supabaseClient";
 import "./CalendarTree.css";
@@ -23,12 +21,12 @@ const CalendarTree = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [selectedDayPeople, setSelectedDayPeople] = useState(null);
 
   const monthStripRef = useRef(null);
 
   useEffect(() => {
     fetchFamilyData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-scroll the active month into view on the mobile strip without shifting the parent layout wrapper

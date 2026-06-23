@@ -65,7 +65,6 @@ const buildGenerations = (profiles, rootId, generation = 1, acc = {}) => {
 };
 
 const FamilyTree = ({ userId }) => {
-  const [rootProfile, setRootProfile] = useState(null);
   const [generations, setGenerations] = useState({});
   const [expanded, setExpanded] = useState({});
   const [loading, setLoading] = useState(true);
@@ -90,7 +89,6 @@ const FamilyTree = ({ userId }) => {
 
         if (allError) throw allError;
 
-        setRootProfile(root);
         const grouped = buildGenerations(allProfiles, root.id);
         setGenerations(grouped);
 

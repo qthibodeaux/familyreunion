@@ -86,7 +86,7 @@ export default function AuthCallbackHandler() {
     };
 
     handleCallback();
-  }, [navigate, location.search, location.pathname]);
+  }, [navigate, location.search, location.pathname, location.hash]);
 
   if (loading) {
     return (

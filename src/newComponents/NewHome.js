@@ -59,6 +59,7 @@ const NewHome = () => {
           <FamilyFinder />
         </div>
       </section>
+
     </div>
   );
 };
