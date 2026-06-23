@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRightOutlined,
@@ -32,27 +32,66 @@ const getInitials = (first, last) => {
   return `${first?.[0] || ""}${last?.[0] || ""}`.toUpperCase();
 };
 
-// Static macro stats (from NewStatsSection)
-const MACRO_STATS = [
-  {
-    value: "42+ Descendants",
-    label: "Registered on the family portal",
-    icon: <TeamOutlined className="ncd-icon-svg" />,
-  },
-  {
-    value: "11 Main Branches",
-    label: "John Henry & Birdie Mae's children",
-    icon: <UserOutlined className="ncd-icon-svg" />,
-  },
-  {
-    value: "92 Years",
-    label: "Of living history and heritage",
-    icon: <HistoryOutlined className="ncd-icon-svg" />,
-  },
-];
-
 const NewCombinedDemoSection = () => {
   const { session, profile } = AuthConsumer();
+  const [descendantCount, setDescendantCount] = useState(42);
+  const [historyYears, setHistoryYears] = useState(92);
+
+  // Fetch global family stats (descendant count and heritage years)
+  useEffect(() => {
+    const fetchGlobalStats = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profile")
+          .select("email, phone, sunrise");
+
+        if (!error && data) {
+          // Count registered descendants (profiles with email or phone)
+          const registered = data.filter((p) => p.email || p.phone).length;
+          if (registered > 0) {
+            setDescendantCount(registered);
+          }
+
+          // Calculate years of living history from the earliest sunrise
+          const sunrises = data
+            .map((p) => p.sunrise)
+            .filter(Boolean)
+            .map((s) => new Date(s).getFullYear());
+
+          if (sunrises.length > 0) {
+            const earliestYear = Math.min(...sunrises);
+            const currentYear = new Date().getFullYear();
+            const years = currentYear - earliestYear;
+            if (years > 0) {
+              setHistoryYears(years);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching global stats:", err);
+      }
+    };
+
+    fetchGlobalStats();
+  }, []);
+
+  const macroStats = useMemo(() => [
+    {
+      value: `${descendantCount}+ Descendants`,
+      label: "Registered on the family portal",
+      icon: <TeamOutlined className="ncd-icon-svg" />,
+    },
+    {
+      value: "11 Main Branches",
+      label: "John Henry & Birdie Mae's children",
+      icon: <UserOutlined className="ncd-icon-svg" />,
+    },
+    {
+      value: `${historyYears} Years`,
+      label: "Of living history and heritage",
+      icon: <HistoryOutlined className="ncd-icon-svg" />,
+    },
+  ], [descendantCount, historyYears]);
   const [ancestor, setAncestor] = useState(null);
   const [parent, setParent] = useState(null);
   const [branchCount, setBranchCount] = useState(0);
@@ -331,7 +370,7 @@ const NewCombinedDemoSection = () => {
 
           {/* Guest macro stats */}
           <div className="ncd-macro-stats">
-            {MACRO_STATS.map((stat, i) => (
+            {macroStats.map((stat, i) => (
               <div key={i} className="ncd-macro-stat-row">
                 <div className="ncd-macro-icon-wrap">{stat.icon}</div>
                 <div className="ncd-macro-content">
@@ -393,7 +432,7 @@ const NewCombinedDemoSection = () => {
           </div>
 
           <div className="ncd-macro-stats">
-            {MACRO_STATS.map((stat, i) => (
+            {macroStats.map((stat, i) => (
               <div key={i} className="ncd-macro-stat-row">
                 <div className="ncd-macro-icon-wrap">{stat.icon}</div>
                 <div className="ncd-macro-content">
@@ -486,7 +525,7 @@ const NewCombinedDemoSection = () => {
           </div>
 
           <div className="ncd-macro-stats">
-            {MACRO_STATS.map((stat, i) => (
+            {macroStats.map((stat, i) => (
               <div key={i} className="ncd-macro-stat-row">
                 <div className="ncd-macro-icon-wrap">{stat.icon}</div>
                 <div className="ncd-macro-content">
@@ -572,7 +611,7 @@ const NewCombinedDemoSection = () => {
 
         {/* Macro Heritage Stats */}
         <div className="ncd-macro-stats">
-          {MACRO_STATS.map((stat, i) => (
+          {macroStats.map((stat, i) => (
             <div key={i} className="ncd-macro-stat-row">
               <div className="ncd-macro-icon-wrap">{stat.icon}</div>
               <div className="ncd-macro-content">

@@ -139,7 +139,7 @@ const HeroCard = ({ profile, style }) => {
       <div className="ff-hero-card-body">
         <div className="ff-hero-card-name">{nameLine}</div>
         <div className="ff-hero-card-meta">
-          {profile.branch} · {profile.location} · {profile.gen}
+          {profile.branch} · {profile.gen}
         </div>
         <button
           className="ff-hero-card-btn"

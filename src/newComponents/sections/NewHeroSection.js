@@ -14,11 +14,12 @@ import {
   LoadingOutlined,
   UserOutlined
 } from "@ant-design/icons";
-import { Avatar, Button, Spin, message } from "antd";
+import { Avatar, Button, Spin, Drawer, message } from "antd";
 import ancestorsImg from "../../assets/anc1.png";
 import { supabase } from "../../supabaseClient";
 import AuthConsumer from "../../useSession";
 import { getAvatarSrc } from "../../utils/avatarHelper";
+import { updateFamilyBranch, updateAncestorReference } from "../../utils/familyTree";
 import "./NewHeroSection.css";
 
 const tips = [
@@ -69,6 +70,8 @@ const NewHeroSection = ({ demoMode }) => {
   const [activeTipIdx, setActiveTipIdx] = useState(0);
 
   const [hasFamilyConnections, setHasFamilyConnections] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [lineageTrail, setLineageTrail] = useState(null);
 
   // Rotate tips every 6 seconds
   useEffect(() => {
@@ -96,18 +99,51 @@ const NewHeroSection = ({ demoMode }) => {
 
     const checkFamilyConnections = async () => {
       try {
-        const { data, error } = await supabase
+        // 1. Fetch active connections
+        const { data: connData, error: connErr } = await supabase
           .from("connection")
-          .select("id")
+          .select("connection_type, profile_1, profile_2")
           .or(`profile_1.eq.${profile.id},profile_2.eq.${profile.id}`)
-          .in("connection_type", ["spouse", "child"])
-          .eq("status", "active")
-          .limit(1);
+          .eq("status", "active");
 
-        if (!error && data && data.length > 0) {
-          setHasFamilyConnections(true);
-        } else {
-          setHasFamilyConnections(false);
+        if (connErr) throw connErr;
+
+        const spouseConns = (connData || []).filter(c => c.connection_type === "spouse");
+        const hasSpouse = spouseConns.length > 0;
+
+        // 2. Fetch children counts in profile table
+        const { count: childCount, error: childErr } = await supabase
+          .from("profile")
+          .select("id", { count: "exact", head: true })
+          .eq("parent", profile.id);
+
+        if (childErr) throw childErr;
+        const hasChildren = childCount && childCount > 0;
+
+        setHasFamilyConnections(!!(hasSpouse || hasChildren));
+
+        // 3. Auto-populate ancestor/branch if they are a connected spouse but their own DB fields are null
+        if (profile.parent === null && profile.ancestor === null && hasSpouse) {
+          const spouseId = spouseConns[0].profile_1 === profile.id ? spouseConns[0].profile_2 : spouseConns[0].profile_1;
+          const { data: spouseProfile, error: spouseProfErr } = await supabase
+            .from("profile")
+            .select("branch, ancestor")
+            .eq("id", spouseId)
+            .single();
+
+          if (!spouseProfErr && spouseProfile && spouseProfile.ancestor) {
+            const { error: updateErr } = await supabase
+              .from("profile")
+              .update({
+                branch: spouseProfile.branch,
+                ancestor: spouseProfile.ancestor
+              })
+              .eq("id", profile.id);
+
+            if (!updateErr && setProfile) {
+              setProfile({ ...profile, branch: spouseProfile.branch, ancestor: spouseProfile.ancestor });
+            }
+          }
         }
       } catch (err) {
         console.error("Error checking family connections:", err);
@@ -115,6 +151,57 @@ const NewHeroSection = ({ demoMode }) => {
     };
 
     checkFamilyConnections();
+  }, [profile, isDemo, demoMode, setProfile]);
+
+  // Load lineage trail names (ancestor, parent, me)
+  useEffect(() => {
+    if (isDemo) {
+      if (demoMode && demoMode.startsWith("connected")) {
+        setLineageTrail({
+          ancestor: "Mary",
+          parent: "Arthur",
+          me: profile ? profile.firstname : "David"
+        });
+      } else {
+        setLineageTrail(null);
+      }
+      return;
+    }
+
+    if (!profile || (!profile.parent && !profile.ancestor)) {
+      setLineageTrail(null);
+      return;
+    }
+
+    const fetchLineageTrail = async () => {
+      try {
+        const ids = [];
+        if (profile.parent) ids.push(profile.parent);
+        if (profile.ancestor) ids.push(profile.ancestor);
+
+        if (ids.length === 0) return;
+
+        const { data, error } = await supabase
+          .from("profile")
+          .select("id, firstname, nickname, lastname")
+          .in("id", ids);
+
+        if (!error && data) {
+          const ancestorProfile = data.find(p => p.id === profile.ancestor);
+          const parentProfile = data.find(p => p.id === profile.parent);
+
+          setLineageTrail({
+            ancestor: ancestorProfile ? (ancestorProfile.nickname || ancestorProfile.firstname) : null,
+            parent: parentProfile ? parentProfile.firstname : null,
+            me: profile.firstname
+          });
+        }
+      } catch (err) {
+        console.error("Error loading lineage trail:", err);
+      }
+    };
+
+    fetchLineageTrail();
   }, [profile, isDemo, demoMode]);
 
   // Fetch branch leaders and active leaderboard on mount
@@ -154,13 +241,17 @@ const NewHeroSection = ({ demoMode }) => {
 
         if (leadersErr) throw leadersErr;
 
-        // 2. Fetch all registered users (active accounts with email)
-        const { data: activeUsers, error: usersErr } = await supabase
+        // 2. Fetch all profiles to trace and count registered users
+        const { data: allProfiles, error: profilesErr } = await supabase
           .from("profile")
-          .select("id, ancestor, branch")
-          .not("email", "is", null);
+          .select("id, parent, ancestor, branch, email, phone");
 
-        if (usersErr) throw usersErr;
+        if (profilesErr) throw profilesErr;
+
+        const profileMap = {};
+        allProfiles.forEach((p) => {
+          profileMap[p.id] = p;
+        });
 
         // 3. Count registered users per branch
         const countsMap = {};
@@ -168,11 +259,29 @@ const NewHeroSection = ({ demoMode }) => {
           countsMap[l.id] = 0;
         });
 
-        activeUsers.forEach((u) => {
-          if (u.ancestor && countsMap[u.ancestor] !== undefined) {
-            countsMap[u.ancestor]++;
-          } else if (countsMap[u.id] !== undefined) {
-            countsMap[u.id]++;
+        allProfiles.forEach((u) => {
+          if (u.email || u.phone) {
+            let ancestorId = u.ancestor;
+            if (!ancestorId) {
+              let curr = u;
+              const visited = new Set();
+              while (curr && curr.parent && !visited.has(curr.id)) {
+                visited.add(curr.id);
+                const parent = profileMap[curr.parent];
+                if (!parent) break;
+                if (parent.branch === 1) {
+                  ancestorId = parent.id;
+                  break;
+                }
+                curr = parent;
+              }
+            }
+
+            if (ancestorId && countsMap[ancestorId] !== undefined) {
+              countsMap[ancestorId]++;
+            } else if (countsMap[u.id] !== undefined) {
+              countsMap[u.id]++;
+            }
           }
         });
 
@@ -197,11 +306,17 @@ const NewHeroSection = ({ demoMode }) => {
 
   // Set builder back to selection grid
   const handleStartLineageBuilder = () => {
+    setIsWizardOpen(true);
     setStep("branch");
     setSelectedBranch(null);
     setRelationType(null);
     setSelectedGrandparent(null);
     setSelectedParent(null);
+  };
+
+  const handleCloseWizard = () => {
+    setIsWizardOpen(false);
+    setStep("welcome");
   };
 
   // Select Branch Leader (Step 1)
@@ -363,6 +478,10 @@ const NewHeroSection = ({ demoMode }) => {
 
         if (updateProfileErr) throw updateProfileErr;
 
+        // Propagate branch and ancestor down to user's descendants
+        await updateFamilyBranch(profile.id, newBranch);
+        await updateAncestorReference(profile.id, newAncestor);
+
         // 2. Insert bidirectional connection rows
         const { error: connErr } = await supabase
           .from("connection")
@@ -430,6 +549,17 @@ const NewHeroSection = ({ demoMode }) => {
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   };
+
+  // Computed connection status flags
+  const showDashboard = !!(profile && (
+    (profile.parent !== null && profile.ancestor !== null) ||
+    (profile.parent === null && profile.ancestor !== null) ||
+    (profile.parent === null && hasFamilyConnections)
+  ));
+
+  const showConnectLineagePrompt = !!(profile && profile.parent === null && profile.ancestor === null && !hasFamilyConnections);
+
+  const showConnectParentPrompt = !!(profile && profile.parent !== null && profile.ancestor === null);
 
   // Render Stacked Rows
   return (
@@ -506,250 +636,70 @@ const NewHeroSection = ({ demoMode }) => {
               </Button>
             </div>
           )}
-
           {/* LOGGED IN & CONNECTED DASHBOARD */}
           {!loadingData && session && profile && profile.firstname && (
             <div className="user-dashboard-panel">
               
-              {/* CASE A: NOT CONNECTED (Lineage Builder Wizard) */}
-              {profile.parent === null && (
-                <div className="lineage-builder-wizard">
-                  
-                  {/* Step 1: Select Branch leader */}
-                  {step === "branch" && (
-                    <div className="wizard-step-container">
-                      <div className="step-header-with-back">
-                        <button className="wizard-back-arrow-btn" onClick={() => setStep("welcome")}>
-                          <ArrowLeftOutlined /> Back
-                        </button>
-                        <h2 className="panel-title small">Connect Your Lineage</h2>
-                      </div>
-                      <p className="wizard-instruction">
-                        Select which of John & Birdie Mae's children is your ancestor:
-                      </p>
-                      <div className="branch-grid text-only">
-                        {branchLeaders.map((leader) => (
-                          <button 
-                            key={leader.id} 
-                            className="branch-choice-btn-text"
-                            onClick={() => handleSelectBranch(leader)}
-                          >
-                            {leader.firstname} Line
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 2: Establish Relation Choice */}
-                  {step === "relation" && selectedBranch && (
-                    <div className="wizard-step-container">
-                      <div className="step-header-with-back">
-                        <button className="wizard-back-arrow-btn" onClick={handleStartLineageBuilder}>
-                          <ArrowLeftOutlined /> Branches
-                        </button>
-                        <h2 className="panel-title small">{selectedBranch.firstname} Line</h2>
-                      </div>
-                      <p className="wizard-instruction">
-                        How is <strong>{selectedBranch.firstname} Smith</strong> related to you?
-                      </p>
-                      <div className="relation-choices-column">
-                        <button className="relation-choice-btn" onClick={() => handleSelectRelation("parent")}>
-                          {selectedBranch.firstname} is my Parent
-                        </button>
-                        <button className="relation-choice-btn" onClick={() => handleSelectRelation("grandparent")}>
-                          {selectedBranch.firstname} is my Grandparent
-                        </button>
-                        <button className="relation-choice-btn" onClick={() => handleSelectRelation("great_grandparent")}>
-                          {selectedBranch.firstname} is my Great-Grandparent
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 3: Select Grandparent */}
-                  {step === "select_grandparent" && selectedBranch && (
-                    <div className="wizard-step-container">
-                      <div className="step-header-with-back">
-                        <button className="wizard-back-arrow-btn" onClick={() => setStep("relation")}>
-                          <ArrowLeftOutlined /> Back
-                        </button>
-                        <h2 className="panel-title small">Select Grandparent</h2>
-                      </div>
-                      <p className="wizard-instruction">
-                        Select your grandparent from {selectedBranch.firstname}'s line:
-                      </p>
-                      {grandparentsList.length === 0 ? (
-                        <div className="empty-branch-placeholder">
-                          No grandparent profiles found. Click below to add.
-                        </div>
-                      ) : (
-                        <div className="children-grid-text">
-                          {grandparentsList.map((g) => (
-                            <button 
-                              key={g.id} 
-                              className="child-choice-btn-text"
-                              onClick={() => handleSelectGrandparent(g)}
-                            >
-                              {g.firstname} {g.lastname ? `${g.lastname[0]}.` : ""}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      <button 
-                        className="child-select-btn-add-new"
-                        onClick={() => navigate(`/parentform/smithparent/${profile.id}`)}
-                      >
-                        <UserAddOutlined /> Grandparent is not listed (+ Add)
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Step 4: Select Parent */}
-                  {step === "select_parent" && selectedBranch && (
-                    <div className="wizard-step-container">
-                      <div className="step-header-with-back">
-                        <button 
-                          className="wizard-back-arrow-btn" 
-                          onClick={() => setStep(relationType === "grandparent" ? "relation" : "select_grandparent")}
-                        >
-                          <ArrowLeftOutlined /> Back
-                        </button>
-                        <h2 className="panel-title small">Select Your Parent</h2>
-                      </div>
-                      <p className="wizard-instruction font-tight">
-                        {relationType === "grandparent" 
-                          ? `Which of ${selectedBranch.firstname}'s children is your parent?` 
-                          : `Which of ${selectedGrandparent?.firstname}'s children is your parent?`
-                        }
-                      </p>
-                      {parentsList.length === 0 ? (
-                        <div className="empty-branch-placeholder">
-                          No parent profiles found. Click below to add.
-                        </div>
-                      ) : (
-                        <div className="children-grid-text">
-                          {parentsList.map((p) => (
-                            <button 
-                              key={p.id} 
-                              className="child-choice-btn-text"
-                              onClick={() => handleSelectParent(p)}
-                            >
-                              {p.firstname} {p.lastname ? `${p.lastname[0]}.` : ""}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      <button 
-                        className="child-select-btn-add-new"
-                        onClick={() => navigate(`/parentform/smithparent/${profile.id}`)}
-                      >
-                        <UserAddOutlined /> My parent is not listed (+ Add)
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Step 5: Confirm Parent Link */}
-                  {step === "confirm" && selectedParent && (
-                    <div className="wizard-step-container">
-                      <div className="step-header-with-back">
-                        <button 
-                          className="wizard-back-arrow-btn" 
-                          onClick={() => setStep(relationType === "parent" ? "relation" : "select_parent")}
-                        >
-                          <ArrowLeftOutlined /> Back
-                        </button>
-                        <h2 className="panel-title small">Confirm Connection</h2>
-                      </div>
-                      <div className="confirm-connection-card">
-                        <Avatar 
-                          src={getAvatarSrc(selectedParent)} 
-                          icon={<UserOutlined />} 
-                          size={70} 
-                          className="confirm-avatar"
-                        />
-                        <h3 className="confirm-name">{selectedParent.firstname} {selectedParent.lastname}</h3>
-                        
-                        {/* Check if active or deceased */}
-                        {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1 ? (
-                          <p className="confirm-disclaimer">
-                            This is an ancestral profile. Confirming will connect your lineage **instantly** to the interactive family tree.
-                          </p>
-                        ) : (
-                          <p className="confirm-disclaimer warning">
-                            This is an active member profile. Confirming will send a connection request. You will be connected once they approve.
-                          </p>
-                        )}
-
-                        <Button 
-                          type="primary" 
-                          className="hero-primary-btn confirm-btn"
-                          loading={loadingAction}
-                          onClick={handleConfirmConnection}
-                        >
-                          {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1
-                            ? "Confirm & Connect Instantly" 
-                            : "Send Connection Request"
-                          }
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 6: Success pay-off screen */}
-                  {step === "success" && (
-                    <div className="wizard-step-container success">
-                      <div className="success-icon-pulse">
-                        <CheckCircleOutlined style={{ fontSize: '3rem', color: '#52c41a' }} />
-                      </div>
-                      <h2 className="panel-title">Connection Successful! 🎉</h2>
-                      <p className="success-subtext">
-                        Welcome to the <strong>{selectedBranch?.firstname} Line</strong>! You are now connected to your parent, <strong>{connectedParentName}</strong>, and officially recognized as a <strong>{calculatedGeneration ? getOrdinal(calculatedGeneration) : "N/A"} Generation</strong> Smith descendant on the interactive tree.
-                      </p>
-                      
-                      <div className="panel-actions-row">
-                        <Button 
-                          type="primary" 
-                          className="hero-primary-btn"
-                          onClick={() => navigate(`/antavatar/${profile.id}`)}
-                        >
-                          <UploadOutlined /> Upload Profile Photo
-                        </Button>
-                        <Button 
-                          type="default" 
-                          className="hero-secondary-btn"
-                          onClick={() => setStep("welcome")}
-                        >
-                          Go to Dashboard
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Welcome state (Dashboard trigger for unconnected users) */}
-                  {step === "welcome" && (
-                    <div className="unconnected-intro-panel">
-                      <h2 className="panel-title warning-style">Connect to the Family Tree 🌳</h2>
-                      <p className="panel-subtext">
-                        Lineage connects you to the entire tree, calculates your generation, and links you to the calendar, anniversaries, and milestones of all descendants. Let's find your line!
-                      </p>
-                      <Button 
-                        type="primary" 
-                        className="hero-primary-btn connect-trigger-btn"
-                        onClick={handleStartLineageBuilder}
-                      >
-                        Find My Branch & Connect
-                      </Button>
-                    </div>
-                  )}
-
+              {/* 1. UNCONNECTED LINEAGE PROMPT */}
+              {showConnectLineagePrompt && (
+                <div className="unconnected-intro-panel">
+                  <h2 className="panel-title warning-style">Connect to the Family Tree 🌳</h2>
+                  <p className="panel-subtext">
+                    Lineage connects you to the entire tree, calculates your generation, and links you to the calendar, anniversaries, and milestones of all descendants. Let's find your line!
+                  </p>
+                  <Button 
+                    type="primary" 
+                    className="hero-primary-btn connect-trigger-btn"
+                    onClick={handleStartLineageBuilder}
+                  >
+                    Find My Branch & Connect
+                  </Button>
                 </div>
               )}
 
-              {/* CASE B: ALREADY CONNECTED (Targeted Actions + Leaderboard + Invites) */}
-              {profile.parent !== null && (
+              {/* 2. ORPHANED PARENT PROMPT */}
+              {showConnectParentPrompt && (
+                <div className="unconnected-intro-panel orphaned-parent">
+                  <h2 className="panel-title warning-style">Link Your Parent to Tree 🌳</h2>
+                  <p className="panel-subtext">
+                    You've connected to your parent, but their branch is not yet connected to our first branch ancestors. Let's link them to connect you to the entire tree!
+                  </p>
+                  <Button 
+                    type="primary" 
+                    className="hero-primary-btn connect-trigger-btn"
+                    onClick={() => navigate(`/parentform/smithparent/${profile.parent}`)}
+                  >
+                    Link Parent to Ancestor
+                  </Button>
+                </div>
+              )}
+
+              {/* 3. CONNECTED DASHBOARD */}
+              {showDashboard && (
                 <div className="connected-dashboard-content">
                   
+                  {/* Row 1: Lineage Trail */}
+                  {lineageTrail && (
+                    <div className="lineage-trail-row">
+                      {lineageTrail.ancestor && (
+                        <>
+                          <span className="trail-node ancestor">{lineageTrail.ancestor} Line</span>
+                          <span className="trail-arrow">&rarr;</span>
+                        </>
+                      )}
+                      {lineageTrail.parent && (
+                        <>
+                          <span className="trail-node parent">{lineageTrail.parent}</span>
+                          <span className="trail-arrow">&rarr;</span>
+                        </>
+                      )}
+                      <span className="trail-node me">
+                        {lineageTrail.me}
+                        {profile.parent === null && <span className="spouse-badge-text"> (Spouse)</span>}
+                      </span>
+                    </div>
+                  )}
+
                   {/* Photo Prompt (Primary Focus 1) */}
                   {!profile.avatar_url && (
                     <div className="photo-prompt-banner">
@@ -768,37 +718,6 @@ const NewHeroSection = ({ demoMode }) => {
                           onClick={() => navigate(`/antavatar/${profile.id}`)}
                         >
                           Upload Photo
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Family Connections Prompt (Primary Focus 2) */}
-                  {profile.avatar_url && !hasFamilyConnections && (
-                    <div className="photo-prompt-banner family">
-                      <div className="photo-prompt-header-row">
-                        <SmileOutlined className="photo-prompt-icon" />
-                        <div className="photo-prompt-details">
-                          <span className="banner-title">Build out your branch! 🌳</span>
-                          <span className="banner-text">Link your spouse and children to grow your branch in the interactive family tree.</span>
-                        </div>
-                      </div>
-                      <div className="banner-actions-row">
-                        <Button 
-                          type="primary" 
-                          size="small" 
-                          className="banner-action-btn"
-                          onClick={() => navigate(`/connectionform/spouse/${profile.id}`)}
-                        >
-                          Link Spouse
-                        </Button>
-                        <Button 
-                          type="primary" 
-                          size="small" 
-                          className="banner-action-btn"
-                          onClick={() => navigate(`/connectionform/child/${profile.id}`)}
-                        >
-                          Link Child
                         </Button>
                       </div>
                     </div>
@@ -826,7 +745,7 @@ const NewHeroSection = ({ demoMode }) => {
                       {/* Interactive competition alert */}
                       {leaderboard.length > 0 && (
                         <p className="leaderboard-commentary">
-                          🏆 <strong>{leaderboard[0]?.leader?.firstname} Line</strong> is leading! Let's get more of your branch signed up to beat them!
+                          🏆 <strong>{leaderboard[0]?.leader?.firstname} Line</strong> is leading!
                         </p>
                       )}
                     </div>
@@ -849,7 +768,6 @@ const NewHeroSection = ({ demoMode }) => {
                         {copiedInvite ? "Invite Copied!" : "Copy Invite Text"}
                       </Button>
                     </div>
-
                   </div>
 
                   {/* Tutorial Tips Box */}
@@ -865,9 +783,253 @@ const NewHeroSection = ({ demoMode }) => {
 
             </div>
           )}
-
         </div>
       </div>
+
+      {/* Lineage Builder Drawer */}
+      <Drawer
+        title={<span style={{ color: "#f3e7b1", fontFamily: "Titillium Web, sans-serif", fontWeight: 700 }}>Connect Your Lineage</span>}
+        placement="bottom"
+        height="85%"
+        open={isWizardOpen}
+        onClose={handleCloseWizard}
+        destroyOnClose
+        styles={{
+          body: {
+            padding: "16px",
+            background: "linear-gradient(to bottom, #4e1237, #3c0c29)",
+            color: "#fff",
+            overflowY: "auto",
+          },
+          header: {
+            background: "#3c0c29",
+            borderBottom: "1px solid rgba(234, 190, 169, 0.15)",
+          }
+        }}
+      >
+        <div className="lineage-builder-wizard modal-version" style={{ padding: "8px 0" }}>
+          
+          {/* Step 1: Select Branch leader */}
+          {step === "branch" && (
+            <div className="wizard-step-container">
+              <div className="step-header-with-back">
+                <button className="wizard-back-arrow-btn" onClick={handleCloseWizard}>
+                  <ArrowLeftOutlined /> Cancel
+                </button>
+                <h2 className="panel-title small" style={{ color: "#f3e7b1" }}>Select Your Branch Leader</h2>
+              </div>
+              <p className="wizard-instruction" style={{ color: "#EABEA9" }}>
+                Select which of John & Birdie Mae's children is your ancestor:
+              </p>
+              <div className="branch-grid text-only">
+                {branchLeaders.map((leader) => (
+                  <button 
+                    key={leader.id} 
+                    className="branch-choice-btn-text"
+                    onClick={() => handleSelectBranch(leader)}
+                  >
+                    {leader.firstname} Line
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Establish Relation Choice */}
+          {step === "relation" && selectedBranch && (
+            <div className="wizard-step-container">
+              <div className="step-header-with-back">
+                <button className="wizard-back-arrow-btn" onClick={handleStartLineageBuilder}>
+                  <ArrowLeftOutlined /> Branches
+                </button>
+                <h2 className="panel-title small" style={{ color: "#f3e7b1" }}>{selectedBranch.firstname} Line</h2>
+              </div>
+              <p className="wizard-instruction" style={{ color: "#EABEA9" }}>
+                How is <strong>{selectedBranch.firstname} Smith</strong> related to you?
+              </p>
+              <div className="relation-choices-column">
+                <button className="relation-choice-btn" onClick={() => handleSelectRelation("parent")}>
+                  {selectedBranch.firstname} is my Parent
+                </button>
+                <button className="relation-choice-btn" onClick={() => handleSelectRelation("grandparent")}>
+                  {selectedBranch.firstname} is my Grandparent
+                </button>
+                <button className="relation-choice-btn" onClick={() => handleSelectRelation("great_grandparent")}>
+                  {selectedBranch.firstname} is my Great-Grandparent
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Select Grandparent */}
+          {step === "select_grandparent" && selectedBranch && (
+            <div className="wizard-step-container">
+              <div className="step-header-with-back">
+                <button className="wizard-back-arrow-btn" onClick={() => setStep("relation")}>
+                  <ArrowLeftOutlined /> Back
+                </button>
+                <h2 className="panel-title small" style={{ color: "#f3e7b1" }}>Select Grandparent</h2>
+              </div>
+              <p className="wizard-instruction" style={{ color: "#EABEA9" }}>
+                Select your grandparent from {selectedBranch.firstname}'s line:
+              </p>
+              {grandparentsList.length === 0 ? (
+                <div className="empty-branch-placeholder" style={{ color: "#EABEA9", padding: "16px 0", textAlign: "center" }}>
+                  No grandparent profiles found. Click below to add.
+                </div>
+              ) : (
+                <div className="children-grid-text">
+                  {grandparentsList.map((g) => (
+                    <button 
+                      key={g.id} 
+                      className="child-choice-btn-text"
+                      onClick={() => handleSelectGrandparent(g)}
+                    >
+                      {g.firstname} {g.lastname ? `${g.lastname[0]}.` : ""}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button 
+                className="child-select-btn-add-new"
+                onClick={() => {
+                  handleCloseWizard();
+                  navigate(`/parentform/smithparent/${profile.id}`);
+                }}
+              >
+                <UserAddOutlined /> Grandparent is not listed (+ Add)
+              </button>
+            </div>
+          )}
+
+          {/* Step 4: Select Parent */}
+          {step === "select_parent" && selectedBranch && (
+            <div className="wizard-step-container">
+              <div className="step-header-with-back">
+                <button 
+                  className="wizard-back-arrow-btn" 
+                  onClick={() => setStep(relationType === "grandparent" ? "relation" : "select_grandparent")}
+                >
+                  <ArrowLeftOutlined /> Back
+                </button>
+                <h2 className="panel-title small" style={{ color: "#f3e7b1" }}>Select Your Parent</h2>
+              </div>
+              <p className="wizard-instruction font-tight" style={{ color: "#EABEA9" }}>
+                {relationType === "grandparent" 
+                  ? `Which of ${selectedBranch.firstname}'s children is your parent?` 
+                  : `Which of ${selectedGrandparent?.firstname}'s children is your parent?`
+                }
+              </p>
+              {parentsList.length === 0 ? (
+                <div className="empty-branch-placeholder" style={{ color: "#EABEA9", padding: "16px 0", textAlign: "center" }}>
+                  No parent profiles found. Click below to add.
+                </div>
+              ) : (
+                <div className="children-grid-text">
+                  {parentsList.map((p) => (
+                    <button 
+                      key={p.id} 
+                      className="child-choice-btn-text"
+                      onClick={() => handleSelectParent(p)}
+                    >
+                      {p.firstname} {p.lastname ? `${p.lastname[0]}.` : ""}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button 
+                className="child-select-btn-add-new"
+                onClick={() => {
+                  handleCloseWizard();
+                  navigate(`/parentform/smithparent/${profile.id}`);
+                }}
+              >
+                <UserAddOutlined /> My parent is not listed (+ Add)
+              </button>
+            </div>
+          )}
+
+          {/* Step 5: Confirm Parent Link */}
+          {step === "confirm" && selectedParent && (
+            <div className="wizard-step-container">
+              <div className="step-header-with-back">
+                <button 
+                  className="wizard-back-arrow-btn" 
+                  onClick={() => setStep(relationType === "parent" ? "relation" : "select_parent")}
+                >
+                  <ArrowLeftOutlined /> Back
+                </button>
+                <h2 className="panel-title small" style={{ color: "#f3e7b1" }}>Confirm Connection</h2>
+              </div>
+              <div className="confirm-connection-card">
+                <Avatar 
+                  src={getAvatarSrc(selectedParent)} 
+                  icon={<UserOutlined />} 
+                  size={70} 
+                  className="confirm-avatar"
+                />
+                <h3 className="confirm-name" style={{ color: "#f3e7b1" }}>{selectedParent.firstname} {selectedParent.lastname}</h3>
+                
+                {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1 ? (
+                  <p className="confirm-disclaimer" style={{ color: "#EABEA9" }}>
+                    This is an ancestral profile. Confirming will connect your lineage **instantly** to the interactive family tree.
+                  </p>
+                ) : (
+                  <p className="confirm-disclaimer warning" style={{ color: "#F7DC92" }}>
+                    This is an active member profile. Confirming will send a connection request. You will be connected once they approve.
+                  </p>
+                )}
+
+                <Button 
+                  type="primary" 
+                  className="hero-primary-btn confirm-btn"
+                  loading={loadingAction}
+                  onClick={handleConfirmConnection}
+                >
+                  {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1
+                    ? "Confirm & Connect Instantly" 
+                    : "Send Connection Request"
+                  }
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Success pay-off screen */}
+          {step === "success" && (
+            <div className="wizard-step-container success">
+              <div className="success-icon-pulse">
+                <CheckCircleOutlined style={{ fontSize: '3rem', color: '#52c41a' }} />
+              </div>
+              <h2 className="panel-title" style={{ color: "#f3e7b1" }}>Connection Successful! 🎉</h2>
+              <p className="success-subtext" style={{ color: "#EABEA9" }}>
+                Welcome to the <strong>{selectedBranch?.firstname} Line</strong>! You are now connected to your parent, <strong>{connectedParentName}</strong>, and officially recognized as a <strong>{calculatedGeneration ? getOrdinal(calculatedGeneration) : "N/A"} Generation</strong> Smith descendant on the interactive tree.
+              </p>
+              
+              <div className="panel-actions-row">
+                <Button 
+                  type="primary" 
+                  className="hero-primary-btn"
+                  onClick={() => {
+                    handleCloseWizard();
+                    navigate(`/antavatar/${profile.id}`);
+                  }}
+                >
+                  <UploadOutlined /> Upload Profile Photo
+                </Button>
+                <Button 
+                  type="default" 
+                  className="hero-secondary-btn"
+                  onClick={handleCloseWizard}
+                >
+                  Go to Dashboard
+                </Button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </Drawer>
 
       {/* Down Chevron Anchor */}
       <div className="new-hero-chevron-container" onClick={handleChevronClick}>

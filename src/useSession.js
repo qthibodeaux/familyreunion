@@ -18,27 +18,48 @@ export function useSession() {
     navigate("/");
   };
 
-  // 1. Check current login session and listen to changes
+  // Check login session and listen to auth changes, loading profile details synchronously
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+    let active = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setProfile(null);
-      setLoading(false);
-    });
+    const initializeAuth = async () => {
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!active) return;
+        setSession(session);
 
-    return () => {
-      subscription?.unsubscribe();
+        if (session?.user) {
+          const { data, error } = await supabase
+            .from("profile")
+            .select("*")
+            .eq("id", session.user.id);
+
+          if (active) {
+            if (!error && data && data.length > 0) {
+              setProfile(data[0]);
+            } else {
+              setProfile(null);
+            }
+          }
+        } else {
+          setProfile(null);
+        }
+      } catch (err) {
+        console.error("Initialization error:", err);
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
     };
-  }, []);
 
-  // 2. Fetch the profile details once the user session is active
-  useEffect(() => {
-    const fetchProfile = async () => {
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!active) return;
+      setSession(session);
+
       if (session?.user) {
         setLoading(true);
         const { data, error } = await supabase
@@ -46,19 +67,25 @@ export function useSession() {
           .select("*")
           .eq("id", session.user.id);
 
-        if (!error && data && data.length > 0) {
-          setProfile(data[0]);
-        } else {
-          setProfile(null);
+        if (active) {
+          if (!error && data && data.length > 0) {
+            setProfile(data[0]);
+          } else {
+            setProfile(null);
+          }
+          setLoading(false);
         }
-        setLoading(false);
       } else {
         setProfile(null);
+        setLoading(false);
       }
-    };
+    });
 
-    fetchProfile();
-  }, [session]);
+    return () => {
+      active = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   return {
     session,

@@ -419,6 +419,12 @@ function ProfileWizard() {
       }
     }
 
+    if (type === "smithparent") {
+      if (anchorProfile && anchorProfile.branch !== null && anchorProfile.branch !== undefined) {
+        profileData.branch = Math.max(0, anchorProfile.branch - 1);
+      }
+    }
+
     try {
       let profileError;
       if (type === "self") {

@@ -207,11 +207,8 @@ function ParentForm() {
 
         if (updateError) throw updateError;
 
-        // 4. If this is a new branch, update all descendants with the new branch numbers
-        if (parentProfile.ancestor === null) {
-          // This is a new branch, so update all descendants
-          await updateFamilyBranch(userid, newBranch);
-        }
+        // 4. Update all descendants with the new branch numbers
+        await updateFamilyBranch(userid, newBranch);
 
         // 5. Update ancestor reference for all descendants if this is a new root
         await updateAncestorReference(
