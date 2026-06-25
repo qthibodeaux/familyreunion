@@ -925,7 +925,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
                   <span className="compact-card-title">Leaderboard</span>
                 </div>
                 <div className="compact-scores-box">
-                  {leaderboard.slice(0, 5).map((item, idx) => {
+                  {leaderboard.slice(0, 3).map((item, idx) => {
                     const colors = ["#F7DC92", "#e0e0e0", "#cd7f32"];
                     const trophyColor = colors[idx] || "#EABEA9";
                     return (
