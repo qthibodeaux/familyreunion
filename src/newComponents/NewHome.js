@@ -9,15 +9,13 @@ import FamilyFinder from "./FamilyFinder";
 import "./NewHome.css";
 
 const NewHome = () => {
-  const [demoMode, setDemoMode] = useState("none"); // "none" | "guest" | "unclaimed" | "unconnected" | "connected_no_photo" | "connected_no_family" | "connected_complete"
-  const [showDevPanel, setShowDevPanel] = useState(false);
 
   return (
     <div className="new-home-container">
       {/* Slide 1: Compact Hero Landing Slide */}
       <section className="snap-section">
         <div className="new-slide-card hero-slide-wrapper">
-          <NewHeroCompactSection demoMode={demoMode !== "none" ? demoMode : undefined} />
+          <NewHeroCompactSection />
         </div>
       </section>
 
@@ -63,44 +61,6 @@ const NewHome = () => {
         </div>
       </section>
 
-      {/* Floating Demo Mode Controller (Local/Dev testing HUD) */}
-      <div className="dev-mode-controller">
-        {!showDevPanel ? (
-          <button className="dev-toggle-trigger-btn" onClick={() => setShowDevPanel(true)}>
-            🛠️ Demo Modes ({demoMode === "none" ? "Live" : demoMode.replace("connected_", "")})
-          </button>
-        ) : (
-          <div className="dev-control-panel-card">
-            <div className="dev-panel-header">
-              <span className="dev-panel-title">🛠️ Demo Profile HUD</span>
-              <button className="dev-panel-close-btn" onClick={() => setShowDevPanel(false)}>×</button>
-            </div>
-            <div className="dev-panel-buttons">
-              <button className={demoMode === "none" ? "active" : ""} onClick={() => setDemoMode("none")}>
-                Live Database
-              </button>
-              <button className={demoMode === "guest" ? "active" : ""} onClick={() => setDemoMode("guest")}>
-                Guest View
-              </button>
-              <button className={demoMode === "unclaimed" ? "active" : ""} onClick={() => setDemoMode("unclaimed")}>
-                Onboarding View
-              </button>
-              <button className={demoMode === "unconnected" ? "active" : ""} onClick={() => setDemoMode("unconnected")}>
-                Unconnected View
-              </button>
-              <button className={demoMode === "connected_no_photo" ? "active" : ""} onClick={() => setDemoMode("connected_no_photo")}>
-                Profile (No Photo)
-              </button>
-              <button className={demoMode === "connected_no_family" ? "active" : ""} onClick={() => setDemoMode("connected_no_family")}>
-                Profile (Checklist)
-              </button>
-              <button className={demoMode === "connected_complete" ? "active" : ""} onClick={() => setDemoMode("connected_complete")}>
-                Profile (Hub Mode)
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
 
     </div>
   );
