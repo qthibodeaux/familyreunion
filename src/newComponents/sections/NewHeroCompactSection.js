@@ -14,7 +14,9 @@ import {
   QuestionCircleOutlined,
   LinkOutlined,
   SmileOutlined,
-  PlusOutlined
+  PlusOutlined,
+  CalendarOutlined,
+  BookOutlined
 } from "@ant-design/icons";
 import { Avatar, Button, Spin, Drawer, message } from "antd";
 import ancestorsImg from "../../assets/anc1.png";
@@ -75,6 +77,9 @@ const NewHeroCompactSection = ({ demoMode }) => {
   const [childrenProfiles, setChildrenProfiles] = useState([]);
   const [noSpouse, setNoSpouse] = useState(false);
   const [noMoreChildren, setNoMoreChildren] = useState(false);
+  
+  // Rotating Actions Hub active index
+  const [activeActionIdx, setActiveActionIdx] = useState(0);
 
   // Sync checklist state with local storage
   useEffect(() => {
@@ -107,6 +112,14 @@ const NewHeroCompactSection = ({ demoMode }) => {
     const interval = setInterval(() => {
       setActiveTipIdx((prev) => (prev + 1) % tips.length);
     }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Rotate final CTAs
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveActionIdx((prev) => (prev + 1) % 3);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -283,7 +296,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
 
         const { data: allProfiles, error: profilesErr } = await supabase
           .from("profile")
-          .select("id, parent, ancestor, branch, email, phone");
+          .select("id, parent, ancestor, branch, email");
 
         if (profilesErr) throw profilesErr;
 
@@ -298,7 +311,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
         });
 
         allProfiles.forEach((u) => {
-          if (u.email || u.phone) {
+          if (u.email) {
             let ancestorId = u.ancestor;
             if (!ancestorId) {
               let curr = u;
@@ -671,31 +684,45 @@ const NewHeroCompactSection = ({ demoMode }) => {
     }
 
     // 7. Rotating Action Hub (if all profile connections are completed/dismissed)
+    const rotatingActions = [
+      {
+        icon: <CalendarOutlined className="compact-cta-main-icon" />,
+        title: "Share a Milestone",
+        desc: "Keep the family updated on weddings, births, graduations, or passings.",
+        btnText: "Add Milestone",
+        onClick: () => navigate("/milestones")
+      },
+      {
+        icon: <BookOutlined className="compact-cta-main-icon" />,
+        title: "Sign Guestbook",
+        desc: "Write a warm tribute, memory, or quick hello on the family wall.",
+        btnText: "Sign Wall",
+        onClick: () => navigate("/guestbook")
+      },
+      {
+        icon: <LinkOutlined className="compact-cta-main-icon" />,
+        title: "Invite Cousins",
+        desc: "Copy our custom invite link and send it to your siblings and relatives.",
+        btnText: copiedInvite ? "✅ Link Copied!" : "Copy Invite Link",
+        onClick: handleCopyInviteLink,
+        isSuccessBtn: copiedInvite
+      }
+    ];
+
+    const currentAction = rotatingActions[activeActionIdx % rotatingActions.length];
+
     return (
       <div className="compact-cta-card-content hub-cta">
-        <h3 className="compact-cta-heading hub-title">Family Actions</h3>
-        
-        {/* Render a grid of simple navigation buttons */}
-        <div className="compact-hub-grid">
-          <Button className="compact-hub-tile-btn" onClick={() => navigate("/milestones")}>
-            📅 Milestones
-          </Button>
-          <Button className="compact-hub-tile-btn" onClick={() => navigate("/guestbook")}>
-            ✍️ Guestbook
-          </Button>
-          <Button className="compact-hub-tile-btn" onClick={() => navigate("/interactive-tree")}>
-            🌳 Visual Tree
-          </Button>
-        </div>
-
-        {/* persistent cousin invite trigger */}
-        <div className="compact-hub-share-footer">
+        {currentAction.icon}
+        <h3 className="compact-cta-heading">{currentAction.title}</h3>
+        <p className="compact-cta-desc">{currentAction.desc}</p>
+        <div className="compact-cta-actions">
           <Button 
             type="primary" 
-            className={`compact-hub-share-row-btn ${copiedInvite ? "success" : ""}`}
-            onClick={handleCopyInviteLink}
+            className={`compact-btn-primary ${currentAction.isSuccessBtn ? "success" : ""}`} 
+            onClick={currentAction.onClick}
           >
-            {copiedInvite ? "✅ Link Copied!" : "🔗 Copy Invite Link"}
+            {currentAction.btnText}
           </Button>
         </div>
       </div>
@@ -1117,7 +1144,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
                 />
                 <h3 className="confirm-name" style={{ color: "#f3e7b1" }}>{selectedParent.firstname} {selectedParent.lastname}</h3>
                 
-                {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1 ? (
+                {selectedParent.sunset || (!selectedParent.email) || selectedParent.branch === 1 ? (
                   <p className="confirm-disclaimer" style={{ color: "#EABEA9" }}>
                     This is an ancestral profile. Confirming will connect your lineage **instantly** to the interactive family tree.
                   </p>
@@ -1133,7 +1160,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
                   loading={loadingAction}
                   onClick={handleConfirmConnection}
                 >
-                  {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1
+                  {selectedParent.sunset || (!selectedParent.email) || selectedParent.branch === 1
                     ? "Confirm & Connect Instantly" 
                     : "Send Connection Request"
                   }
