@@ -10,7 +10,6 @@ import {
   CheckCircleOutlined,
   LoadingOutlined,
   UserOutlined,
-  SettingOutlined,
   CameraOutlined,
   QuestionCircleOutlined,
   LinkOutlined,
@@ -67,7 +66,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
 
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [activeTipIdx, setActiveTipIdx] = useState(0);
-  const [hasFamilyConnections, setHasFamilyConnections] = useState(false);
+
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [lineageTrail, setLineageTrail] = useState(null);
 
@@ -115,11 +114,9 @@ const NewHeroCompactSection = ({ demoMode }) => {
   useEffect(() => {
     if (isDemo) {
       if (demoMode === "connected_complete") {
-        setHasFamilyConnections(true);
         setSpouseProfile({ id: "spouse-demo-id", firstname: "Sarah", lastname: "Smith", avatar_url: null });
         setChildrenProfiles([{ id: "child-demo-1", firstname: "Junior", lastname: "Smith", avatar_url: null }]);
       } else {
-        setHasFamilyConnections(false);
         setSpouseProfile(null);
         setChildrenProfiles([]);
       }
@@ -127,7 +124,6 @@ const NewHeroCompactSection = ({ demoMode }) => {
     }
 
     if (!profile || !profile.id) {
-      setHasFamilyConnections(false);
       setSpouseProfile(null);
       setChildrenProfiles([]);
       return;
@@ -167,7 +163,6 @@ const NewHeroCompactSection = ({ demoMode }) => {
 
         if (childErr) throw childErr;
         setChildrenProfiles(childrenData || []);
-        setHasFamilyConnections(!!(hasSpouse || (childrenData && childrenData.length > 0)));
 
         if (profile.parent === null && profile.ancestor === null && hasSpouse) {
           const spouseId = spouseConns[0].profile_1 === profile.id ? spouseConns[0].profile_2 : spouseConns[0].profile_1;
