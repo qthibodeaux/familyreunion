@@ -2,23 +2,20 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   DownOutlined, 
-  CopyOutlined, 
   ArrowLeftOutlined, 
   UploadOutlined, 
   UserAddOutlined, 
-  ShareAltOutlined, 
   BulbOutlined, 
   TrophyOutlined, 
-  SmileOutlined, 
   CheckCircleOutlined,
   LoadingOutlined,
   UserOutlined,
   SettingOutlined,
-  BookOutlined,
   CameraOutlined,
-  CalendarOutlined,
   QuestionCircleOutlined,
-  CheckCircleFilled
+  LinkOutlined,
+  SmileOutlined,
+  PlusOutlined
 } from "@ant-design/icons";
 import { Avatar, Button, Spin, Drawer, message } from "antd";
 import ancestorsImg from "../../assets/anc1.png";
@@ -26,7 +23,7 @@ import { supabase } from "../../supabaseClient";
 import AuthConsumer from "../../useSession";
 import { getAvatarSrc } from "../../utils/avatarHelper";
 import { updateFamilyBranch, updateAncestorReference } from "../../utils/familyTree";
-import "./NewHeroSection.css";
+import "./NewHeroCompactSection.css";
 
 const tips = [
   "💡 Tip: Tap 'Interactive Tree' in the menu to visually view how you connect back to John Henry & Birdie Mae.",
@@ -35,7 +32,7 @@ const tips = [
   "💡 Tip: Head to the Family Media page to upload historic photos and tag your relatives."
 ];
 
-const NewHeroSection = ({ demoMode }) => {
+const NewHeroCompactSection = ({ demoMode }) => {
   const { session: realSession, profile: realProfile, setProfile } = AuthConsumer();
   const navigate = useNavigate();
 
@@ -45,14 +42,13 @@ const NewHeroSection = ({ demoMode }) => {
     return isDemo ? (
       demoMode === "guest" ? null :
       demoMode === "unclaimed" ? null :
-      demoMode === "unconnected" ? { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: null, avatar_url: null, branch: null } :
-      demoMode === "connected_no_photo" ? { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: "mary-id", avatar_url: null, branch: 2 } :
-      demoMode === "connected_no_family" ? { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: "mary-id", avatar_url: "john.jpg", branch: 2 } :
-      { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: "mary-id", avatar_url: "john.jpg", branch: 2 }
+      demoMode === "unconnected" ? { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: null, ancestor: null, avatar_url: null, branch: null } :
+      demoMode === "connected_no_photo" ? { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: "arthur-id", ancestor: "mary-id", avatar_url: null, branch: 2 } :
+      demoMode === "connected_no_family" ? { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: "arthur-id", ancestor: "mary-id", avatar_url: "john.jpg", branch: 2 } :
+      { id: "demo-user-id", firstname: "David", lastname: "Smith", parent: "arthur-id", ancestor: "mary-id", avatar_url: "john.jpg", branch: 2 }
     ) : realProfile;
   }, [isDemo, demoMode, realProfile]);
 
-  // Step routing: 'welcome' (default dashboard for connected/guest) | 'branch' | 'relation' | 'select_grandparent' | 'select_parent' | 'confirm' | 'success'
   const [step, setStep] = useState("welcome");
   const [loadingData, setLoadingData] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -60,8 +56,8 @@ const NewHeroSection = ({ demoMode }) => {
   // Lineage Builder States
   const [branchLeaders, setBranchLeaders] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
-  const [selectedBranch, setSelectedBranch] = useState(null); // First branch profile
-  const [relationType, setRelationType] = useState(null); // 'parent' | 'grandparent' | 'great_grandparent'
+  const [selectedBranch, setSelectedBranch] = useState(null); 
+  const [relationType, setRelationType] = useState(null); 
   const [grandparentsList, setGrandparentsList] = useState([]);
   const [selectedGrandparent, setSelectedGrandparent] = useState(null);
   const [parentsList, setParentsList] = useState([]);
@@ -69,41 +65,28 @@ const NewHeroSection = ({ demoMode }) => {
   const [connectedParentName, setConnectedParentName] = useState("");
   const [calculatedGeneration, setCalculatedGeneration] = useState(null);
 
-  // Clipboard Copied State
   const [copiedInvite, setCopiedInvite] = useState(false);
-
-  // Interactive Tutorial States
   const [activeTipIdx, setActiveTipIdx] = useState(0);
-
   const [hasFamilyConnections, setHasFamilyConnections] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [lineageTrail, setLineageTrail] = useState(null);
 
-  // Smart Family Connections setup tracking
+  // Connections setup
   const [spouseProfile, setSpouseProfile] = useState(null);
   const [childrenProfiles, setChildrenProfiles] = useState([]);
   const [noSpouse, setNoSpouse] = useState(false);
-  const [noChildren, setNoChildren] = useState(false);
-  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  const [noMoreChildren, setNoMoreChildren] = useState(false);
 
-  // Sync checklist exclusions and complete states with local storage
+  // Sync checklist state with local storage
   useEffect(() => {
     if (!profile || !profile.id) return;
     if (isDemo) {
-      if (demoMode === "connected_complete") {
-        setNoSpouse(false);
-        setNoChildren(false);
-        setIsSetupComplete(true);
-      } else {
-        setNoSpouse(false);
-        setNoChildren(false);
-        setIsSetupComplete(false);
-      }
+      setNoSpouse(false);
+      setNoMoreChildren(false);
       return;
     }
     setNoSpouse(localStorage.getItem(`family_reunion_no_spouse_${profile.id}`) === "true");
-    setNoChildren(localStorage.getItem(`family_reunion_no_children_${profile.id}`) === "true");
-    setIsSetupComplete(localStorage.getItem(`family_reunion_setup_complete_${profile.id}`) === "true");
+    setNoMoreChildren(localStorage.getItem(`family_reunion_no_more_children_${profile.id}`) === "true");
   }, [profile, isDemo, demoMode]);
 
   const handleToggleNoSpouse = (val) => {
@@ -113,24 +96,14 @@ const NewHeroSection = ({ demoMode }) => {
     }
   };
 
-  const handleToggleNoChildren = (val) => {
-    setNoChildren(val);
+  const handleToggleNoMoreChildren = (val) => {
+    setNoMoreChildren(val);
     if (profile?.id) {
-      localStorage.setItem(`family_reunion_no_children_${profile.id}`, val ? "true" : "false");
+      localStorage.setItem(`family_reunion_no_more_children_${profile.id}`, val ? "true" : "false");
     }
   };
 
-  const handleMarkSetupComplete = (val) => {
-    setIsSetupComplete(val);
-    if (profile?.id) {
-      localStorage.setItem(`family_reunion_setup_complete_${profile.id}`, val ? "true" : "false");
-    }
-    if (val) {
-      message.success("Setup complete! Welcome to your Family Hub.");
-    }
-  };
-
-  // Rotate tips every 6 seconds
+  // Rotate tips
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveTipIdx((prev) => (prev + 1) % tips.length);
@@ -138,7 +111,7 @@ const NewHeroSection = ({ demoMode }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Check if user has active family connections (spouse or child)
+  // Fetch connections
   useEffect(() => {
     if (isDemo) {
       if (demoMode === "connected_complete") {
@@ -162,7 +135,6 @@ const NewHeroSection = ({ demoMode }) => {
 
     const checkFamilyConnections = async () => {
       try {
-        // 1. Fetch active connections (spouse)
         const { data: connData, error: connErr } = await supabase
           .from("connection")
           .select("connection_type, profile_1, profile_2")
@@ -188,7 +160,6 @@ const NewHeroSection = ({ demoMode }) => {
           setSpouseProfile(null);
         }
 
-        // 2. Fetch children profiles
         const { data: childrenData, error: childErr } = await supabase
           .from("profile")
           .select("id, firstname, nickname, lastname, avatar_url, branch, parent, ancestor")
@@ -196,10 +167,8 @@ const NewHeroSection = ({ demoMode }) => {
 
         if (childErr) throw childErr;
         setChildrenProfiles(childrenData || []);
-
         setHasFamilyConnections(!!(hasSpouse || (childrenData && childrenData.length > 0)));
 
-        // 3. Auto-populate ancestor/branch if they are a connected spouse but their own DB fields are null
         if (profile.parent === null && profile.ancestor === null && hasSpouse) {
           const spouseId = spouseConns[0].profile_1 === profile.id ? spouseConns[0].profile_2 : spouseConns[0].profile_1;
           const { data: spouseProfileObj, error: spouseProfErr } = await supabase
@@ -211,10 +180,7 @@ const NewHeroSection = ({ demoMode }) => {
           if (!spouseProfErr && spouseProfileObj && spouseProfileObj.ancestor) {
             const { error: updateErr } = await supabase
               .from("profile")
-              .update({
-                branch: spouseProfileObj.branch,
-                ancestor: spouseProfileObj.ancestor
-              })
+              .update({ branch: spouseProfileObj.branch, ancestor: spouseProfileObj.ancestor })
               .eq("id", profile.id);
 
             if (!updateErr && setProfile) {
@@ -223,14 +189,14 @@ const NewHeroSection = ({ demoMode }) => {
           }
         }
       } catch (err) {
-        console.error("Error checking family connections:", err);
+        console.error(err);
       }
     };
 
     checkFamilyConnections();
   }, [profile, isDemo, demoMode, setProfile]);
 
-  // Load lineage trail details (ancestor, parent, me)
+  // Fetch lineage trail
   useEffect(() => {
     if (isDemo) {
       if (demoMode && demoMode.startsWith("connected")) {
@@ -277,14 +243,14 @@ const NewHeroSection = ({ demoMode }) => {
           me: profile
         });
       } catch (err) {
-        console.error("Error loading lineage trail:", err);
+        console.error(err);
       }
     };
 
     fetchLineageTrail();
   }, [profile, isDemo, demoMode]);
 
-  // Fetch branch leaders and active leaderboard on mount
+  // Fetch branch leaders and active leaderboard
   useEffect(() => {
     if (isDemo) {
       const mockLeaders = [
@@ -302,9 +268,9 @@ const NewHeroSection = ({ demoMode }) => {
       ];
       setBranchLeaders(mockLeaders);
       setLeaderboard([
-        { leader: mockLeaders[9], count: 12 }, // Mary Line
-        { leader: mockLeaders[8], count: 8 },  // Loretta Line
-        { leader: mockLeaders[3], count: 5 },  // Hazel Line
+        { leader: mockLeaders[9], count: 12 }, 
+        { leader: mockLeaders[8], count: 8 },  
+        { leader: mockLeaders[3], count: 5 },  
       ]);
       return;
     }
@@ -312,7 +278,6 @@ const NewHeroSection = ({ demoMode }) => {
     const loadCoreData = async () => {
       setLoadingData(true);
       try {
-        // 1. Fetch branch leaders (Branch 1 children)
         const { data: leaders, error: leadersErr } = await supabase
           .from("profile")
           .select("id, firstname, nickname, lastname, avatar_url, branch, sunrise, sunset")
@@ -321,7 +286,6 @@ const NewHeroSection = ({ demoMode }) => {
 
         if (leadersErr) throw leadersErr;
 
-        // 2. Fetch all profiles to trace and count registered users
         const { data: allProfiles, error: profilesErr } = await supabase
           .from("profile")
           .select("id, parent, ancestor, branch, email, phone");
@@ -333,7 +297,6 @@ const NewHeroSection = ({ demoMode }) => {
           profileMap[p.id] = p;
         });
 
-        // 3. Count registered users per branch
         const countsMap = {};
         leaders.forEach((l) => {
           countsMap[l.id] = 0;
@@ -375,7 +338,7 @@ const NewHeroSection = ({ demoMode }) => {
         setBranchLeaders(leaders);
         setLeaderboard(leaderboardData);
       } catch (err) {
-        console.error("Error loading lineage builder data:", err);
+        console.error(err);
       } finally {
         setLoadingData(false);
       }
@@ -384,7 +347,6 @@ const NewHeroSection = ({ demoMode }) => {
     loadCoreData();
   }, [isDemo]);
 
-  // Set builder back to selection grid
   const handleStartLineageBuilder = () => {
     setIsWizardOpen(true);
     setStep("branch");
@@ -399,13 +361,11 @@ const NewHeroSection = ({ demoMode }) => {
     setStep("welcome");
   };
 
-  // Select Branch Leader (Step 1)
   const handleSelectBranch = (branch) => {
     setSelectedBranch(branch);
     setStep("relation");
   };
 
-  // Conversational relation step: Is Mary your parent, grandparent, or great-grandparent?
   const handleSelectRelation = async (type) => {
     setRelationType(type);
     if (isDemo) {
@@ -429,11 +389,9 @@ const NewHeroSection = ({ demoMode }) => {
     setLoadingData(true);
     try {
       if (type === "parent") {
-        // Mary is parent directly
         setSelectedParent(selectedBranch);
         setStep("confirm");
       } else {
-        // Mary is grandparent or great-grandparent, fetch Mary's children
         const { data, error } = await supabase
           .from("profile")
           .select("id, firstname, nickname, lastname, avatar_url, branch, email, phone, sunset")
@@ -451,14 +409,13 @@ const NewHeroSection = ({ demoMode }) => {
         }
       }
     } catch (err) {
-      console.error("Error fetching relation details:", err);
+      console.error(err);
       message.error("Failed to load family line children");
     } finally {
       setLoadingData(false);
     }
   };
 
-  // Grandparent chosen, load grandparent's children (user's parent generation)
   const handleSelectGrandparent = async (grandparent) => {
     setSelectedGrandparent(grandparent);
     if (isDemo) {
@@ -482,20 +439,18 @@ const NewHeroSection = ({ demoMode }) => {
       setParentsList(data || []);
       setStep("select_parent");
     } catch (err) {
-      console.error("Error fetching grandparent's children:", err);
+      console.error(err);
       message.error("Failed to load children");
     } finally {
       setLoadingData(false);
     }
   };
 
-  // Parent chosen, go to confirmation step
   const handleSelectParent = (parent) => {
     setSelectedParent(parent);
     setStep("confirm");
   };
 
-  // Final Connection Execution
   const handleConfirmConnection = async () => {
     if (!selectedParent || !profile) return;
     setLoadingAction(true);
@@ -512,12 +467,9 @@ const NewHeroSection = ({ demoMode }) => {
       const isClaimed = selectedParent.email || selectedParent.phone;
       const isDeceased = selectedParent.sunset;
       const isBranch1 = selectedParent.branch === 1;
-
-      // Auto-connect if parent is unclaimed, or deceased, or is a branch leader (Mary, Loretta, etc.)
       const autoConnect = !isClaimed || isDeceased || isBranch1;
 
       if (!autoConnect) {
-        // Send a pending connection request
         const { error: connErr } = await supabase
           .from("connection")
           .insert({
@@ -530,39 +482,30 @@ const NewHeroSection = ({ demoMode }) => {
 
         if (connErr) throw connErr;
 
-        // Create pending notification for parent
         await supabase.from("notification").insert({
           recipient_id: selectedParent.id,
           actor_id: profile.id,
-          action_type: "new_guestbook_post", // Bypassing with supported check type in trigger
+          action_type: "new_guestbook_post",
           target_id: selectedParent.id,
         });
 
         message.success("Connection request sent to your parent! Waiting for their approval.");
         setStep("welcome");
       } else {
-        // Direct, active connection
         const parentBranch = selectedParent.branch;
         const newBranch = (parentBranch !== null && parentBranch !== undefined) ? parentBranch + 1 : 1;
         const newAncestor = selectedParent.ancestor || selectedParent.id;
 
-        // 1. Update user profile branch lineage
         const { error: updateProfileErr } = await supabase
           .from("profile")
-          .update({
-            parent: selectedParent.id,
-            branch: newBranch,
-            ancestor: newAncestor,
-          })
+          .update({ parent: selectedParent.id, branch: newBranch, ancestor: newAncestor })
           .eq("id", profile.id);
 
         if (updateProfileErr) throw updateProfileErr;
 
-        // Propagate branch and ancestor down to user's descendants
         await updateFamilyBranch(profile.id, newBranch);
         await updateAncestorReference(profile.id, newAncestor);
 
-        // 2. Insert bidirectional connection rows
         const { error: connErr } = await supabase
           .from("connection")
           .insert([
@@ -572,7 +515,6 @@ const NewHeroSection = ({ demoMode }) => {
 
         if (connErr) throw connErr;
 
-        // 3. Update active profile state in session
         const { data: updatedProfile, error: fetchErr } = await supabase
           .from("profile")
           .select("*")
@@ -588,14 +530,13 @@ const NewHeroSection = ({ demoMode }) => {
         setStep("success");
       }
     } catch (err) {
-      console.error("Error establishing parent connection:", err);
+      console.error(err);
       message.error("Failed to connect parent: " + err.message);
     } finally {
       setLoadingAction(false);
     }
   };
 
-  // Copy cousin invite link to clipboard
   const handleCopyInviteLink = () => {
     const inviteUrl = `${window.location.origin}/#/register`;
     const shareText = `Hey! I just connected my profile to the Smith Family Reunion Portal. We need to get our branch connected to beat the other branches on the leaderboard! Join the family tree here: ${inviteUrl}`;
@@ -607,513 +548,396 @@ const NewHeroSection = ({ demoMode }) => {
         setTimeout(() => setCopiedInvite(false), 3000);
       })
       .catch((err) => {
-        console.error("Failed to copy link:", err);
+        console.error(err);
         message.error("Failed to copy link");
       });
   };
 
-  // Smooth scroll handler to next snap section
-  const handleChevronClick = () => {
-    const container = document.querySelector(".new-home-container");
-    if (container) {
-      container.scrollTo({
-        top: window.innerHeight,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  // Helper to format ordinal generation names
   const getOrdinal = (n) => {
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   };
 
-  // Computed connection status flags
-  const showDashboard = !!(profile && (
-    (profile.parent !== null && profile.ancestor !== null) ||
-    (profile.parent === null && profile.ancestor !== null) ||
-    (profile.parent === null && hasFamilyConnections)
-  ));
+  const handleChevronClick = () => {
+    const parentContainer = document.querySelector(".new-home-container");
+    if (parentContainer) {
+      parentContainer.scrollBy({
+        top: window.innerHeight,
+        behavior: "smooth",
+      });
+    }
+  };
 
-  const showConnectLineagePrompt = !!(profile && profile.parent === null && profile.ancestor === null && !hasFamilyConnections);
+  const getActiveCTA = () => {
+    // 1. Profile Photo Upload CTA
+    if (!profile.avatar_url) {
+      return (
+        <div className="compact-cta-card-content photo-cta cta-pulse">
+          <CameraOutlined className="compact-cta-main-icon" />
+          <h3 className="compact-cta-heading">Add Profile Photo</h3>
+          <p className="compact-cta-desc">Help your cousins recognize you on the family tree by adding a profile photo.</p>
+          <div className="compact-cta-actions">
+            <Button type="primary" className="compact-btn-primary" onClick={() => navigate(`/antavatar/${profile.id}`)}>
+              Add Photo
+            </Button>
+          </div>
+        </div>
+      );
+    }
 
-  const showConnectParentPrompt = !!(profile && profile.parent !== null && profile.ancestor === null);
+    // 2. Parent Connection Link CTA
+    if (profile.parent === null && profile.ancestor === null) {
+      return (
+        <div className="compact-cta-card-content lineage-cta cta-pulse">
+          <UserAddOutlined className="compact-cta-main-icon" />
+          <h3 className="compact-cta-heading">Connect to Tree</h3>
+          <p className="compact-cta-desc">Lineage connects you to the entire interactive tree and calculates your generation.</p>
+          <div className="compact-cta-actions">
+            <Button type="primary" className="compact-btn-primary" onClick={handleStartLineageBuilder}>
+              Find My Parent
+            </Button>
+          </div>
+        </div>
+      );
+    }
 
-  // Render Stacked Rows
-  return (
-    <div className="new-hero-section">
-      {/* Row 1: Heritage Title & Photo */}
-      <div className="new-hero-row-top">
-        <div className="new-hero-title-container">
-          <h1 className="new-hero-title">
-            <span>Smith</span>
-            <span>Family</span>
-          </h1>
+    // 3. Parent ancestor link CTA (Orphaned Parent)
+    if (profile.parent !== null && profile.ancestor === null) {
+      return (
+        <div className="compact-cta-card-content parent-link-cta cta-pulse">
+          <LinkOutlined className="compact-cta-main-icon" />
+          <h3 className="compact-cta-heading">Resolve Lineage</h3>
+          <p className="compact-cta-desc">Your parent profile is created, but needs to be linked to John & Birdie Mae's descendants.</p>
+          <div className="compact-cta-actions">
+            <Button type="primary" className="compact-btn-primary" onClick={() => navigate(`/parentform/smithparent/${profile.parent}`)}>
+              Link Parent to Ancestor
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // 4. Spouse Connection CTA
+    if (!spouseProfile && !noSpouse) {
+      return (
+        <div className="compact-cta-card-content spouse-cta">
+          <SmileOutlined className="compact-cta-main-icon" />
+          <h3 className="compact-cta-heading">Connect Spouse</h3>
+          <p className="compact-cta-desc">Add your spouse profile to build your immediate family branch.</p>
+          <div className="compact-cta-actions vertical">
+            <Button type="primary" className="compact-btn-primary" onClick={() => navigate(`/interactive-form/spouse/${profile.id}`)}>
+              Connect Spouse
+            </Button>
+            <Button type="text" className="compact-cta-dismiss-btn" onClick={() => handleToggleNoSpouse(true)}>
+              I don't have a spouse
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // 5. Children Connection CTA (No children yet)
+    if (childrenProfiles.length === 0 && !noMoreChildren) {
+      return (
+        <div className="compact-cta-card-content children-cta">
+          <PlusOutlined className="compact-cta-main-icon" />
+          <h3 className="compact-cta-heading">Connect Children</h3>
+          <p className="compact-cta-desc">Add your children to the tree so they are included in milestones and calendar events.</p>
+          <div className="compact-cta-actions vertical">
+            <Button type="primary" className="compact-btn-primary" onClick={() => navigate(`/interactive-form/child/${profile.id}`)}>
+              Add Children
+            </Button>
+            <Button type="text" className="compact-cta-dismiss-btn" onClick={() => handleToggleNoMoreChildren(true)}>
+              No children / Done
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // 6. Children Connection CTA (Already has children, but check if they want to add more)
+    if (childrenProfiles.length > 0 && !noMoreChildren) {
+      return (
+        <div className="compact-cta-card-content children-cta">
+          <PlusOutlined className="compact-cta-main-icon" />
+          <h3 className="compact-cta-heading">Add More Children?</h3>
+          <p className="compact-cta-desc">You have connected {childrenProfiles.length} child{childrenProfiles.length === 1 ? "" : "ren"}. Would you like to add more?</p>
+          <div className="compact-cta-actions vertical">
+            <Button type="primary" className="compact-btn-primary" onClick={() => navigate(`/interactive-form/child/${profile.id}`)}>
+              Add Another Child
+            </Button>
+            <Button type="text" className="compact-cta-dismiss-btn" onClick={() => handleToggleNoMoreChildren(true)}>
+              No more children
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // 7. Rotating Action Hub (if all profile connections are completed/dismissed)
+    return (
+      <div className="compact-cta-card-content hub-cta">
+        <h3 className="compact-cta-heading hub-title">Family Actions</h3>
+        
+        {/* Render a grid of simple navigation buttons */}
+        <div className="compact-hub-grid">
+          <Button className="compact-hub-tile-btn" onClick={() => navigate("/milestones")}>
+            📅 Milestones
+          </Button>
+          <Button className="compact-hub-tile-btn" onClick={() => navigate("/guestbook")}>
+            ✍️ Guestbook
+          </Button>
+          <Button className="compact-hub-tile-btn" onClick={() => navigate("/interactive-tree")}>
+            🌳 Visual Tree
+          </Button>
         </div>
 
-        <div className="new-hero-image-container">
-          <img
-            src={ancestorsImg}
-            alt="Smith Family Ancestors"
-            className="new-hero-image"
-          />
+        {/* persistent cousin invite trigger */}
+        <div className="compact-hub-share-footer">
+          <Button 
+            type="primary" 
+            className={`compact-hub-share-row-btn ${copiedInvite ? "success" : ""}`}
+            onClick={handleCopyInviteLink}
+          >
+            {copiedInvite ? "✅ Link Copied!" : "🔗 Copy Invite Link"}
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="new-hero-compact-section">
+      {/* Row 1: Stacked Header (Title on top, ancestor image centered below) */}
+      <div className="compact-header-row stacked">
+        <div className="compact-title-container">
+          <h1 className="compact-hero-title centered">SMITH FAMILY</h1>
+        </div>
+
+        <div className="compact-image-container">
+          <div className="vignette-image-wrapper">
+            <img
+              src={ancestorsImg}
+              alt="Smith Family Ancestors"
+              className="vignette-hero-image"
+            />
+          </div>
         </div>
       </div>
 
       {/* Row 2: Context-Aware Connection Dashboard */}
-      <div className="new-hero-row-bottom">
-        <div className="hero-dashboard-card">
-          
-          {/* loading state */}
-          {loadingData && (
-            <div className="dashboard-loading">
-              <Spin indicator={<LoadingOutlined style={{ fontSize: 24, color: '#f3e7b1' }} spin />} />
-              <p style={{ marginTop: 12, color: '#EABEA9', fontSize: '0.9rem' }}>Searching database lines...</p>
-            </div>
-          )}
+      <div className="compact-dashboard-wrapper">
+        
+        {loadingData && (
+          <div className="compact-dashboard-loading">
+            <Spin indicator={<LoadingOutlined style={{ fontSize: "1.5rem", color: '#f3e7b1' }} spin />} />
+            <p style={{ marginTop: "0.5rem", color: '#EABEA9', fontSize: '0.8rem' }}>Loading family data...</p>
+          </div>
+        )}
 
-          {/* GUEST VIEW */}
-          {!loadingData && !session && (
-            <div className="guest-welcome-panel">
-              <h2 className="panel-title">Explore Our Living Heritage</h2>
-              <p className="panel-subtext">
-                Welcome to our family portal. Join us in preserving our lineage, tracking milestones, and sharing historic memories across generations.
-              </p>
-              <div className="panel-actions-row">
-                <Button 
-                  type="primary" 
-                  className="hero-primary-btn"
-                  onClick={() => navigate("/register")}
-                >
-                  Sign In with Google
-                </Button>
-                <Button 
-                  type="default" 
-                  className="hero-secondary-btn"
-                  onClick={() => navigate("/register")}
-                >
-                  Join / Claim Profile with Google
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* LOGGED IN & UNONBOARDED VIEW (Redirection fallback) */}
-          {!loadingData && session && (!profile || !profile.firstname) && (
-            <div className="guest-welcome-panel">
-              <h2 className="panel-title">Let's set up your profile</h2>
-              <p className="panel-subtext">
-                Your account is logged in, but you haven't linked a family card yet. Let's find your place in the Smith family tree.
-              </p>
+        {/* GUEST VIEW */}
+        {!loadingData && !session && (
+          <div className="guest-welcome-card-wrapper">
+            <h2 className="welcome-card-title">Explore Our Living Heritage</h2>
+            <p className="welcome-card-subtext">
+              Welcome to our family portal. Join us in preserving our lineage, tracking milestones, and sharing historic memories across generations.
+            </p>
+            <div className="compact-actions-row">
               <Button 
                 type="primary" 
-                className="hero-primary-btn"
+                className="compact-btn-primary"
+                onClick={() => navigate("/register")}
+              >
+                Sign In with Google
+              </Button>
+              <Button 
+                type="default" 
+                className="compact-btn-secondary"
+                onClick={() => navigate("/register")}
+              >
+                Join / Claim Profile
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* LOGGED IN & UNONBOARDED VIEW (Redirection fallback) */}
+        {!loadingData && session && (!profile || !profile.firstname) && (
+          <div className="onboarding-welcome-card-wrapper">
+            <h2 className="welcome-card-title">Let's set up your profile</h2>
+            <p className="welcome-card-subtext">
+              Your account is logged in, but you haven't linked a family card yet. Let's find your place in the Smith family tree.
+            </p>
+            <div className="compact-actions-row">
+              <Button 
+                type="primary" 
+                className="compact-btn-primary"
                 onClick={() => navigate("/onboarding")}
               >
                 Claim or Create Profile Card
               </Button>
             </div>
-          )}
-          {/* LOGGED IN & CONNECTED DASHBOARD */}
-          {!loadingData && session && profile && profile.firstname && (
-            <div className="user-dashboard-panel">
-              
-              {/* 1. UNCONNECTED LINEAGE PROMPT */}
-              {showConnectLineagePrompt && (
-                <div className="unconnected-intro-panel">
-                  <h2 className="panel-title warning-style">Connect to the Family Tree 🌳</h2>
-                  <p className="panel-subtext">
-                    Lineage connects you to the entire tree, calculates your generation, and links you to the calendar, anniversaries, and milestones of all descendants. Let's find your line!
-                  </p>
-                  <Button 
-                    type="primary" 
-                    className="hero-primary-btn connect-trigger-btn"
-                    onClick={handleStartLineageBuilder}
-                  >
-                    Find My Branch & Connect
-                  </Button>
-                </div>
-              )}
+          </div>
+        )}
 
-              {/* 2. ORPHANED PARENT PROMPT */}
-              {showConnectParentPrompt && (
-                <div className="unconnected-intro-panel orphaned-parent">
-                  <h2 className="panel-title warning-style">Link Your Parent to Tree 🌳</h2>
-                  <p className="panel-subtext">
-                    You've connected to your parent, but their branch is not yet connected to our first branch ancestors. Let's link them to connect you to the entire tree!
-                  </p>
-                  <Button 
-                    type="primary" 
-                    className="hero-primary-btn connect-trigger-btn"
-                    onClick={() => navigate(`/parentform/smithparent/${profile.parent}`)}
-                  >
-                    Link Parent to Ancestor
-                  </Button>
-                </div>
-              )}
+        {/* LOGGED IN VIEW */}
+        {!loadingData && session && profile && profile.firstname && (
+          <>
+            {/* Visual 3-Avatar Lineage Chain Card */}
+            <div className="compact-lineage-card">
+              {(() => {
+                const nodes = [];
+                
+                // 1. Ancestor Node
+                if (lineageTrail?.ancestor) {
+                  nodes.push({
+                    type: "ancestor",
+                    profile: lineageTrail.ancestor,
+                    label: `${lineageTrail.ancestor.firstname} Line`,
+                    onClick: () => navigate(`/profile/${lineageTrail.ancestor.id}`)
+                  });
+                } else {
+                  nodes.push({
+                    type: "ancestor",
+                    placeholder: true,
+                    label: "Select Ancestor",
+                    onClick: handleStartLineageBuilder
+                  });
+                }
 
-              {/* 3. CONNECTED DASHBOARD */}
-              {showDashboard && (
-                <div className="connected-dashboard-content">
-                  
-                  {/* Row 1: Visual 3-Avatar Lineage Chain */}
-                  {(() => {
-                    const nodes = [];
-                    
-                    // 1. Ancestor Node
-                    if (lineageTrail?.ancestor) {
-                      nodes.push({
-                        type: "ancestor",
-                        profile: lineageTrail.ancestor,
-                        label: `${lineageTrail.ancestor.firstname} Line`,
-                        clickable: true,
-                        onClick: () => navigate(`/profile/${lineageTrail.ancestor.id}`)
-                      });
-                    } else {
-                      nodes.push({
-                        type: "ancestor",
-                        placeholder: true,
-                        label: "Select Ancestor",
-                        clickable: true,
-                        onClick: handleStartLineageBuilder
-                      });
-                    }
-
-                    // 2. Parent Node
-                    const isParentAncestor = lineageTrail?.parent && lineageTrail?.ancestor && (lineageTrail.parent.id === lineageTrail.ancestor.id);
-                    
-                    if (!isParentAncestor) {
-                      if (lineageTrail?.parent) {
-                        nodes.push({
-                          type: "parent",
-                          profile: lineageTrail.parent,
-                          label: lineageTrail.parent.firstname,
-                          clickable: true,
-                          onClick: () => navigate(`/profile/${lineageTrail.parent.id}`)
-                        });
-                      } else {
-                        nodes.push({
-                          type: "parent",
-                          placeholder: true,
-                          label: "Select Parent",
-                          clickable: true,
-                          onClick: () => {
-                            if (profile && profile.parent) {
-                              navigate(`/parentform/smithparent/${profile.parent}`);
-                            } else {
-                              handleStartLineageBuilder();
-                            }
-                          }
-                        });
-                      }
-                    }
-
-                    // 3. User Node
+                // 2. Parent Node
+                const isParentAncestor = lineageTrail?.parent && lineageTrail?.ancestor && (lineageTrail.parent.id === lineageTrail.ancestor.id);
+                
+                if (!isParentAncestor) {
+                  if (lineageTrail?.parent) {
                     nodes.push({
-                      type: "user",
-                      profile: profile,
-                      label: profile?.firstname || "You",
-                      isUser: true,
-                      clickable: true,
-                      onClick: () => navigate(`/profile/${profile.id}`)
+                      type: "parent",
+                      profile: lineageTrail.parent,
+                      label: lineageTrail.parent.firstname,
+                      onClick: () => navigate(`/profile/${lineageTrail.parent.id}`)
                     });
+                  } else {
+                    nodes.push({
+                      type: "parent",
+                      placeholder: true,
+                      label: "Select Parent",
+                      onClick: () => {
+                        if (profile && profile.parent) {
+                          navigate(`/parentform/smithparent/${profile.parent}`);
+                        } else {
+                          handleStartLineageBuilder();
+                        }
+                      }
+                    });
+                  }
+                }
 
-                    // 4. Child Node (Only if parent === ancestor and children exist)
-                    if (isParentAncestor && childrenProfiles.length > 0) {
-                      const firstChild = childrenProfiles[0];
-                      nodes.push({
-                        type: "child",
-                        profile: firstChild,
-                        label: childrenProfiles.length === 1 ? firstChild.firstname : `${childrenProfiles.length} Children`,
-                        clickable: true,
-                        onClick: () => navigate(`/profile/${firstChild.id}`)
-                      });
-                    }
+                // 3. User Node (With smart photo trigger inside the avatar)
+                const userHasPhoto = !!profile.avatar_url;
+                nodes.push({
+                  type: "user",
+                  profile: profile,
+                  label: profile?.firstname || "You",
+                  isUser: true,
+                  hasPhoto: userHasPhoto,
+                  onClick: () => navigate(`/antavatar/${profile.id}`)
+                });
 
-                    return (
-                      <div className="new-lineage-chain-container">
-                        <div className="new-lineage-chain">
-                          {nodes.map((node, idx) => (
-                            <React.Fragment key={idx}>
-                              {idx > 0 && (
-                                <div className="chain-connector-arrow">
-                                  <span>&rarr;</span>
-                                </div>
-                              )}
-                              <div 
-                                className={`chain-node-item ${node.placeholder ? "is-placeholder" : ""} ${node.isUser ? "is-user" : ""} ${node.clickable ? "is-clickable" : ""}`}
-                                onClick={node.onClick}
-                              >
-                                <div className="chain-avatar-frame">
-                                  {node.placeholder ? (
-                                    <QuestionCircleOutlined className="chain-placeholder-icon" />
-                                  ) : (
-                                    <Avatar 
-                                      src={getAvatarSrc(node.profile)} 
-                                      icon={<UserOutlined />} 
-                                      className="chain-avatar-img"
-                                    />
-                                  )}
-                                </div>
-                                <span className="chain-node-name">{node.label}</span>
-                                <span className="chain-node-relation-badge">
-                                  {node.type === "ancestor" ? "Ancestor" : node.type === "parent" ? "Parent" : node.type === "child" ? "Child" : "You"}
-                                </span>
+                // 4. Child Node (Only if parent === ancestor and children exist)
+                if (isParentAncestor && childrenProfiles.length > 0) {
+                  const firstChild = childrenProfiles[0];
+                  nodes.push({
+                    type: "child",
+                    profile: firstChild,
+                    label: childrenProfiles.length === 1 ? firstChild.firstname : `${childrenProfiles.length} Children`,
+                    onClick: () => navigate(`/profile/${firstChild.id}`)
+                  });
+                }
+
+                return (
+                  <div className="compact-lineage-chain">
+                    {nodes.map((node, idx) => (
+                      <React.Fragment key={idx}>
+                        {idx > 0 && (
+                          <div className="compact-chain-arrow">
+                            <span>&rarr;</span>
+                          </div>
+                        )}
+                        <div 
+                          className={`compact-node-btn ${node.placeholder ? "is-placeholder" : ""} ${node.isUser ? "is-user" : ""} ${node.isUser && !node.hasPhoto ? "needs-photo" : ""}`}
+                          onClick={node.onClick}
+                        >
+                          <div className="compact-avatar-holder">
+                            {node.placeholder ? (
+                              <QuestionCircleOutlined className="compact-ph-icon" />
+                            ) : node.isUser && !node.hasPhoto ? (
+                              <div className="compact-photo-upload-trigger">
+                                <CameraOutlined className="compact-trigger-camera" />
+                                <span className="compact-trigger-plus">+</span>
                               </div>
-                            </React.Fragment>
-                          ))}
+                            ) : (
+                              <Avatar 
+                                src={getAvatarSrc(node.profile)} 
+                                icon={<UserOutlined />} 
+                                className="compact-avatar-img-tag"
+                              />
+                            )}
+                          </div>
+                          <span className="compact-node-lbl">{node.label}</span>
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Side-by-Side Dashboard Columns */}
+            <div className="compact-dashboard-columns">
+              
+              {/* Column 1: Leaderboard Card */}
+              <div className="compact-col-card compact-leaderboard">
+                <div className="compact-card-header">
+                  <TrophyOutlined className="compact-card-icon gold-color" />
+                  <span className="compact-card-title">Leaderboard</span>
+                </div>
+                <div className="compact-scores-box">
+                  {leaderboard.slice(0, 5).map((item, idx) => {
+                    const colors = ["#F7DC92", "#e0e0e0", "#cd7f32"];
+                    const trophyColor = colors[idx] || "#EABEA9";
+                    return (
+                      <div key={item.leader.id} className="compact-score-row">
+                        <div className="compact-score-row-top">
+                          <TrophyOutlined style={{ color: trophyColor, marginRight: "0.4rem", fontSize: "0.95rem" }} />
+                          <span className="compact-score-name">{item.leader.firstname} Line</span>
+                        </div>
+                        <div className="compact-score-row-bottom">
+                          <span className="compact-score-count">{item.count} Active Members</span>
                         </div>
                       </div>
                     );
-                  })()}
-
-                  {/* Photo Prompt (Primary Focus 1) */}
-                  {!profile.avatar_url && (
-                    <div className="photo-prompt-banner">
-                      <div className="photo-prompt-header-row">
-                        <SmileOutlined className="photo-prompt-icon" />
-                        <div className="photo-prompt-details">
-                          <span className="banner-title">Add your photo! 📸</span>
-                          <span className="banner-text">Help the family recognize you in the interactive tree by uploading a profile picture.</span>
-                        </div>
-                      </div>
-                      <div className="banner-actions-row">
-                        <Button 
-                          type="primary" 
-                          size="small" 
-                          className="banner-action-btn"
-                          onClick={() => navigate(`/antavatar/${profile.id}`)}
-                        >
-                          Upload Photo
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Secondary Dashboard Grid */}
-                  <div className="dashboard-subgrid">
-                    
-                    {/* Leaderboard Card */}
-                    <div className="dashboard-grid-card leaderboard">
-                      <div className="card-header-icon">
-                        <TrophyOutlined className="grid-card-icon" />
-                        <span className="grid-card-title">Lineage Leaderboard</span>
-                      </div>
-                      <div className="leaderboard-scores-container">
-                        {leaderboard.slice(0, 3).map((item, idx) => (
-                          <div key={item.leader.id} className={`score-row rank-${idx + 1}`}>
-                            <span className="rank-badge">{idx + 1}</span>
-                            <span className="score-name">{item.leader.firstname} Line</span>
-                            <span className="score-count">{item.count} active</span>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Interactive competition alert */}
-                      {leaderboard.length > 0 && (
-                        <p className="leaderboard-commentary">
-                          🏆 <strong>{leaderboard[0]?.leader?.firstname} Line</strong> is leading!
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Connections Setup Card / Hub Card */}
-                    {isSetupComplete ? (
-                      /* Family Quick Action Hub */
-                      <div className="dashboard-grid-card family-hub-card">
-                        <div className="card-header-icon with-actions">
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <SmileOutlined className="grid-card-icon highlight" />
-                            <span className="grid-card-title">Family Quick Actions</span>
-                          </div>
-                          <Button 
-                            type="text" 
-                            icon={<SettingOutlined />} 
-                            className="hub-settings-btn"
-                            onClick={() => handleMarkSetupComplete(false)} 
-                            title="Manage Connections"
-                          />
-                        </div>
-                        <p className="hub-subtitle-desc">
-                          Quickly broadcast updates, photos, or guestbook posts.
-                        </p>
-                        <div className="hub-actions-grid">
-                          <Button 
-                            className="hub-action-item" 
-                            icon={<CalendarOutlined />}
-                            onClick={() => navigate("/milestones")}
-                          >
-                            Milestones
-                          </Button>
-                          <Button 
-                            className="hub-action-item" 
-                            icon={<BookOutlined />}
-                            onClick={() => navigate("/guestbook")}
-                          >
-                            Guestbook
-                          </Button>
-                          <Button 
-                            className="hub-action-item" 
-                            icon={<CameraOutlined />}
-                            onClick={() => navigate(`/profile/${profile.id}`)}
-                          >
-                            Add Photo
-                          </Button>
-                        </div>
-                        <div className="hub-status-badge">
-                          <CheckCircleFilled className="badge-icon-success" />
-                          <span>Branch setup complete</span>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Smart Family Connections Checklist */
-                      <div className="dashboard-grid-card connections-setup-card">
-                        <div className="card-header-icon">
-                          <SettingOutlined className="grid-card-icon" />
-                          <span className="grid-card-title">Family Connections</span>
-                        </div>
-                        <div className="setup-checklist-container">
-                          
-                          {/* Spouse check */}
-                          <div className="checklist-item-row">
-                            <div className="checklist-item-left">
-                              {spouseProfile || noSpouse ? (
-                                <CheckCircleFilled className="check-icon checked" />
-                              ) : (
-                                <div className="check-icon-empty" />
-                              )}
-                              <div className="checklist-text-details">
-                                <span className="checklist-label-title">Spouse Connection</span>
-                                <span className="checklist-status-sub">
-                                  {spouseProfile ? `${spouseProfile.firstname} ${spouseProfile.lastname}` : noSpouse ? "None / Complete" : "Not linked"}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="checklist-item-actions">
-                              {!spouseProfile && (
-                                <>
-                                  <Button 
-                                    size="small" 
-                                    type="link" 
-                                    className="checklist-action-btn"
-                                    onClick={() => navigate(`/interactive-form/spouse/${profile.id}`)}
-                                  >
-                                    + Add
-                                  </Button>
-                                  <Button 
-                                    size="small" 
-                                    type="text" 
-                                    className={`checklist-none-btn ${noSpouse ? "active" : ""}`}
-                                    onClick={() => handleToggleNoSpouse(!noSpouse)}
-                                  >
-                                    None
-                                  </Button>
-                                </>
-                              )}
-                              {spouseProfile && (
-                                <span className="checklist-done-lbl">Connected</span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Children check */}
-                          <div className="checklist-item-row">
-                            <div className="checklist-item-left">
-                              {childrenProfiles.length > 0 || noChildren ? (
-                                <CheckCircleFilled className="check-icon checked" />
-                              ) : (
-                                <div className="check-icon-empty" />
-                              )}
-                              <div className="checklist-text-details">
-                                <span className="checklist-label-title">Children Connection</span>
-                                <span className="checklist-status-sub">
-                                  {childrenProfiles.length > 0 
-                                    ? `${childrenProfiles.length} children linked` 
-                                    : noChildren ? "None / Complete" : "Not linked"
-                                  }
-                                </span>
-                              </div>
-                            </div>
-                            <div className="checklist-item-actions">
-                              <Button 
-                                size="small" 
-                                type="link" 
-                                className="checklist-action-btn"
-                                onClick={() => navigate(`/interactive-form/child/${profile.id}`)}
-                              >
-                                {childrenProfiles.length > 0 ? "+ Add More" : "+ Add"}
-                              </Button>
-                              {childrenProfiles.length === 0 && (
-                                <Button 
-                                  size="small" 
-                                  type="text" 
-                                  className={`checklist-none-btn ${noChildren ? "active" : ""}`}
-                                  onClick={() => handleToggleNoChildren(!noChildren)}
-                                >
-                                  None
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Complete Checklist Button */}
-                          <div className="checklist-footer-action">
-                            <Button 
-                              type="primary" 
-                              size="small"
-                              className="checklist-complete-btn"
-                              onClick={() => handleMarkSetupComplete(true)}
-                            >
-                              Mark Setup Complete
-                            </Button>
-                          </div>
-
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Row 3: Invite Sibling / Cousin (Full-width row) */}
-                  <div className="dashboard-invite-row">
-                    <div className="invite-row-content">
-                      <div className="invite-row-info">
-                        <ShareAltOutlined className="invite-row-icon" />
-                        <div className="invite-row-text">
-                          <span className="invite-row-title">Link Sibling / Cousin</span>
-                          <span className="invite-row-desc">
-                            Text or message your siblings and cousins to get them connected to your line!
-                          </span>
-                        </div>
-                      </div>
-                      <Button 
-                        type="primary" 
-                        className={`invite-copy-btn ${copiedInvite ? "success" : ""}`}
-                        icon={copiedInvite ? <CheckCircleOutlined /> : <CopyOutlined />}
-                        onClick={handleCopyInviteLink}
-                      >
-                        {copiedInvite ? "Invite Copied!" : "Copy Invite Text"}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Tutorial Tips Box */}
-                  <div className="dashboard-tips-box">
-                    <BulbOutlined className="tip-icon" />
-                    <div className="tip-text-carousel">
-                      <span className="tip-text-item animate-fade">{tips[activeTipIdx]}</span>
-                    </div>
-                  </div>
-
+                  })}
                 </div>
-              )}
+              </div>
+
+              {/* Column 2: Connections & Dynamic CTA Actions Card */}
+              <div className="compact-col-card compact-actions-center">
+                {getActiveCTA()}
+              </div>
 
             </div>
-          )}
-        </div>
-      </div>
 
+            {/* Compact Tip Row */}
+            <div className="compact-tip-row">
+              <BulbOutlined className="compact-tip-icon" />
+              <span className="compact-tip-text">{tips[activeTipIdx]}</span>
+            </div>
+          </>
+        )}
+
+      </div>
+      
       {/* Lineage Builder Drawer */}
       <Drawer
         title={<span style={{ color: "#f3e7b1", fontFamily: "Titillium Web, sans-serif", fontWeight: 700 }}>Connect Your Lineage</span>}
@@ -1310,7 +1134,7 @@ const NewHeroSection = ({ demoMode }) => {
 
                 <Button 
                   type="primary" 
-                  className="hero-primary-btn confirm-btn"
+                  className="compact-btn-primary confirm-btn"
                   loading={loadingAction}
                   onClick={handleConfirmConnection}
                 >
@@ -1334,10 +1158,10 @@ const NewHeroSection = ({ demoMode }) => {
                 Welcome to the <strong>{selectedBranch?.firstname} Line</strong>! You are now connected to your parent, <strong>{connectedParentName}</strong>, and officially recognized as a <strong>{calculatedGeneration ? getOrdinal(calculatedGeneration) : "N/A"} Generation</strong> Smith descendant on the interactive tree.
               </p>
               
-              <div className="panel-actions-row">
+              <div className="compact-actions-row">
                 <Button 
                   type="primary" 
-                  className="hero-primary-btn"
+                  className="compact-btn-primary"
                   onClick={() => {
                     handleCloseWizard();
                     navigate(`/antavatar/${profile.id}`);
@@ -1347,7 +1171,7 @@ const NewHeroSection = ({ demoMode }) => {
                 </Button>
                 <Button 
                   type="default" 
-                  className="hero-secondary-btn"
+                  className="compact-btn-secondary"
                   onClick={handleCloseWizard}
                 >
                   Go to Dashboard
@@ -1360,11 +1184,11 @@ const NewHeroSection = ({ demoMode }) => {
       </Drawer>
 
       {/* Down Chevron Anchor */}
-      <div className="new-hero-chevron-container" onClick={handleChevronClick}>
-        <DownOutlined className="new-hero-chevron" />
+      <div className="compact-chevron-container" onClick={handleChevronClick}>
+        <DownOutlined className="compact-chevron-icon" />
       </div>
     </div>
   );
 };
 
-export default NewHeroSection;
+export default NewHeroCompactSection;

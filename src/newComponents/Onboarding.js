@@ -171,19 +171,19 @@ const Onboarding = () => {
         .eq("profile_id", selectedProfile.id);
       if (stateErr) throw stateErr;
 
-      // Update tribute table (profile_id and author_id):
+      // Update guestbook_post table (profile_id and author_id):
       try {
         await supabase
-          .from("tribute")
+          .from("guestbook_post")
           .update({ profile_id: p_user_id })
           .eq("profile_id", selectedProfile.id);
         
         await supabase
-          .from("tribute")
+          .from("guestbook_post")
           .update({ author_id: p_user_id })
           .eq("author_id", selectedProfile.id);
       } catch (tributeErr) {
-        console.warn("Tribute table claims update bypassed.", tributeErr);
+        console.warn("Guestbook claims update bypassed.", tributeErr);
       }
 
       // 3. Delete the old seeded duplicate profile row
