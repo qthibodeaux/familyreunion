@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import NewHeroCompactSection from "./sections/NewHeroCompactSection";
 import NewFoundationSection from "./sections/NewFoundationSection";
 import NewFirstBranchSection from "./sections/NewFirstBranchSection";
