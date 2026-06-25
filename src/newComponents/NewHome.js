@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import NewHeroSection from "./sections/NewHeroSection";
 import NewHeroCompactSection from "./sections/NewHeroCompactSection";
 import NewFoundationSection from "./sections/NewFoundationSection";
 import NewFirstBranchSection from "./sections/NewFirstBranchSection";
@@ -15,14 +14,7 @@ const NewHome = () => {
 
   return (
     <div className="new-home-container">
-      {/* Slide 1: New Beautiful Hero Landing Slide */}
-      <section className="snap-section">
-        <div className="new-slide-card hero-slide-wrapper">
-          <NewHeroSection demoMode={demoMode !== "none" ? demoMode : undefined} />
-        </div>
-      </section>
-
-      {/* Slide 1.5: Temporary Compact Hero Slide */}
+      {/* Slide 1: Compact Hero Landing Slide */}
       <section className="snap-section">
         <div className="new-slide-card hero-slide-wrapper">
           <NewHeroCompactSection demoMode={demoMode !== "none" ? demoMode : undefined} />
