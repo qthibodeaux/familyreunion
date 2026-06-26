@@ -232,13 +232,15 @@
 
 .profile-drawers-bottom-row > .profile-drawer {
   flex: 1;
-  border-top: 1px solid rgba(234, 190, 169, 0.15);
-  border-right: 1px solid rgba(234, 190, 169, 0.15);
+  border-top: 1px solid rgba(0, 0, 0, 0.35);
+  border-right: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 0 rgba(243, 231, 177, 0.12), inset -1px 0 0 rgba(243, 231, 177, 0.12);
   min-height: 0;
 }
 
 .profile-drawers-bottom-row > .profile-drawer:last-child {
   border-right: none;
+  box-shadow: inset 0 1px 0 rgba(243, 231, 177, 0.12);
 }
 
 /* When a bottom-row drawer is expanded, it must cover the full container */
@@ -253,7 +255,7 @@
   flex: none;
   border-top: none;
   border-right: none;
-  background: #5b1f40;
+  background: linear-gradient(180deg, #5b1f40 0%, #30041e 100%);
 }
 
 /* Standard Drawer Stack States */
@@ -261,13 +263,50 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #5b1f40;
-  border-top: 1px solid rgba(234, 190, 169, 0.15);
+  border-top: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 0 rgba(243, 231, 177, 0.12);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
   min-height: 0;
+
+  --light-leak-opacity: 0.05;
+  --mesh-pattern-opacity: 0.035;
+}
+
+.profile-drawer:hover {
+  --light-leak-opacity: 0.12;
+  --mesh-pattern-opacity: 0.065;
+}
+
+/* Glowing Left Edge Indicators */
+.profile-drawer::before {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 0;
+  width: 3px;
+  height: 70%;
+  border-radius: 0 4px 4px 0;
+  z-index: 10;
+  opacity: 0.45;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              top 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scaleX(0.8);
+}
+
+.profile-drawer:hover::before {
+  opacity: 1;
+  height: 85%;
+  top: 7.5%;
+  transform: scaleX(1.2);
+}
+
+.profile-drawer.expanded-active::before {
+  display: none;
 }
 
 .drawer-preview-content {
@@ -296,21 +335,50 @@
   pointer-events: none;
 }
 
-/* Custom individual backgrounds for depth */
+/* Custom individual backgrounds with distinct patterns & glow colors */
+.profile-drawer.milestones::before {
+  background: linear-gradient(to bottom, #F7DC92, #f5c75d);
+  box-shadow: 0 0 10px rgba(247, 220, 146, 0.6);
+}
 .profile-drawer.milestones {
-  background: #5b1f40;
+  background: radial-gradient(circle at 85% 15%, rgba(243, 231, 177, var(--light-leak-opacity)) 0%, transparent 55%),
+              repeating-linear-gradient(45deg, rgba(243, 231, 177, var(--mesh-pattern-opacity)) 0px, rgba(243, 231, 177, var(--mesh-pattern-opacity)) 1px, transparent 1px, transparent 6px),
+              linear-gradient(135deg, #5b1f40 0%, #30041e 100%);
+  background-size: 100% 100%, 8px 8px, 100% 100%;
 }
 
+.profile-drawer.connections::before {
+  background: linear-gradient(to bottom, #EABEA9, #dba388);
+  box-shadow: 0 0 10px rgba(234, 190, 169, 0.6);
+}
 .profile-drawer.connections {
-  background: #531c3a;
+  background: radial-gradient(circle at 85% 15%, rgba(234, 190, 169, var(--light-leak-opacity)) 0%, transparent 55%),
+              linear-gradient(to right, rgba(234, 190, 169, var(--mesh-pattern-opacity)) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(234, 190, 169, var(--mesh-pattern-opacity)) 1px, transparent 1px),
+              linear-gradient(135deg, #531c3a 0%, #30041e 100%);
+  background-size: 100% 100%, 6px 6px, 6px 6px, 100% 100%;
 }
 
+.profile-drawer.guestbook::before {
+  background: linear-gradient(to bottom, #fa8c16, #d46b08);
+  box-shadow: 0 0 10px rgba(250, 140, 22, 0.6);
+}
 .profile-drawer.guestbook {
-  background: #4a1934;
+  background: radial-gradient(circle at 85% 15%, rgba(250, 140, 22, var(--light-leak-opacity)) 0%, transparent 55%),
+              linear-gradient(rgba(250, 140, 22, calc(var(--mesh-pattern-opacity) * 0.75)) 1px, transparent 1px),
+              linear-gradient(135deg, #4a1934 0%, #30041e 100%);
+  background-size: 100% 100%, 100% 12px, 100% 100%;
 }
 
+.profile-drawer.media::before {
+  background: linear-gradient(to bottom, #d4af37, #aa8513);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
+}
 .profile-drawer.media {
-  background: #451830;
+  background: radial-gradient(circle at 85% 15%, rgba(212, 175, 55, var(--light-leak-opacity)) 0%, transparent 55%),
+              radial-gradient(rgba(212, 175, 55, var(--mesh-pattern-opacity)) 1.5px, transparent 1.5px),
+              linear-gradient(135deg, #451830 0%, #30041e 100%);
+  background-size: 100% 100%, 12px 12px, 100% 100%;
 }
 
 /* Tap Drawer expands it to cover everything */
@@ -324,8 +392,7 @@
   z-index: 20;
   flex: none;
   border-top: none;
-  background: #5b1f40;
-  /* Force bright plum when viewing content */
+  background: linear-gradient(180deg, #5b1f40 0%, #30041e 100%);
 }
 
 /* Hide other drawers when one is expanded */
@@ -443,7 +510,8 @@
   height: 100%;
   overflow: hidden;
   box-sizing: border-box;
-  perspective: 1000px; /* Essential for 3D Windows flip effect */
+  perspective: 1000px;
+  /* Essential for 3D Windows flip effect */
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -460,7 +528,8 @@
   align-items: center;
   justify-content: flex-start;
   padding: 1rem 1.5rem;
-  backface-visibility: hidden; /* Prevent flicker during flip */
+  backface-visibility: hidden;
+  /* Prevent flicker during flip */
 }
 
 .tile-face.no-padding {
@@ -792,6 +861,7 @@
   0% {
     transform: scale(1.22) translateY(2.5%);
   }
+
   100% {
     transform: scale(1.12) translateY(-2.5%);
   }
@@ -888,11 +958,13 @@
   padding-bottom: 12px;
   margin-bottom: 16px;
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .milestone-tabs-nav::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
+  /* Chrome/Safari */
 }
 
 .milestone-tab-btn {
@@ -933,7 +1005,8 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 62px; /* Center of the timeline center column */
+  left: 62px;
+  /* Center of the timeline center column */
   width: 2px;
   background: rgba(234, 190, 169, 0.2);
   z-index: 1;
@@ -982,46 +1055,54 @@
 
 .timeline-dot.school,
 .timeline-dot.education {
-  background-color: #52c41a; /* green */
+  background-color: #52c41a;
+  /* green */
   box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.2);
 }
 
 .timeline-dot.career {
-  background-color: #13c2c2; /* teal */
+  background-color: #13c2c2;
+  /* teal */
   box-shadow: 0 0 0 3px rgba(19, 194, 194, 0.2);
 }
 
 .timeline-dot.sports {
-  background-color: #faad14; /* gold */
+  background-color: #faad14;
+  /* gold */
   box-shadow: 0 0 0 3px rgba(250, 173, 20, 0.2);
 }
 
 .timeline-dot.family,
 .timeline-dot.relationship {
-  background-color: #f5222d; /* red */
+  background-color: #f5222d;
+  /* red */
   box-shadow: 0 0 0 3px rgba(245, 34, 45, 0.2);
 }
 
 .timeline-dot.adventures,
 .timeline-dot.travel {
-  background-color: #1890ff; /* blue */
+  background-color: #1890ff;
+  /* blue */
   box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2);
 }
 
 .timeline-dot.military {
-  background-color: #2f54eb; /* indigo */
+  background-color: #2f54eb;
+  /* indigo */
   box-shadow: 0 0 0 3px rgba(47, 84, 235, 0.2);
 }
 
 .timeline-dot.faith {
-  background-color: #722ed1; /* purple */
+  background-color: #722ed1;
+  /* purple */
   box-shadow: 0 0 0 3px rgba(114, 46, 209, 0.2);
 }
 
 .timeline-dot.memories,
 .timeline-dot.general,
 .timeline-dot.other {
-  background-color: #fa8c16; /* orange */
+  background-color: #fa8c16;
+  /* orange */
   box-shadow: 0 0 0 3px rgba(250, 140, 22, 0.2);
 }
 
@@ -1290,6 +1371,7 @@
     transform: scale(0.92);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
@@ -1346,7 +1428,8 @@
   display: flex;
   flex-direction: column;
   padding: 16px 20px;
-  min-height: 0; /* Important for flex child scroll */
+  min-height: 0;
+  /* Important for flex child scroll */
 }
 
 .photo-info-header {
@@ -1379,7 +1462,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Enforces scroll */
+  min-height: 0;
+  /* Enforces scroll */
   margin-bottom: 12px;
 }
 

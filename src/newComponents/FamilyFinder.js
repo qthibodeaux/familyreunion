@@ -392,12 +392,11 @@ const FilterZoneTop = ({ activeFilters, onCategoryClick, onSearchClick }) => {
           const isActive = !!activeFilters[cat];
           const label = isActive ? activeFilters[cat] : CATEGORY_LABELS[cat];
           const offsetClass = ["ff-pill-offset-a", "ff-pill-offset-b", "ff-pill-offset-c"][idx % 3];
-          const sizeClass = ["", "ff-pill-small", "ff-pill-large"][idx % 3];
           return (
             <button
               key={cat}
               type="button"
-              className={`ff-pill ${isActive ? "ff-pill-active" : ""} ${offsetClass} ${sizeClass}`}
+              className={`ff-pill ${isActive ? "ff-pill-active" : ""} ${offsetClass}`}
               onClick={() => onCategoryClick(cat)}
             >
               {label}
@@ -446,13 +445,14 @@ const FilterZoneDrilled = ({
           <ArrowLeftOutlined />
         </button>
         <div className="ff-value-pills">
-          {availableValues.map((val) => {
+          {availableValues.map((val, idx) => {
             const isActive = activeFilters[activeCategory] === val;
+            const offsetClass = ["ff-pill-offset-a", "ff-pill-offset-b", "ff-pill-offset-c"][idx % 3];
             return (
               <button
                 key={val}
                 type="button"
-                className={`ff-pill ${isActive ? "ff-pill-active" : ""}`}
+                className={`ff-pill ${isActive ? "ff-pill-active" : ""} ${offsetClass}`}
                 onClick={() => onToggleFilter(activeCategory, val)}
               >
                 {val}

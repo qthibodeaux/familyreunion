@@ -26,6 +26,7 @@ import { getAvatarSrc } from "../../utils/avatarHelper";
 import { updateFamilyBranch, updateAncestorReference } from "../../utils/familyTree";
 import "./NewHeroCompactSection.css";
 import { useHomeCache } from "./HomeCacheContext";
+import { buildAncestorLeaderboard } from "./leaderboardUtils";
 
 const tips = [
   "💡 Tip: Tap 'Interactive Tree' in the menu to visually view how you connect back to John Henry & Birdie Mae.",
@@ -315,48 +316,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
           setCachedProfiles(data);
         }
 
-        const profileMap = {};
-        allProfiles.forEach((p) => {
-          profileMap[p.id] = p;
-        });
-
-        const countsMap = {};
-        leaders.forEach((l) => {
-          countsMap[l.id] = 0;
-        });
-
-        allProfiles.forEach((u) => {
-          if (u.email) {
-            let ancestorId = u.ancestor;
-            if (!ancestorId) {
-              let curr = u;
-              const visited = new Set();
-              while (curr && curr.parent && !visited.has(curr.id)) {
-                visited.add(curr.id);
-                const parent = profileMap[curr.parent];
-                if (!parent) break;
-                if (parent.branch === 1) {
-                  ancestorId = parent.id;
-                  break;
-                }
-                curr = parent;
-              }
-            }
-
-            if (ancestorId && countsMap[ancestorId] !== undefined) {
-              countsMap[ancestorId]++;
-            } else if (countsMap[u.id] !== undefined) {
-              countsMap[u.id]++;
-            }
-          }
-        });
-
-        const leaderboardData = leaders
-          .map((l) => ({
-            leader: l,
-            count: countsMap[l.id] || 0,
-          }))
-          .sort((a, b) => b.count - a.count);
+        const leaderboardData = buildAncestorLeaderboard(allProfiles, leaders);
 
         setBranchLeaders(leaders);
         setLeaderboard(leaderboardData);

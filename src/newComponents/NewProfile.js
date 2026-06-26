@@ -415,7 +415,6 @@ function NewProfile() {
 
   // Toggle drawer slide up
   const toggleDrawer = (drawerName) => {
-    if (drawerName === "media") return;
     setActiveDrawer(activeDrawer === drawerName ? null : drawerName);
   };
 
@@ -456,8 +455,8 @@ function NewProfile() {
     }
     setSavingMilestone(true);
     try {
-      const milestoneId = (window.crypto && window.crypto.randomUUID) 
-        ? window.crypto.randomUUID() 
+      const milestoneId = (window.crypto && window.crypto.randomUUID)
+        ? window.crypto.randomUUID()
         : Math.random().toString(36).substring(2, 15);
       let photoUrl = null;
 
@@ -500,7 +499,7 @@ function NewProfile() {
       setNewMilestonePhoto(null);
       setNewMilestoneBroadcast(true);
       setShowAddMilestoneForm(false);
-      
+
       fetchMilestones();
     } catch (err) {
       console.error("Error adding milestone:", err);
@@ -651,7 +650,7 @@ function NewProfile() {
 
         const { error: profileErr } = await supabase
           .from("profile")
-          .update({ 
+          .update({
             parent: parentId,
             branch: branch,
             ancestor: ancestor
@@ -1105,8 +1104,8 @@ function NewProfile() {
     }
     setUploadingMedia(true);
     try {
-      const mediaId = (window.crypto && window.crypto.randomUUID) 
-        ? window.crypto.randomUUID() 
+      const mediaId = (window.crypto && window.crypto.randomUUID)
+        ? window.crypto.randomUUID()
         : Math.random().toString(36).substring(2, 15);
       const fileExt = newMediaFile.name.split(".").pop();
       const filePath = `${userId}/${mediaId}.${fileExt}`;
@@ -1371,14 +1370,14 @@ function NewProfile() {
 
         {/* Floating Safety Gear */}
         {session && !isCurrentUser && (
-          <SafetyOutlined 
-            className="settings-cog safety-cog" 
-            onClick={() => setShowSafetyOverlay(true)} 
-            style={{ 
-              left: canEdit ? "64px" : "16px", 
-              right: "auto", 
-              color: relationship ? "#fa8c16" : "#f3e7b1" 
-            }} 
+          <SafetyOutlined
+            className="settings-cog safety-cog"
+            onClick={() => setShowSafetyOverlay(true)}
+            style={{
+              left: canEdit ? "64px" : "16px",
+              right: "auto",
+              color: relationship ? "#fa8c16" : "#f3e7b1"
+            }}
           />
         )}
 
@@ -1526,9 +1525,9 @@ function NewProfile() {
                               <div className="timeline-dot general" style={{ border: "2px solid #EABEA9", background: "#30041e", zIndex: 3, width: "12px", height: "12px", borderRadius: "50%" }} />
                             </div>
                             <div className="timeline-right" style={{ marginBottom: "1.5rem" }}>
-                              <Button 
-                                type="dashed" 
-                                onClick={() => setShowAddMilestoneForm(true)} 
+                              <Button
+                                type="dashed"
+                                onClick={() => setShowAddMilestoneForm(true)}
                                 icon={<PlusOutlined />}
                                 style={{ width: "100%", color: "#f3e7b1", borderColor: "#EABEA9", background: "rgba(255,255,255,0.03)", height: "45px", borderRadius: "8px" }}
                               >
@@ -1562,17 +1561,17 @@ function NewProfile() {
                                   <div className="timeline-card-header">
                                     <h4 className="timeline-card-title">{event.title}</h4>
                                     {canEdit && !event.isVirtual && (
-                                      <Button 
-                                        size="small" 
-                                        type="text" 
-                                        danger 
-                                        icon={<DeleteOutlined />} 
+                                      <Button
+                                        size="small"
+                                        type="text"
+                                        danger
+                                        icon={<DeleteOutlined />}
                                         onClick={() => handleDeleteMilestone(event)}
                                         style={{ color: "#ff7875", padding: "0 4px" }}
                                       />
                                     )}
                                   </div>
-                                  
+
                                   <div className="timeline-card-meta">
                                     {formattedDate && (
                                       <span className="meta-item">
@@ -1611,10 +1610,10 @@ function NewProfile() {
 
                                   {event.photo_url && (
                                     <div className="timeline-card-photo-wrap">
-                                      <img 
-                                        src={getMilestoneImageSrc(event.photo_url)} 
-                                        alt={event.title} 
-                                        className="timeline-card-photo" 
+                                      <img
+                                        src={getMilestoneImageSrc(event.photo_url)}
+                                        alt={event.title}
+                                        className="timeline-card-photo"
                                       />
                                     </div>
                                   )}
@@ -1856,8 +1855,8 @@ function NewProfile() {
                       ))}
                       {tributes.length === 0 && (
                         <div style={{ textAlign: "center", color: "#EABEA9", padding: "24px 0", fontStyle: "italic" }}>
-                          {session?.user?.id === userId 
-                            ? "No notes left yet. When family members leave you messages, they will show up here!" 
+                          {session?.user?.id === userId
+                            ? "No notes left yet. When family members leave you messages, they will show up here!"
                             : "No notes left yet. Be the first to write a message!"}
                         </div>
                       )}
@@ -1889,7 +1888,7 @@ function NewProfile() {
                   <button className="close-drawer-btn"><CloseOutlined /></button>
                 </div>
                 <div className="drawer-content" style={{ display: "flex", flexDirection: "column", height: "calc(100% - 60px)" }}>
-                  
+
                   {/* Decade Filters */}
                   <div className="milestone-tabs-nav">
                     {["All", "1980s and older", "1990s", "2000s", "2010s", "Today"].map((dec) => (
@@ -1921,7 +1920,7 @@ function NewProfile() {
                     {canEdit && showUploadMediaForm && (
                       <form onSubmit={handleUploadMedia} className="add-milestone-form">
                         <h3 style={{ color: "#EABEA9", margin: "0 0 12px 0", fontSize: "1.1rem" }}>Upload Photo</h3>
-                        
+
                         <div className="form-group" style={{ marginBottom: "12px" }}>
                           <label style={{ display: "block", color: "#EABEA9", fontSize: "0.8rem", marginBottom: "4px" }}>Select Photo *</label>
                           <input
@@ -2078,8 +2077,12 @@ function NewProfile() {
                 </div>
               </>
             ) : (
-              <div className="tile-click-zone" style={{ cursor: "not-allowed", opacity: 0.8 }}>
-                <MediaLiveTile />
+              <div className="tile-click-zone" onClick={() => toggleDrawer("media")}>
+                <MediaLiveTile 
+                  mediaItems={mediaItems} 
+                  getMediaImageSrc={getMediaImageSrc} 
+                  activeDrawer={activeDrawer}
+                />
               </div>
             )}
           </div>
@@ -2105,10 +2108,10 @@ function NewProfile() {
                     <p className="photo-caption-text">{activePhotoDetail.caption || "Family Memory"}</p>
                   </div>
                   {session && activePhotoDetail.uploader_id !== session.user.id && (
-                    <Button 
-                      type="text" 
-                      danger 
-                      icon={<FlagOutlined />} 
+                    <Button
+                      type="text"
+                      danger
+                      icon={<FlagOutlined />}
                       onClick={() => handleReportContent("media", activePhotoDetail.id, "Reported media item")}
                       style={{ color: "#fa8c16", display: "flex", alignItems: "center", gap: "4px", padding: "4px 8px" }}
                     >
@@ -2254,10 +2257,10 @@ function NewProfile() {
               <form onSubmit={handleAddMilestone} className="milestone-modal-form-fields">
                 <div className="form-group" style={{ marginBottom: "0.75rem" }}>
                   <label className="milestone-modal-label">Title *</label>
-                  <Input 
-                    placeholder="e.g. Graduated from UT Austin" 
-                    value={newMilestoneTitle} 
-                    onChange={(e) => setNewMilestoneTitle(e.target.value)} 
+                  <Input
+                    placeholder="e.g. Graduated from UT Austin"
+                    value={newMilestoneTitle}
+                    onChange={(e) => setNewMilestoneTitle(e.target.value)}
                     required
                     style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
                   />
@@ -2266,8 +2269,8 @@ function NewProfile() {
                 <div style={{ display: "flex", gap: "10px", marginBottom: "0.75rem" }}>
                   <div style={{ flex: 1 }}>
                     <label className="milestone-modal-label">Category</label>
-                    <select 
-                      value={newMilestoneCategory} 
+                    <select
+                      value={newMilestoneCategory}
                       onChange={(e) => setNewMilestoneCategory(e.target.value)}
                       style={{ width: "100%", height: "36px", padding: "4px 8px", borderRadius: "6px", background: "#4a1934", color: "#fff", border: "1px solid rgba(234,190,169,0.3)" }}
                     >
@@ -2285,9 +2288,9 @@ function NewProfile() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <label className="milestone-modal-label">Subcategory (optional)</label>
-                    <Input 
-                      placeholder="e.g. Baptism, B.S. Degree" 
-                      value={newMilestoneSubcategory} 
+                    <Input
+                      placeholder="e.g. Baptism, B.S. Degree"
+                      value={newMilestoneSubcategory}
                       onChange={(e) => setNewMilestoneSubcategory(e.target.value)}
                       style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
                     />
@@ -2297,18 +2300,18 @@ function NewProfile() {
                 <div style={{ display: "flex", gap: "10px", marginBottom: "0.75rem" }}>
                   <div style={{ flex: 1 }}>
                     <label className="milestone-modal-label">Date</label>
-                    <input 
+                    <input
                       type="date"
-                      value={newMilestoneDate} 
+                      value={newMilestoneDate}
                       onChange={(e) => setNewMilestoneDate(e.target.value)}
                       style={{ width: "100%", height: "36px", padding: "4px 8px", borderRadius: "6px", background: "#4a1934", color: "#fff", border: "1px solid rgba(234,190,169,0.3)", fontFamily: "inherit" }}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
                     <label className="milestone-modal-label">Location</label>
-                    <Input 
-                      placeholder="e.g. Austin, TX" 
-                      value={newMilestoneLocation} 
+                    <Input
+                      placeholder="e.g. Austin, TX"
+                      value={newMilestoneLocation}
                       onChange={(e) => setNewMilestoneLocation(e.target.value)}
                       style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
                     />
@@ -2317,9 +2320,9 @@ function NewProfile() {
 
                 <div className="form-group" style={{ marginBottom: "0.75rem" }}>
                   <label className="milestone-modal-label">Notes / Memories</label>
-                  <Input.TextArea 
-                    placeholder="Add details, memories, or notes..." 
-                    value={newMilestoneNotes} 
+                  <Input.TextArea
+                    placeholder="Add details, memories, or notes..."
+                    value={newMilestoneNotes}
                     onChange={(e) => setNewMilestoneNotes(e.target.value)}
                     rows={3}
                     style={{ background: "#4a1934", color: "#fff", borderColor: "rgba(234,190,169,0.3)", resize: "none" }}
@@ -2328,8 +2331,8 @@ function NewProfile() {
 
                 <div className="form-group" style={{ marginBottom: "1rem", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <label className="milestone-modal-label">Attach Event Photo</label>
-                  <input 
-                    type="file" 
+                  <input
+                    type="file"
                     accept="image/*"
                     onChange={(e) => setNewMilestonePhoto(e.target.files[0])}
                     style={{ color: "#EABEA9", fontSize: "0.8rem", cursor: "pointer" }}
@@ -2347,18 +2350,18 @@ function NewProfile() {
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setShowAddMilestoneForm(false);
                       setNewMilestonePhoto(null);
-                    }} 
+                    }}
                     style={{ background: "transparent", color: "#EABEA9", borderColor: "rgba(234,190,169,0.3)", height: "36px" }}
                   >
                     Cancel
                   </Button>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit" 
+                  <Button
+                    type="primary"
+                    htmlType="submit"
                     loading={savingMilestone}
                     style={{ backgroundColor: "#F7DC92", color: "#873D62", fontWeight: "bold", border: "none", height: "36px" }}
                   >

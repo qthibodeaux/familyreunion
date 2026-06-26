@@ -371,7 +371,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  min-height: 0;
   gap: 12px;
 }
 
@@ -379,16 +379,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.ff-drilled-row1::-webkit-scrollbar {
-  display: none;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .ff-back-btn {
@@ -413,17 +408,32 @@
 
 .ff-value-pills {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 10px;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 12px 14px;
+  height: 100%;
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
+  padding: 8px 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
 .ff-value-pills::-webkit-scrollbar {
   display: none;
+}
+
+/* Override translateY values to prevent overlapping/stacking in vertical flex-columns */
+.ff-value-pills .ff-pill-offset-a {
+  transform: translateY(-2px);
+}
+.ff-value-pills .ff-pill-offset-b {
+  transform: translateY(3px);
+}
+.ff-value-pills .ff-pill-offset-c {
+  transform: translateY(-3px);
 }
 
 .ff-drilled-row2 {
