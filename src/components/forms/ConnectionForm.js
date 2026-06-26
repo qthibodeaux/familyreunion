@@ -122,7 +122,7 @@ function ConnectionForm() {
   const handleConfirm = async () => {
     try {
       const selectedProfile = profile.find((p) => p.id === selectedProfileId);
-      const isClaimed = selectedProfile && (selectedProfile.email || selectedProfile.phone);
+      const isClaimed = selectedProfile && selectedProfile.email;
       const isDeceased = selectedProfile && selectedProfile.sunset;
       const isBranch1 = selectedProfile && selectedProfile.branch === 1;
 

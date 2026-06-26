@@ -324,7 +324,7 @@ const NewHeroSection = ({ demoMode }) => {
         // 2. Fetch all profiles to trace and count registered users
         const { data: allProfiles, error: profilesErr } = await supabase
           .from("profile")
-          .select("id, parent, ancestor, branch, email, phone");
+          .select("id, parent, ancestor, branch, email");
 
         if (profilesErr) throw profilesErr;
 
@@ -340,7 +340,7 @@ const NewHeroSection = ({ demoMode }) => {
         });
 
         allProfiles.forEach((u) => {
-          if (u.email || u.phone) {
+          if (u.email) {
             let ancestorId = u.ancestor;
             if (!ancestorId) {
               let curr = u;
@@ -412,7 +412,7 @@ const NewHeroSection = ({ demoMode }) => {
       const mockChildren = [
         { id: "child-1", firstname: "Thomas", lastname: "Thibodeaux", branch: 2, sunset: true },
         { id: "child-2", firstname: "Susan", lastname: "Thibodeaux", branch: 2, email: "susan@demo.com" },
-        { id: "child-3", firstname: "Robert", lastname: "Thibodeaux", branch: 2, email: null, phone: null }
+        { id: "child-3", firstname: "Robert", lastname: "Thibodeaux", branch: 2, email: null }
       ];
       if (type === "parent") {
         setSelectedParent(selectedBranch);
@@ -436,7 +436,7 @@ const NewHeroSection = ({ demoMode }) => {
         // Mary is grandparent or great-grandparent, fetch Mary's children
         const { data, error } = await supabase
           .from("profile")
-          .select("id, firstname, nickname, lastname, avatar_url, branch, email, phone, sunset")
+          .select("id, firstname, nickname, lastname, avatar_url, branch, email, sunset")
           .eq("parent", selectedBranch.id)
           .order("firstname", { ascending: true });
 
@@ -474,7 +474,7 @@ const NewHeroSection = ({ demoMode }) => {
     try {
       const { data, error } = await supabase
         .from("profile")
-        .select("id, firstname, nickname, lastname, avatar_url, branch, email, phone, sunset")
+        .select("id, firstname, nickname, lastname, avatar_url, branch, email, sunset")
         .eq("parent", grandparent.id)
         .order("firstname", { ascending: true });
 
@@ -509,7 +509,7 @@ const NewHeroSection = ({ demoMode }) => {
       return;
     }
     try {
-      const isClaimed = selectedParent.email || selectedParent.phone;
+      const isClaimed = selectedParent.email;
       const isDeceased = selectedParent.sunset;
       const isBranch1 = selectedParent.branch === 1;
 
@@ -1298,7 +1298,7 @@ const NewHeroSection = ({ demoMode }) => {
                 />
                 <h3 className="confirm-name" style={{ color: "#f3e7b1" }}>{selectedParent.firstname} {selectedParent.lastname}</h3>
                 
-                {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1 ? (
+                {selectedParent.sunset || (!selectedParent.email) || selectedParent.branch === 1 ? (
                   <p className="confirm-disclaimer" style={{ color: "#EABEA9" }}>
                     This is an ancestral profile. Confirming will connect your lineage **instantly** to the interactive family tree.
                   </p>
@@ -1314,7 +1314,7 @@ const NewHeroSection = ({ demoMode }) => {
                   loading={loadingAction}
                   onClick={handleConfirmConnection}
                 >
-                  {selectedParent.sunset || (!selectedParent.email && !selectedParent.phone) || selectedParent.branch === 1
+                  {selectedParent.sunset || (!selectedParent.email) || selectedParent.branch === 1
                     ? "Confirm & Connect Instantly" 
                     : "Send Connection Request"
                   }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Spin } from "antd";
+import { useHomeCache } from "./HomeCacheContext";
 import {
   UserOutlined,
   CalendarOutlined,
@@ -20,7 +21,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
   const [transition, setTransition] = useState(null);
   const [animating, setAnimating] = useState(false);
 
-  // Compile faces whenever items change
   useEffect(() => {
     if (items.length === 0) {
       setFaces([]);
@@ -29,8 +29,8 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
 
     const pool = [];
 
-    // Face 1: Summary / Statistics face
     if (type === "milestone") {
+      // Event Count Stub
       pool.push({
         type: "summary",
         render: () => (
@@ -47,7 +47,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
         )
       });
       
-      // Spotlight faces for up to 3 recent milestones
       items.slice(0, 3).forEach((item) => {
         pool.push({
           type: "spotlight",
@@ -67,7 +66,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
           )
         });
 
-        // Photo face if photo exists
         if (item.photoUrl) {
           pool.push({
             type: "photo",
@@ -86,73 +84,15 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
           });
         }
       });
-    } else if (type === "media") {
-      pool.push({
-        type: "summary",
-        render: () => (
-          <div className="tile-face-content summary-face">
-            <div className="summary-left">
-              <CameraOutlined className="summary-icon" />
-              <div className="summary-title">Media Gallery</div>
-            </div>
-            <div className="summary-right">
-              <div className="summary-count">{items.length}</div>
-              <div className="summary-count-lbl">{items.length === 1 ? "upload" : "uploads"}</div>
-            </div>
-          </div>
-        )
-      });
-
-      items.slice(0, 3).forEach((item) => {
-        // Spotlight face (details)
-        pool.push({
-          type: "spotlight",
-          item,
-          render: () => (
-            <div className="tile-face-content spotlight-face">
-              <div className="face-header">
-                <Avatar src={getAvatarSrc(item.profile)} icon={<UserOutlined />} size={24} className="face-avatar" />
-                <span className="face-uploader-name">{item.profile?.firstname} {item.profile?.lastname}</span>
-                <span className="face-tag media-tag">{item.decade}</span>
-              </div>
-              <div className="face-body">
-                <div className="spotlight-notes">{item.caption || "Shared a photo in the family archive"}</div>
-              </div>
-            </div>
-          )
-        });
-
-        // Photo face if file exists
-        if (item.filePath) {
-          const isVideo = isVideoFile(item.filePath);
-          pool.push({
-            type: "photo",
-            item,
-            render: () => (
-              <div className="tile-face-content photo-face">
-                {isVideo ? (
-                  <video src={getPhotoSrc(item.filePath)} muted loop autoPlay className="tile-media-render" />
-                ) : (
-                  <img src={getPhotoSrc(item.filePath)} alt={item.caption} className="tile-media-render" />
-                )}
-                {item.caption && (
-                  <div className="photo-overlay-text">
-                    <div className="photo-title">{item.caption}</div>
-                  </div>
-                )}
-              </div>
-            )
-          });
-        }
-      });
     } else if (type === "guestbook") {
+      // Guestbook count face
       pool.push({
         type: "summary",
         render: () => (
           <div className="tile-face-content summary-face">
             <div className="summary-left">
               <BookOutlined className="summary-icon" />
-              <div className="summary-title">Tribute Guestbook</div>
+              <div className="summary-title">Tributes</div>
             </div>
             <div className="summary-right">
               <div className="summary-count">{items.length}</div>
@@ -163,7 +103,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
       });
 
       items.slice(0, 3).forEach((item) => {
-        // Quote face
         pool.push({
           type: "quote",
           item,
@@ -175,7 +114,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
           )
         });
 
-        // Spotlight details face
         pool.push({
           type: "spotlight",
           item,
@@ -189,7 +127,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
               <div className="face-body">
                 <div className="spotlight-notes">
                   Left a tribute on <strong>{item.profileTarget?.firstname}&apos;s wall</strong>
-                  {item.location && ` in ${item.location}`}
                 </div>
               </div>
             </div>
@@ -205,7 +142,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
     setAnimating(false);
   }, [items, type, getAvatarSrc, getPhotoSrc, isVideoFile]);
 
-  // Notify parent component of current active item for drawer routing
   useEffect(() => {
     const face = faces[currentFaceIndex];
     if (face && face.item) {
@@ -215,7 +151,6 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
     }
   }, [currentFaceIndex, faces, onActiveItemChange]);
 
-  // Rotator timeout/scheduler
   useEffect(() => {
     if (faces.length <= 1) return;
 
@@ -236,8 +171,7 @@ const BulletinLiveTile = ({ items, type, getAvatarSrc, getPhotoSrc, isVideoFile,
         setTransition(null);
         setAnimating(false);
 
-        // Schedule next tick
-        const delay = Math.random() * 2000 + 4000; // 4 to 6 seconds
+        const delay = Math.random() * 2000 + 4000;
         timer = setTimeout(tick, delay);
       }, duration);
     };
@@ -288,19 +222,25 @@ const NewBulletinBoardSection = () => {
   const [milestones, setMilestones] = useState([]);
   const [guestbook, setGuestbook] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Active Guestbook target tracker for dynamic drawer navigation
   const [activeGuestbookItem, setActiveGuestbookItem] = useState(null);
 
-  // Fetch all data and compile feed
+  const { bulletinFeed, setBulletinFeed } = useHomeCache();
+
   const loadFeedData = useCallback(async () => {
     setLoading(true);
+
+    if (bulletinFeed) {
+      setMilestones(bulletinFeed.milestones);
+      setGuestbook(bulletinFeed.guestbook);
+      setLoading(false);
+      return;
+    }
+
     try {
       let blockedIds = [];
       let relativeIds = [];
 
       if (currentUserId) {
-        // Fetch blocked / muted ids
         const { data: rels } = await supabase
           .from("profile_relationship")
           .select("blocked_id")
@@ -309,7 +249,6 @@ const NewBulletinBoardSection = () => {
           blockedIds = rels.map((r) => r.blocked_id);
         }
 
-        // Fetch direct relations (parents, spouses, children) to respect is_locked
         const { data: conns } = await supabase
           .from("connection")
           .select("profile_2")
@@ -323,7 +262,6 @@ const NewBulletinBoardSection = () => {
         }
       }
 
-      // Query database view for unified broadcast feed
       const { data: queueData, error: queueErr } = await supabase
         .from("family_broadcast_queue")
         .select("*")
@@ -331,7 +269,6 @@ const NewBulletinBoardSection = () => {
 
       if (queueErr) console.warn("Error fetching broadcast queue:", queueErr);
 
-      // Privacy Filter helpers
       const isProfileVisible = (id, is_locked) => {
         if (!is_locked) return true;
         return currentUserId === id || relativeIds.includes(id);
@@ -341,15 +278,12 @@ const NewBulletinBoardSection = () => {
       const guestbookList = [];
 
       (queueData || []).forEach((row) => {
-        // Block & Mute Checks
         if (row.profile_id && blockedIds.includes(row.profile_id)) return;
         if (row.target_profile_id && blockedIds.includes(row.target_profile_id)) return;
 
-        // Visibility Checks
         if (!isProfileVisible(row.profile_id, row.author_is_locked)) return;
         if (row.target_profile_id && !isProfileVisible(row.target_profile_id, row.target_is_locked)) return;
 
-        // Construct virtual profile objects to align with rotator expectations
         const profile = {
           id: row.profile_id,
           firstname: row.author_firstname,
@@ -383,8 +317,8 @@ const NewBulletinBoardSection = () => {
             dbId: row.item_id,
             type: "guestbook",
             timestamp: new Date(row.created_at || Date.now()),
-            profile, // author
-            profileTarget, // recipient
+            profile,
+            profileTarget,
             content: row.display_title,
             location: row.display_body,
           });
@@ -393,18 +327,20 @@ const NewBulletinBoardSection = () => {
 
       setMilestones(milestonesList);
       setGuestbook(guestbookList);
+      setBulletinFeed({
+        milestones: milestonesList,
+        guestbook: guestbookList
+      });
     } catch (err) {
       console.error("Error loading combined bulletin feed:", err);
     } finally {
       setLoading(false);
     }
-  }, [currentUserId]);
+  }, [currentUserId, bulletinFeed, setBulletinFeed]);
 
   useEffect(() => {
     loadFeedData();
   }, [currentUserId, loadFeedData]);
-
-  // Helper getter for milestone photos
 
   const getMilestonePhoto = useCallback((photoUrl) => {
     if (!photoUrl) return null;
@@ -441,7 +377,7 @@ const NewBulletinBoardSection = () => {
         </div>
       ) : (
         <div className="bulletin-cards-stack">
-          {/* Card 1: Milestones */}
+          {/* Card 1: Milestones (Gold Accent) */}
           <div className="bulletin-horizontal-card milestone-row" onClick={() => navigate("/milestones")}>
             <div className="card-left-info">
               <CalendarOutlined className="card-main-icon" />
@@ -461,26 +397,7 @@ const NewBulletinBoardSection = () => {
             </div>
           </div>
 
-          {/* Card 2: Media */}
-          <div className="bulletin-horizontal-card media-row" style={{ opacity: 0.7, cursor: "not-allowed" }}>
-            <div className="card-left-info">
-              <CameraOutlined className="card-main-icon" />
-              <div className="card-info-text">
-                <span className="card-label">Media Gallery</span>
-                <span className="card-cta" style={{ color: "#d4af37", fontWeight: "bold" }}>Coming Soon</span>
-              </div>
-            </div>
-            <div className="card-right-tile">
-              <div className="bulletin-live-tile-empty">
-                <div className="empty-inner">
-                  <span className="empty-title">Media Gallery</span>
-                  <span className="empty-sub" style={{ color: "#d4af37", fontWeight: "bold" }}>Coming Soon</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Tribute Guestbook */}
+          {/* Card 2: Tribute Guestbook (Purple Accent) */}
           <div className="bulletin-horizontal-card guestbook-row" onClick={handleGuestbookCardClick}>
             <div className="card-left-info">
               <BookOutlined className="card-main-icon" />
@@ -498,6 +415,25 @@ const NewBulletinBoardSection = () => {
                 onActiveItemChange={setActiveGuestbookItem}
                 isVideoFile={isVideoFile}
               />
+            </div>
+          </div>
+
+          {/* Card 3: Media Gallery - PUSHED TO BOTTOM (Coming Soon) */}
+          <div className="bulletin-horizontal-card media-row" style={{ cursor: "not-allowed" }}>
+            <div className="card-left-info">
+              <CameraOutlined className="card-main-icon" style={{ opacity: 0.6 }} />
+              <div className="card-info-text">
+                <span className="card-label" style={{ opacity: 0.6 }}>Media Gallery</span>
+                <span className="card-cta" style={{ color: "#eabea9", fontWeight: "bold", opacity: 0.7 }}>Coming Soon</span>
+              </div>
+            </div>
+            <div className="card-right-tile">
+              <div className="polaroid-placeholder">
+                <div className="polaroid-inner-photo">
+                  <CameraOutlined className="polaroid-icon" />
+                </div>
+                <div className="polaroid-caption">Coming Soon</div>
+              </div>
             </div>
           </div>
         </div>

@@ -5,19 +5,21 @@ import PriorityCoordinator from "./mosaic/coordinators/PriorityCoordinator";
 import OpportunityCoordinator from "./mosaic/coordinators/OpportunityCoordinator";
 import { fetchMosaicData, buildInitialTileMap } from "./mosaic/data/fetchMosaicData";
 import { PRIORITY_THEMES } from "./mosaic/themes";
+import { useHomeCache } from "./HomeCacheContext";
 import "./NewMosaicSection.css";
 
-const emptyMosaicData = {
-  profiles: [],
-  birthdays: {},
-  deceased: [],
-  branches: {},
-  recentAdditions: [],
-};
-
 const NewMosaicSection = () => {
-  const [tileMap, setTileMap] = useState(() => buildInitialTileMap());
-  const [mosaicData, setMosaicData] = useState(emptyMosaicData);
+  const [tileMap, setTileMap] = useState([]);
+  const [mosaicData, setMosaicData] = useState({
+    profiles: [],
+    birthdays: {},
+    deceased: [],
+    branches: {},
+    recentAdditions: [],
+  });
+
+  const { mosaicProfiles, setMosaicProfiles } = useHomeCache();
+
   const tileMapRef = useRef(tileMap);
   const mosaicDataRef = useRef(mosaicData);
   const timersRef = useRef(new Set());
@@ -99,8 +101,12 @@ const NewMosaicSection = () => {
     let cancelled = false;
 
     const load = async () => {
-      const data = await fetchMosaicData(supabase);
-      if (cancelled) return;
+      let data = mosaicProfiles;
+      if (!data) {
+        data = await fetchMosaicData(supabase);
+        if (cancelled) return;
+        setMosaicProfiles(data);
+      }
 
       mosaicDataRef.current = data;
       setMosaicData((prev) => {
@@ -118,7 +124,7 @@ const NewMosaicSection = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mosaicProfiles, setMosaicProfiles]);
 
   useEffect(() => {
     if (mosaicData.profiles.length === 0) return undefined;

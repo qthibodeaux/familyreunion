@@ -25,6 +25,7 @@ import AuthConsumer from "../../useSession";
 import { getAvatarSrc } from "../../utils/avatarHelper";
 import { updateFamilyBranch, updateAncestorReference } from "../../utils/familyTree";
 import "./NewHeroCompactSection.css";
+import { useHomeCache } from "./HomeCacheContext";
 
 const tips = [
   "💡 Tip: Tap 'Interactive Tree' in the menu to visually view how you connect back to John Henry & Birdie Mae.",
@@ -36,6 +37,13 @@ const tips = [
 const NewHeroCompactSection = ({ demoMode }) => {
   const { session: realSession, profile: realProfile, setProfile } = AuthConsumer();
   const navigate = useNavigate();
+
+  const {
+    branchLeaders: cachedLeaders,
+    setBranchLeaders: setCachedLeaders,
+    globalProfiles: cachedProfiles,
+    setGlobalProfiles: setCachedProfiles,
+  } = useHomeCache();
 
   const isDemo = !!demoMode;
   const session = isDemo ? (demoMode === "guest" ? null : { user: { id: "demo-user-id" } }) : realSession;
@@ -219,31 +227,27 @@ const NewHeroCompactSection = ({ demoMode }) => {
       return;
     }
 
-    if (!profile || (!profile.parent && !profile.ancestor)) {
-      setLineageTrail(null);
-      return;
-    }
-
     const fetchLineageTrail = async () => {
+      if (!profile || !profile.id || !profile.parent || !profile.ancestor) {
+        setLineageTrail(null);
+        return;
+      }
       try {
-        const ids = [];
-        if (profile.parent) ids.push(profile.parent);
-        if (profile.ancestor) ids.push(profile.ancestor);
+        const { data: ancestorProfile, error: ancErr } = await supabase
+          .from("profile")
+          .select("id, firstname, nickname, lastname, avatar_url, branch")
+          .eq("id", profile.ancestor)
+          .single();
 
-        let ancestorProfile = null;
-        let parentProfile = null;
+        if (ancErr) throw ancErr;
 
-        if (ids.length > 0) {
-          const { data, error } = await supabase
-            .from("profile")
-            .select("id, firstname, nickname, lastname, avatar_url, branch, parent, ancestor")
-            .in("id", ids);
+        const { data: parentProfile, error: parErr } = await supabase
+          .from("profile")
+          .select("id, firstname, nickname, lastname, avatar_url, branch")
+          .eq("id", profile.parent)
+          .single();
 
-          if (!error && data) {
-            ancestorProfile = data.find(p => p.id === profile.ancestor) || null;
-            parentProfile = data.find(p => p.id === profile.parent) || null;
-          }
-        }
+        if (parErr) throw parErr;
 
         setLineageTrail({
           ancestor: ancestorProfile,
@@ -286,19 +290,30 @@ const NewHeroCompactSection = ({ demoMode }) => {
     const loadCoreData = async () => {
       setLoadingData(true);
       try {
-        const { data: leaders, error: leadersErr } = await supabase
-          .from("profile")
-          .select("id, firstname, nickname, lastname, avatar_url, branch, sunrise, sunset")
-          .eq("branch", 1)
-          .order("sunrise", { ascending: true });
+        let leaders = cachedLeaders;
+        let allProfiles = cachedProfiles;
 
-        if (leadersErr) throw leadersErr;
+        if (!leaders) {
+          const { data, error } = await supabase
+            .from("profile")
+            .select("id, firstname, nickname, lastname, avatar_url, branch, sunrise, sunset")
+            .eq("branch", 1)
+            .order("sunrise", { ascending: true });
 
-        const { data: allProfiles, error: profilesErr } = await supabase
-          .from("profile")
-          .select("id, parent, ancestor, branch, email");
+          if (error) throw error;
+          leaders = data;
+          setCachedLeaders(data);
+        }
 
-        if (profilesErr) throw profilesErr;
+        if (!allProfiles) {
+          const { data, error } = await supabase
+            .from("profile")
+            .select("id, parent, ancestor, branch, email, sunrise");
+
+          if (error) throw error;
+          allProfiles = data;
+          setCachedProfiles(data);
+        }
 
         const profileMap = {};
         allProfiles.forEach((p) => {
@@ -353,7 +368,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
     };
 
     loadCoreData();
-  }, [isDemo]);
+  }, [isDemo, cachedLeaders, cachedProfiles, setCachedLeaders, setCachedProfiles]);
 
   const handleStartLineageBuilder = () => {
     setIsWizardOpen(true);
@@ -380,7 +395,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
       const mockChildren = [
         { id: "child-1", firstname: "Thomas", lastname: "Thibodeaux", branch: 2, sunset: true },
         { id: "child-2", firstname: "Susan", lastname: "Thibodeaux", branch: 2, email: "susan@demo.com" },
-        { id: "child-3", firstname: "Robert", lastname: "Thibodeaux", branch: 2, email: null, phone: null }
+        { id: "child-3", firstname: "Robert", lastname: "Thibodeaux", branch: 2, email: null }
       ];
       if (type === "parent") {
         setSelectedParent(selectedBranch);
@@ -402,7 +417,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
       } else {
         const { data, error } = await supabase
           .from("profile")
-          .select("id, firstname, nickname, lastname, avatar_url, branch, email, phone, sunset")
+          .select("id, firstname, nickname, lastname, avatar_url, branch, email, sunset")
           .eq("parent", selectedBranch.id)
           .order("firstname", { ascending: true });
 
@@ -439,7 +454,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
     try {
       const { data, error } = await supabase
         .from("profile")
-        .select("id, firstname, nickname, lastname, avatar_url, branch, email, phone, sunset")
+        .select("id, firstname, nickname, lastname, avatar_url, branch, email, sunset")
         .eq("parent", grandparent.id)
         .order("firstname", { ascending: true });
 
@@ -472,7 +487,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
       return;
     }
     try {
-      const isClaimed = selectedParent.email || selectedParent.phone;
+      const isClaimed = selectedParent.email;
       const isDeceased = selectedParent.sunset;
       const isBranch1 = selectedParent.branch === 1;
       const autoConnect = !isClaimed || isDeceased || isBranch1;

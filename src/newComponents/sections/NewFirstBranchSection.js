@@ -6,17 +6,31 @@ import "./NewFirstBranchSection.css";
 import DefaultAvatar from "../../assets/root.png";
 import { getAvatarSrc } from "../../utils/avatarHelper";
 
+import { useHomeCache } from "./HomeCacheContext";
+
 const NewFirstBranchSection = () => {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const { branchLeaders, setBranchLeaders } = useHomeCache();
+
   useEffect(() => {
     const fetchProfiles = async () => {
       setLoading(true);
+
+      if (branchLeaders) {
+        const sorted = [...branchLeaders].sort((a, b) =>
+          (a.firstname || "").localeCompare(b.firstname || "")
+        );
+        setProfiles(sorted);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("profile")
-        .select("id, firstname, avatar_url")
+        .select("id, firstname, nickname, lastname, avatar_url, branch, sunrise, sunset")
         .eq("branch", 1)
         .order("firstname", { ascending: true });
 
@@ -24,12 +38,18 @@ const NewFirstBranchSection = () => {
         console.error("Error fetching first branch profiles:", error.message);
       } else {
         setProfiles(data);
+        const sortedBySunrise = [...data].sort((a, b) => {
+          if (!a.sunrise) return 1;
+          if (!b.sunrise) return -1;
+          return new Date(a.sunrise) - new Date(b.sunrise);
+        });
+        setBranchLeaders(sortedBySunrise);
       }
       setLoading(false);
     };
 
     fetchProfiles();
-  }, []);
+  }, [branchLeaders, setBranchLeaders]);
 
   const goToProfile = (id) => {
     navigate(`/branch/${id}`);

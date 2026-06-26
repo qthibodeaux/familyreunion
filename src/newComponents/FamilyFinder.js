@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom";
 import { SearchOutlined, ArrowLeftOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { supabase } from "../supabaseClient";
+import { useHomeCache } from "./sections/HomeCacheContext";
 import "./FamilyFinder.css";
 
 import DefaultAvatar from "../assets/root.png";
@@ -390,12 +391,13 @@ const FilterZoneTop = ({ activeFilters, onCategoryClick, onSearchClick }) => {
         {CATEGORIES.map((cat, idx) => {
           const isActive = !!activeFilters[cat];
           const label = isActive ? activeFilters[cat] : CATEGORY_LABELS[cat];
-          const offsetClass = idx % 2 === 1 ? "ff-pill-offset" : "";
+          const offsetClass = ["ff-pill-offset-a", "ff-pill-offset-b", "ff-pill-offset-c"][idx % 3];
+          const sizeClass = ["", "ff-pill-small", "ff-pill-large"][idx % 3];
           return (
             <button
               key={cat}
               type="button"
-              className={`ff-pill ${isActive ? "ff-pill-active" : ""} ${offsetClass}`}
+              className={`ff-pill ${isActive ? "ff-pill-active" : ""} ${offsetClass} ${sizeClass}`}
               onClick={() => onCategoryClick(cat)}
             >
               {label}
@@ -613,8 +615,16 @@ const FamilyFinder = () => {
   const [searchText, setSearchText] = useState("");
   const [isThinking, setIsThinking] = useState(false);
 
+  const { finderInitial, setFinderInitial } = useHomeCache();
+
   useEffect(() => {
     const fetchInitialProfiles = async () => {
+      if (finderInitial) {
+        setCarouselProfiles(finderInitial);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
 
@@ -661,6 +671,7 @@ const FamilyFinder = () => {
 
           const mapped = mapProfiles(data || []);
           setCarouselProfiles(mapped);
+          setFinderInitial(mapped);
         }
       } catch (err) {
         console.error("Error fetching initial random profiles for FamilyFinder:", err);
@@ -670,7 +681,7 @@ const FamilyFinder = () => {
     };
 
     fetchInitialProfiles();
-  }, []);
+  }, [finderInitial, setFinderInitial]);
 
   // Lazy-load the entire database from Supabase once when search/filter interface is opened or active
   useEffect(() => {

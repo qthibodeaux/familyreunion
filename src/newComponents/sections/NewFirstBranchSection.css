@@ -4,7 +4,7 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  padding: 4.5rem 1.5rem 2.5rem 1.5rem; /* Clear notch menu */
+  padding: 4.5rem 0 2.5rem 0; /* Stretch to edges */
   box-sizing: border-box;
   background: linear-gradient(180deg, #faeed6 0%, #faf6f0 100%);
   color: #5b1f40;
@@ -30,6 +30,8 @@
   margin-bottom: 0.75rem;
   width: 100%;
   flex-shrink: 0;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
 }
 
 .new-first-branch-title {
@@ -55,7 +57,7 @@
 .new-first-branch-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.3rem 0.25rem;
+  gap: 0;
   width: 100%;
   box-sizing: border-box;
   padding-bottom: 0;
@@ -68,12 +70,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
   text-align: center;
+  padding: 0.6rem 0.25rem;
+  border-right: 1px solid rgba(91, 31, 64, 0.12);
+  border-bottom: 1px solid rgba(91, 31, 64, 0.12);
   
   /* Smooth scaling for touch active feedback */
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-tap-highlight-color: transparent; /* Remove default tap highlight overlay */
+}
+
+/* Remove right border on the 3rd column */
+.new-first-branch-item:nth-child(3n) {
+  border-right: none;
+}
+
+/* Remove bottom border on the last row (items 10 and 11 when 3-column) */
+.new-first-branch-item:nth-child(n+10) {
+  border-bottom: none;
 }
 
 /* Tactile touch response for mobile */
@@ -83,8 +99,8 @@
 
 .new-first-branch-avatar-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 5.5rem; /* Limit size on desktop */
+  width: 90%;
+  max-width: 90%; /* Stretch horizontally to fill column width */
   margin: 0 auto;
   aspect-ratio: 1 / 1;
   border-radius: 1.25rem; /* Elegant 20px squircle shape */
@@ -113,7 +129,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: #5b1f40;
-  margin-top: 0.35rem;
+  margin-top: 0.45rem;
 }
 
 /* Custom Loading Spinner matching light gold/cream theme */
@@ -142,16 +158,18 @@
 /* Mobile responsive scaling */
 @media (max-width: 480px) {
   .new-first-branch-container {
-    padding: 3.8rem 1rem 1rem 1rem;
+    padding: 2.2rem 0 0.6rem 0;
   }
   
   .branch-ornament {
-    margin-bottom: 0.25rem;
-    width: 60px;
+    margin-bottom: 0.1rem;
+    width: 50px;
   }
 
   .new-first-branch-header {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.25rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
   }
 
   .new-first-branch-title {
@@ -164,32 +182,39 @@
   }
 
   .new-first-branch-grid {
-    gap: 0.4rem 0.25rem;
+    gap: 0;
+  }
+
+  .new-first-branch-item {
+    padding: 0.4rem 0.2rem;
   }
 
   .new-first-branch-avatar-wrapper {
-    max-width: 4rem;
+    width: 90%;
+    max-width: 90%;
   }
 
   .new-first-branch-name {
     font-size: 0.75rem;
-    margin-top: 0.2rem;
+    margin-top: 0.25rem;
   }
 }
 
 /* Height constraints: scale down dynamically to fit layout viewport height */
 @media (max-height: 42rem) {
   .new-first-branch-container {
-    padding: 3.8rem 1rem 1rem 1rem;
+    padding: 2.2rem 0 0.6rem 0;
   }
 
   .branch-ornament {
-    margin-bottom: 0.25rem;
-    width: 60px;
+    margin-bottom: 0.1rem;
+    width: 50px;
   }
 
   .new-first-branch-header {
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.25rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
   }
 
   .new-first-branch-title {
@@ -202,11 +227,16 @@
   }
 
   .new-first-branch-grid {
-    gap: 0.3rem 0.25rem;
+    gap: 0;
+  }
+
+  .new-first-branch-item {
+    padding: 0.35rem 0.2rem;
   }
 
   .new-first-branch-avatar-wrapper {
-    max-width: 4rem;
+    width: 90%;
+    max-width: 90%;
   }
 
   .new-first-branch-name {
@@ -218,6 +248,42 @@
 @media (min-width: 768px) {
   .new-first-branch-grid {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 36rem;
+    width: 100%;
+    max-width: none; /* Expand grid to full component width to let lines touch the edges */
+  }
+
+  .new-first-branch-item {
+    padding: 0.8rem 0.25rem;
+    /* Reset mobile-only border styles */
+    border-right: 1px solid rgba(91, 31, 64, 0.12);
+    border-bottom: 1px solid rgba(91, 31, 64, 0.12);
+  }
+
+  /* Restore borders on mobile column cuts */
+  .new-first-branch-item:nth-child(3n) {
+    border-right: 1px solid rgba(91, 31, 64, 0.12);
+  }
+  .new-first-branch-item:nth-child(n+10) {
+    border-bottom: 1px solid rgba(91, 31, 64, 0.12);
+  }
+
+  /* Remove right border on the 4th column */
+  .new-first-branch-item:nth-child(4n) {
+    border-right: none;
+  }
+
+  /* Remove bottom border on the last row (items 9, 10, and 11 in a 4-column layout) */
+  .new-first-branch-item:nth-child(n+9) {
+    border-bottom: none;
+  }
+
+  .new-first-branch-avatar-wrapper {
+    width: 90%;
+    max-width: 8.5rem;
+  }
+
+  .new-first-branch-name {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
   }
 }

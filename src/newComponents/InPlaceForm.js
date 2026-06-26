@@ -66,7 +66,7 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
 
     let query = supabase
       .from("profile")
-      .select("id, firstname, nickname, lastname, avatar_url, branch, email, phone, sunset")
+      .select("id, firstname, nickname, lastname, avatar_url, branch, email, sunset")
       .or(`firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`);
 
     // Exclude first branch (branch 1) and root branch for child/spouse searches, but allow NULL branches for all
@@ -126,7 +126,7 @@ const InPlaceForm = ({ mode, anchor, onClose, onSuccess }) => {
         let connectionData = [];
         
         // Determine status: Auto-connect if target is deceased or Branch 1 or not claimed
-        const isClaimed = targetProfile.email || targetProfile.phone;
+        const isClaimed = targetProfile.email;
         const isDeceased = targetProfile.sunset;
         const isBranch1 = targetProfile.branch === 1;
         const autoConnect = !isClaimed || isDeceased || isBranch1;

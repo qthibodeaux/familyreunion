@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useHomeCache } from "./HomeCacheContext";
 import {
   ArrowRightOutlined,
   TeamOutlined,
@@ -32,22 +33,38 @@ const getInitials = (first, last) => {
   return `${first?.[0] || ""}${last?.[0] || ""}`.toUpperCase();
 };
 
+
+
 const NewCombinedDemoSection = () => {
   const { session, profile } = AuthConsumer();
   const [descendantCount, setDescendantCount] = useState(42);
   const [historyYears, setHistoryYears] = useState(92);
 
+  const {
+    globalProfiles,
+    setGlobalProfiles,
+    lineageData,
+    setLineageData
+  } = useHomeCache();
+
   // Fetch global family stats (descendant count and heritage years)
   useEffect(() => {
     const fetchGlobalStats = async () => {
       try {
-        const { data, error } = await supabase
-          .from("profile")
-          .select("email, phone, sunrise");
+        let data = globalProfiles;
+        if (!data) {
+          const { data: dbData, error } = await supabase
+            .from("profile")
+            .select("id, parent, ancestor, branch, email, sunrise");
 
-        if (!error && data) {
-          // Count registered descendants (profiles with email or phone)
-          const registered = data.filter((p) => p.email || p.phone).length;
+          if (error) throw error;
+          data = dbData;
+          setGlobalProfiles(dbData);
+        }
+
+        if (data) {
+          // Count registered descendants (profiles with email)
+          const registered = data.filter((p) => p.email).length;
           if (registered > 0) {
             setDescendantCount(registered);
           }
@@ -73,7 +90,7 @@ const NewCombinedDemoSection = () => {
     };
 
     fetchGlobalStats();
-  }, []);
+  }, [globalProfiles, setGlobalProfiles]);
 
   const macroStats = useMemo(() => [
     {
@@ -109,6 +126,17 @@ const NewCombinedDemoSection = () => {
 
   const fetchLineageData = useCallback(async () => {
     if (!session || !profile || !profile.ancestor) return;
+
+    if (lineageData) {
+      setAncestor(lineageData.ancestor);
+      setParent(lineageData.parent);
+      setBranchCount(lineageData.branchCount);
+      setSiblingCount(lineageData.siblingCount);
+      setStateData(lineageData.stateData);
+      setBirthMonthMatches(lineageData.birthMonthMatches);
+      setBirthMonthName(lineageData.birthMonthName);
+      return;
+    }
 
     try {
       const ancestorPromise = supabase
@@ -164,10 +192,15 @@ const NewCombinedDemoSection = () => {
         birthdaysPromise
       ]);
 
-      if (ancData) setAncestor(ancData);
-      if (parentData) setParent(parentData);
-      setBranchCount(bCount || 0);
-      setSiblingCount(sCount || 0);
+      const compiledData = {
+        ancestor: ancData,
+        parent: parentData,
+        branchCount: bCount || 0,
+        siblingCount: sCount || 0,
+        stateData: null,
+        birthMonthMatches: 0,
+        birthMonthName: ""
+      };
 
       if (stateRow) {
         const stateName = stateRow.state?.state_name;
@@ -180,26 +213,36 @@ const NewCombinedDemoSection = () => {
             .neq("profile_id", profile.id);
           stateCount = count || 0;
         }
-        setStateData({
+        compiledData.stateData = {
           city: stateRow.city,
           stateName,
           count: stateCount
-        });
+        };
       }
 
       if (profile.sunrise && birthdaysData) {
         const birthDate = new Date(profile.sunrise);
         const birthMonth = birthDate.getUTCMonth();
-        setBirthMonthName(MONTH_NAMES[birthMonth]);
+        compiledData.birthMonthName = MONTH_NAMES[birthMonth];
         const matches = birthdaysData.filter((b) => {
           return new Date(b.sunrise).getUTCMonth() === birthMonth;
         }).length - 1;
-        setBirthMonthMatches(Math.max(0, matches));
+        compiledData.birthMonthMatches = Math.max(0, matches);
       }
+
+      setAncestor(compiledData.ancestor);
+      setParent(compiledData.parent);
+      setBranchCount(compiledData.branchCount);
+      setSiblingCount(compiledData.siblingCount);
+      setStateData(compiledData.stateData);
+      setBirthMonthMatches(compiledData.birthMonthMatches);
+      setBirthMonthName(compiledData.birthMonthName);
+
+      setLineageData(compiledData);
     } catch (err) {
       console.error("Error fetching combined demo data:", err);
     }
-  }, [session, profile]);
+  }, [session, profile, lineageData, setLineageData]);
 
   useEffect(() => {
     fetchLineageData();

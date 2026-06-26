@@ -45,12 +45,12 @@ const Onboarding = () => {
 
     setSearching(true);
     try {
-      // Find unclaimed profiles (where phone is null or empty) matching search text
+      // Find unclaimed profiles (where email is null or empty) matching search text
       const { data, error } = await supabase
         .from("profile")
         .select("id, firstname, nickname, lastname, avatar_url, branch, sunrise, sunset, parent, ancestor")
         .or(`firstname.ilike.%${value}%,nickname.ilike.%${value}%,lastname.ilike.%${value}%`)
-        .is("phone", null)
+        .is("email", null)
         .or("branch.neq.0,branch.is.null") // Cannot claim Branch 0 (The Roots) but allow null branch profiles
         .order("firstname", { ascending: true })
         .limit(8);
@@ -100,7 +100,7 @@ const Onboarding = () => {
     setLoading(true);
     try {
       const p_user_id = session?.user?.id;
-      const p_phone = session?.user?.phone || null;
+      const p_email = session?.user?.email || null;
 
       if (!p_user_id) throw new Error("Must be logged in to claim a profile.");
 
@@ -126,7 +126,7 @@ const Onboarding = () => {
         branch: selectedProfile.branch,
         parent: selectedProfile.parent || null,
         ancestor: selectedProfile.ancestor || null,
-        phone: p_phone
+        email: p_email
       };
 
       const { error: copyError } = await supabase
