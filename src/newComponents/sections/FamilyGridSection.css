@@ -16,7 +16,7 @@
 }
 
 .fg-title {
-  font-family: "Cinzel Decorative", "Playfair Display", serif;
+  font-family: "Titillium Web", sans-serif;
   font-size: 1.3rem;
   color: #f3e7b1;
   margin: 0 0 0.2rem 0;
@@ -129,7 +129,7 @@
 }
 
 .fg-stat-value {
-  font-family: "Cinzel Decorative", "Playfair Display", serif;
+  font-family: "Titillium Web", sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
   line-height: 1;
@@ -234,7 +234,7 @@
   border: 2px solid #f3e7b1;
   border-radius: 12px;
   color: #f3e7b1;
-  font-family: "Cinzel Decorative", "Playfair Display", serif;
+  font-family: "Titillium Web", sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 1px;
