@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import NewHeroCompactSection from "./sections/NewHeroCompactSection";
 import NewFoundationSection from "./sections/NewFoundationSection";
 import NewFirstBranchSection from "./sections/NewFirstBranchSection";
-import NewCombinedDemoSection from "./sections/NewCombinedDemoSection";
+import FamilyGridSection from "./sections/FamilyGridSection";
 import NewBulletinBoardSection from "./sections/NewBulletinBoardSection";
 import NewMosaicSection from "./sections/NewMosaicSection";
 import FamilyFinder from "./FamilyFinder";
@@ -78,7 +78,7 @@ const NewHome = () => {
         <section className="snap-section">
           <div className="new-slide-card">
             <LazySlide>
-              <NewCombinedDemoSection />
+              <FamilyGridSection />
             </LazySlide>
           </div>
         </section>

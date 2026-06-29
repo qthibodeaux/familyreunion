@@ -1,0 +1,244 @@
+/* Family Grid Section */
+.fg-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  gap: 0.8rem;
+  background: linear-gradient(180deg, #3c0c29 0%, #30041e 100%);
+}
+
+.fg-header {
+  text-align: center;
+}
+
+.fg-title {
+  font-family: "Cinzel Decorative", "Playfair Display", serif;
+  font-size: 1.3rem;
+  color: #f3e7b1;
+  margin: 0 0 0.2rem 0;
+  font-weight: 700;
+}
+
+.fg-subtitle {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 0.75rem;
+  color: #EABEA9;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* 3x3 Grid */
+.fg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 1;
+}
+
+/* Individual Tile */
+.fg-tile {
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.fg-tile:active {
+  transform: scale(0.96);
+}
+
+.fg-tile-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tile flip animation */
+.fg-tile-flip .fg-tile-inner {
+  animation: fgFlip 0.4s ease-in-out;
+}
+
+@keyframes fgFlip {
+  0% { transform: rotateX(0deg); opacity: 1; }
+  50% { transform: rotateX(90deg); opacity: 0; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+/* Face layouts */
+.fg-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0.4rem;
+  gap: 0.15rem;
+  text-align: center;
+}
+
+/* Avatar face */
+.fg-face-avatar .fg-avatar {
+  width: 2.2rem !important;
+  height: 2.2rem !important;
+  font-size: 1rem !important;
+  border: 2px solid rgba(243, 231, 177, 0.3);
+}
+
+.fg-face-label {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90%;
+}
+
+.fg-face-sublabel {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 0.55rem;
+  opacity: 0.7;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90%;
+}
+
+/* Stat face */
+.fg-face-stat {
+  gap: 0.1rem;
+}
+
+.fg-stat-icon {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.fg-stat-value {
+  font-family: "Cinzel Decorative", "Playfair Display", serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fg-stat-label {
+  font-family: "Titillium Web", sans-serif;
+  font-size: 0.5rem;
+  opacity: 0.7;
+  line-height: 1.2;
+  text-align: center;
+  max-width: 90%;
+}
+
+/* CTA face */
+.fg-face-cta {
+  gap: 0.2rem;
+}
+
+.fg-cta-icon {
+  font-size: 1.2rem;
+  opacity: 0.6;
+}
+
+/* Locked face (unconnected state) */
+.fg-face-locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.fg-locked-icon {
+  font-family: "Cinzel Decorative", serif;
+  font-size: 1.5rem;
+  opacity: 0.2;
+  color: #f3e7b1;
+}
+
+/* Placeholder tiles */
+.fg-tile-placeholder {
+  opacity: 0.6;
+}
+
+.fg-tile-you-empty {
+  opacity: 1;
+}
+
+/* Loading tiles */
+.fg-tile-loading .fg-tile-inner {
+  padding: 0.8rem;
+}
+
+.fg-shimmer {
+  width: 60%;
+  height: 0.5rem;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(243,231,177,0.1) 25%, rgba(243,231,177,0.25) 50%, rgba(243,231,177,0.1) 75%);
+  background-size: 200% 100%;
+  animation: fgShimmer 1.5s ease infinite;
+}
+
+@keyframes fgShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Legend */
+.fg-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1rem;
+  margin-top: 0.3rem;
+}
+
+.fg-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: "Titillium Web", sans-serif;
+  font-size: 0.6rem;
+  color: #EABEA9;
+  opacity: 0.6;
+}
+
+.fg-legend-arrow {
+  font-size: 0.7rem;
+  color: #f3e7b1;
+  opacity: 0.8;
+}
+
+/* Mobile adjustments */
+@media (max-width: 360px) {
+  .fg-grid {
+    gap: 4px;
+    max-width: 300px;
+  }
+
+  .fg-face-avatar .fg-avatar {
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+  }
+
+  .fg-stat-value {
+    font-size: 1.1rem;
+  }
+
+  .fg-face-label {
+    font-size: 0.6rem;
+  }
+}
