@@ -17,6 +17,8 @@ import {
   FlagOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
+  EditOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { supabase } from "../supabaseClient";
 import AuthConsumer from "../useSession";
@@ -348,11 +350,14 @@ function LiveTile({ connections, data, activeDrawer }) {
 
 function NewProfile() {
   const { session, profile } = AuthConsumer();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+  const [connectionsLoading, setConnectionsLoading] = useState(true);
+  const [tributesLoading, setTributesLoading] = useState(true);
+  const [mediaLoading2, setMediaLoading2] = useState(true);
   // Milestones State
   const [milestones, setMilestones] = useState([]);
-  const [milestonesLoading, setMilestonesLoading] = useState(false);
+  const [milestonesLoading, setMilestonesLoading] = useState(true);
   const [showAddMilestoneForm, setShowAddMilestoneForm] = useState(false);
   const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
   const [newMilestoneCategory, setNewMilestoneCategory] = useState("other");
@@ -764,13 +769,13 @@ function NewProfile() {
     }
   };
 
-  const fetchData = useCallback(async () => {
+  // === TIER 1: Profile + Block check (hero identity — show immediately) ===
+  const fetchProfileData = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     try {
-      const { data: profileData, error: profileErr } = await supabase
-        .from("profile")
-        .select(`
+      const promises = [
+        supabase.from("profile").select(`
           id, firstname, nickname, lastname, avatar_url, ancestor, parent, sunrise, sunset, branch, email, is_admin, is_locked, lock_media_comments,
           parent_profile:parent (id, firstname, nickname, lastname, avatar_url, branch),
           ancestor_profile:ancestor (id, firstname, nickname, lastname, avatar_url, branch),
@@ -778,8 +783,24 @@ function NewProfile() {
             city,
             state:state_id (state_name)
           )
-        `)
-        .eq("id", userId);
+        `).eq("id", userId)
+      ];
+
+      if (session) {
+        promises.push(
+          supabase.rpc("is_blocked_by_family", { viewer_id: session.user.id, target_profile_id: userId })
+        );
+      }
+
+      if (session && session.user.id !== userId) {
+        promises.push(
+          supabase.from("profile_relationship").select("relation_type")
+            .eq("blocker_id", session.user.id).eq("blocked_id", userId).maybeSingle()
+        );
+      }
+
+      const results = await Promise.all(promises);
+      const { data: profileData, error: profileErr } = results[0];
 
       if (profileErr) throw profileErr;
       if (profileData && profileData.length > 0) {
@@ -792,38 +813,51 @@ function NewProfile() {
       }
 
       if (session) {
-        const { data: isBlockedData } = await supabase.rpc("is_blocked_by_family", {
-          viewer_id: session.user.id,
-          target_profile_id: userId
-        });
-        setIsBlocked(!!isBlockedData);
+        setIsBlocked(!!results[1]?.data);
       }
 
-      if (session && session.user.id !== userId) {
-        const { data: relData } = await supabase
-          .from("profile_relationship")
-          .select("relation_type")
-          .eq("blocker_id", session.user.id)
-          .eq("blocked_id", userId)
-          .maybeSingle();
+      if (session && session.user.id !== userId && results[2]) {
+        const relData = results[2].data;
         setRelationship(relData ? relData.relation_type : null);
       }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, session, navigate]);
+
+  // === TIER 2: Connections + Pending requests ===
+  const fetchConnectionsData = useCallback(async () => {
+    if (!userId) return;
+    setConnectionsLoading(true);
+    try {
+      const promises = [
+        supabase.from("connection").select(`
+          profile_2, connection_type,
+          profile_2:profile_2 (id, firstname, nickname, lastname, avatar_url, sunrise, sunset, branch)
+        `).eq("profile_1", userId)
+      ];
 
       if (session && session.user.id === userId) {
-        const { data: pendingData, error: pendingErr } = await supabase
-          .from("connection")
-          .select(`
-            profile_1,
-            profile_2,
-            connection_type,
-            status,
-            requested_by,
+        promises.push(
+          supabase.from("connection").select(`
+            profile_1, profile_2, connection_type, status, requested_by,
             profile_1:profile_1 (id, firstname, nickname, lastname, avatar_url),
             profile_2:profile_2 (id, firstname, nickname, lastname, avatar_url)
-          `)
-          .eq("status", "pending")
-          .or(`profile_1.eq.${session.user.id},profile_2.eq.${session.user.id}`);
+          `).eq("status", "pending")
+            .or(`profile_1.eq.${session.user.id},profile_2.eq.${session.user.id}`)
+        );
+      }
 
+      const results = await Promise.all(promises);
+
+      const { data: connectionsData, error: connectionErr } = results[0];
+      if (connectionErr) throw connectionErr;
+      setConnections(connectionsData || []);
+
+      if (results[1]) {
+        const { data: pendingData, error: pendingErr } = results[1];
         if (!pendingErr && pendingData) {
           const receivedRequests = pendingData.filter(
             (req) => req.requested_by !== session.user.id
@@ -841,108 +875,105 @@ function NewProfile() {
           setPendingRequests(uniqueReceived);
         }
       }
+    } catch (err) {
+      console.error("Connections fetch error:", err);
+    } finally {
+      setConnectionsLoading(false);
+    }
+  }, [userId, session]);
 
-      const { data: connectionsData, error: connectionErr } = await supabase
-        .from("connection")
-        .select(`
-          profile_2,
-          connection_type,
-          profile_2:profile_2 (id, firstname, nickname, lastname, avatar_url, sunrise, sunset, branch)
-        `)
-        .eq("profile_1", userId);
+  // === TIER 3: Guestbook, Media, Milestones, Likes (below the fold) ===
+  const fetchContentData = useCallback(async () => {
+    if (!userId) return;
+    setTributesLoading(true);
+    setMediaLoading2(true);
+    setMilestonesLoading(true);
 
-      if (connectionErr) throw connectionErr;
-      setConnections(connectionsData || []);
+    try {
+      const promises = [
+        // Guestbook
+        supabase.from("guestbook_post").select(`
+          id, content, location, event_date, likes_count, is_reported, created_at, tagged_profiles,
+          author:author_id (id, firstname, lastname, avatar_url)
+        `).eq("profile_id", userId).eq("is_reported", false)
+          .order("created_at", { ascending: false }),
+        // Media
+        supabase.from("media").select("*")
+          .eq("profile_id", userId).order("created_at", { ascending: false }),
+      ];
 
-      await fetchMilestones();
-
-      try {
-        const { data: mData, error: mErr } = await supabase
-          .from("guestbook_post")
-          .select(`
-            id, content, location, event_date, likes_count, is_reported, created_at, tagged_profiles,
-            author:author_id (id, firstname, lastname, avatar_url)
-          `)
-          .eq("profile_id", userId)
-          .eq("is_reported", false)
-          .order("created_at", { ascending: false });
-
-        setTributes(!mErr && mData ? mData : []);
-      } catch (err) {
-        console.warn("Guestbook posts fetch failed:", err);
-        setTributes([]);
-      }
-
+      // Likes queries (only if logged in)
       if (session) {
-        try {
-          const { data: likesData } = await supabase
-            .from("likes")
-            .select("target_id")
-            .eq("user_id", session.user.id)
-            .eq("target_type", "guestbook_post");
-          if (likesData) {
-            setLikedGuestbookPostIds(likesData.map((l) => l.target_id));
-          }
-        } catch (err) {
-          console.warn("Failed to fetch guestbook likes:", err);
-        }
+        promises.push(
+          supabase.from("likes").select("target_id")
+            .eq("user_id", session.user.id).eq("target_type", "guestbook_post"),
+          supabase.from("likes").select("target_id")
+            .eq("user_id", session.user.id).eq("target_type", "media"),
+          supabase.from("likes").select("target_id")
+            .eq("user_id", session.user.id).eq("target_type", "milestone")
+        );
       }
 
-      try {
-        const { data: mediaData, error: mediaErr } = await supabase
-          .from("media")
-          .select("*")
-          .eq("profile_id", userId)
-          .order("created_at", { ascending: false });
-        setMediaItems(!mediaErr && mediaData ? mediaData : []);
-      } catch (err) {
-        console.warn("Media fetch failed:", err);
-        setMediaItems([]);
-      }
+      const [guestbookRes, mediaRes, ...likesResults] = await Promise.all(promises);
 
-      if (session) {
-        try {
-          const { data: mediaLikesData } = await supabase
-            .from("likes")
-            .select("target_id")
-            .eq("user_id", session.user.id)
-            .eq("target_type", "media");
-          if (mediaLikesData) {
-            setLikedMediaIds(mediaLikesData.map((l) => l.target_id));
-          }
-        } catch (err) {
-          console.warn("Failed to fetch media likes:", err);
-        }
-      }
+      // Guestbook
+      setTributes(!guestbookRes.error && guestbookRes.data ? guestbookRes.data : []);
+      setTributesLoading(false);
 
-      if (session) {
-        try {
-          const { data: milestoneLikesData } = await supabase
-            .from("likes")
-            .select("target_id")
-            .eq("user_id", session.user.id)
-            .eq("target_type", "milestone");
-          if (milestoneLikesData) {
-            setLikedMilestoneIds(milestoneLikesData.map((l) => l.target_id));
-          }
-        } catch (err) {
-          console.warn("Failed to fetch milestone likes:", err);
-        }
+      // Media
+      setMediaItems(!mediaRes.error && mediaRes.data ? mediaRes.data : []);
+      setMediaLoading2(false);
+
+      // Likes
+      if (session && likesResults.length >= 3) {
+        if (likesResults[0].data) setLikedGuestbookPostIds(likesResults[0].data.map(l => l.target_id));
+        if (likesResults[1].data) setLikedMediaIds(likesResults[1].data.map(l => l.target_id));
+        if (likesResults[2].data) setLikedMilestoneIds(likesResults[2].data.map(l => l.target_id));
       }
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.warn("Content fetch error:", err);
+      setTributesLoading(false);
+      setMediaLoading2(false);
     }
-  }, [userId, session, fetchMilestones, navigate]);
 
+    // Milestones (separate since it has its own fetch function)
+    await fetchMilestones();
+  }, [userId, session, fetchMilestones]);
+
+  // Fire all tiers in parallel
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchProfileData();
+    fetchConnectionsData();
+    fetchContentData();
+  }, [fetchProfileData, fetchConnectionsData, fetchContentData]);
 
-  if (loading) return <div className="profile-bezel-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f3e7b1' }}>Loading Profile...</div>;
   if (error) return <div className="profile-bezel-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f3e7b1' }}>Error: {error}</div>;
-  if (!data) return <div className="profile-bezel-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f3e7b1' }}>No profile found.</div>;
+
+  if (loading || !data) return (
+    <div className="profile-bezel-card">
+      <div className="profile-hero-section">
+        <div className="profile-photo-container">
+          <div className="profile-avatar-placeholder profile-skeleton-pulse">
+            <UserOutlined className="placeholder-icon" />
+          </div>
+        </div>
+        <div className="profile-identity-overlay">
+          <div className="profile-skeleton-bar" style={{ width: '40%', height: '0.7rem', margin: '0 auto 0.5rem' }} />
+          <div className="profile-skeleton-bar" style={{ width: '60%', height: '1.4rem', margin: '0 auto' }} />
+        </div>
+      </div>
+      <div className="profile-drawers-container">
+        <div className="profile-skeleton-tiles">
+          {[0,1,2,3].map(i => (
+            <div key={i} className="profile-skeleton-tile">
+              <div className="profile-skeleton-bar" style={{ width: '50%', height: '0.6rem' }} />
+              <div className="profile-skeleton-bar" style={{ width: '70%', height: '0.5rem', opacity: 0.5 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   // Group connections
   const connectionGroups = connections.reduce((acc, conn) => {
@@ -1630,12 +1661,19 @@ function NewProfile() {
             </>
           ) : (
             <div className="tile-click-zone" onClick={() => toggleDrawer("milestones")}>
-              <MilestonesLiveTile
-                milestones={milestones}
-                profileName={data.firstname}
-                getMilestoneImageSrc={getMilestoneImageSrc}
-                activeDrawer={activeDrawer}
-              />
+              {milestonesLoading ? (
+                <div className="profile-tile-skeleton">
+                  <CalendarOutlined className="profile-tile-skeleton-icon pulse-icon" />
+                  <span className="profile-tile-skeleton-label">Loading milestones...</span>
+                </div>
+              ) : (
+                <MilestonesLiveTile
+                  milestones={milestones}
+                  profileName={data.firstname}
+                  getMilestoneImageSrc={getMilestoneImageSrc}
+                  activeDrawer={activeDrawer}
+                />
+              )}
             </div>
           )}
         </div>
@@ -1791,7 +1829,14 @@ function NewProfile() {
             </>
           ) : (
             <div className="tile-click-zone" onClick={() => toggleDrawer("connections")}>
-              <LiveTile connections={connections} data={data} activeDrawer={activeDrawer} />
+              {connectionsLoading ? (
+                <div className="profile-tile-skeleton">
+                  <TeamOutlined className="profile-tile-skeleton-icon pulse-icon" />
+                  <span className="profile-tile-skeleton-label">Loading family...</span>
+                </div>
+              ) : (
+                <LiveTile connections={connections} data={data} activeDrawer={activeDrawer} />
+              )}
             </div>
           )}
         </div>
@@ -1865,12 +1910,19 @@ function NewProfile() {
                 </>
               ) : (
                 <div className="tile-click-zone" onClick={() => toggleDrawer("guestbook")}>
-                  <GuestbookLiveTile
-                    posts={tributes}
-                    profileName={data.firstname}
-                    getAvatarSrc={getAvatarSrc}
-                    activeDrawer={activeDrawer}
-                  />
+                  {tributesLoading ? (
+                    <div className="profile-tile-skeleton">
+                      <EditOutlined className="profile-tile-skeleton-icon pulse-icon" />
+                      <span className="profile-tile-skeleton-label">Loading guestbook...</span>
+                    </div>
+                  ) : (
+                    <GuestbookLiveTile
+                      posts={tributes}
+                      profileName={data.firstname}
+                      getAvatarSrc={getAvatarSrc}
+                      activeDrawer={activeDrawer}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -2078,11 +2130,18 @@ function NewProfile() {
               </>
             ) : (
               <div className="tile-click-zone" onClick={() => toggleDrawer("media")}>
-                <MediaLiveTile 
-                  mediaItems={mediaItems} 
-                  getMediaImageSrc={getMediaImageSrc} 
-                  activeDrawer={activeDrawer}
-                />
+                {mediaLoading2 ? (
+                  <div className="profile-tile-skeleton">
+                    <CameraOutlined className="profile-tile-skeleton-icon pulse-icon" />
+                    <span className="profile-tile-skeleton-label">Loading photos...</span>
+                  </div>
+                ) : (
+                  <MediaLiveTile
+                    mediaItems={mediaItems}
+                    getMediaImageSrc={getMediaImageSrc}
+                    activeDrawer={activeDrawer}
+                  />
+                )}
               </div>
             )}
           </div>
