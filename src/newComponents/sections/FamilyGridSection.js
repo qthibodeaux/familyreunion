@@ -149,7 +149,7 @@ const FamilyGridSection = () => {
         (p) => p.ancestor && p.ancestor !== myAncestor && p.branch > 1
       );
 
-      // Direct ancestors (center top): walk up from parent
+      // Direct ancestors (center top): walk up from parent, stop at branch 1
       const directAncestors = [];
       let currentParentId = profile.parent;
       const visited = new Set();
@@ -158,6 +158,7 @@ const FamilyGridSection = () => {
         const parentProfile = allProfiles.find((p) => p.id === currentParentId);
         if (parentProfile) {
           directAncestors.push(parentProfile);
+          if (parentProfile.branch <= 1) break;
           currentParentId = parentProfile.parent;
         } else {
           break;
