@@ -93,6 +93,7 @@
   height: 2.2rem !important;
   font-size: 1rem !important;
   border: 2px solid rgba(243, 231, 177, 0.3);
+  border-radius: 8px !important;
 }
 
 .fg-face-label {
@@ -220,6 +221,31 @@
   font-size: 0.7rem;
   color: #f3e7b1;
   opacity: 0.8;
+}
+
+/* Explore Tree Button */
+.fg-explore-btn {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  padding: 0.7rem 1rem;
+  margin-top: 0.4rem;
+  background: linear-gradient(135deg, #5b1f40, #873d62);
+  border: 2px solid #f3e7b1;
+  border-radius: 12px;
+  color: #f3e7b1;
+  font-family: "Cinzel Decorative", "Playfair Display", serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fg-explore-btn:active {
+  transform: scale(0.97);
+  background: linear-gradient(135deg, #873d62, #5b1f40);
 }
 
 /* Mobile adjustments */

@@ -35,7 +35,7 @@ const LiveTile = ({ faces, interval = 4000, colorScheme, onClick }) => {
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    if (faces.length <= 1) return;
+    if (faces.length <= 1 || !interval) return;
     const timer = setInterval(() => {
       setAnimating(true);
       setTimeout(() => {
@@ -66,6 +66,7 @@ const AvatarFace = ({ profile, label, sublabel }) => (
     <Avatar
       src={getAvatarSrc(profile)}
       icon={<UserOutlined />}
+      shape="square"
       className="fg-avatar"
     />
     <span className="fg-face-label">{label}</span>
@@ -108,6 +109,7 @@ const CyclingAvatarFace = ({ profiles, label }) => {
       <Avatar
         src={getAvatarSrc(current)}
         icon={<UserOutlined />}
+        shape="square"
         className="fg-avatar"
       />
       <span className="fg-face-label">{current.firstname}</span>
@@ -260,7 +262,7 @@ const FamilyGridSection = () => {
 
   // Stagger tile intervals so they don't all flip at once
   const intervals = useMemo(() => [
-    3800, 4200, 3600, 5000, 0, 4400, 3400, 4800, 3200
+    7500, 8200, 6800, 9000, 8500, 7800, 6500, 8800, 7200
   ], []);
 
   if (!session) {
@@ -461,24 +463,9 @@ const FamilyGridSection = () => {
           />
         ))}
       </div>
-      <div className="fg-legend">
-        <div className="fg-legend-item">
-          <span className="fg-legend-arrow">↑</span>
-          <span>Older Generations</span>
-        </div>
-        <div className="fg-legend-item">
-          <span className="fg-legend-arrow">←</span>
-          <span>{ancestorName} Line</span>
-        </div>
-        <div className="fg-legend-item">
-          <span className="fg-legend-arrow">→</span>
-          <span>Other Branches</span>
-        </div>
-        <div className="fg-legend-item">
-          <span className="fg-legend-arrow">↓</span>
-          <span>Younger Generations</span>
-        </div>
-      </div>
+      <button className="fg-explore-btn" onClick={() => navigate("/scrolltree")}>
+        Explore Interactive Family Tree
+      </button>
     </div>
   );
 };

@@ -22,7 +22,7 @@ import {
 } from "@ant-design/icons";
 import { supabase } from "../supabaseClient";
 import AuthConsumer from "../useSession";
-import { format, formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow, parseISO } from "date-fns";
 import "./NewProfile.css";
 import MilestonesLiveTile from "./MilestonesLiveTile";
 import MediaLiveTile from "./MediaLiveTile";
@@ -1020,7 +1020,9 @@ function NewProfile() {
   // Date Formatting
   const safeFormat = (date, pattern) => {
     if (!date) return "";
-    const d = new Date(date);
+    const d = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)
+      ? parseISO(date)
+      : new Date(date);
     if (isNaN(d.getTime())) return "";
     return format(d, pattern);
   };
@@ -1568,7 +1570,9 @@ function NewProfile() {
                           </div>
                         )}
                         {filteredEvents.map((event) => {
-                          const dateObj = event.event_date ? new Date(event.event_date) : null;
+                          const dateObj = event.event_date
+                            ? (typeof event.event_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(event.event_date) ? parseISO(event.event_date) : new Date(event.event_date))
+                            : null;
                           const formattedDate = dateObj && !isNaN(dateObj.getTime())
                             ? format(dateObj, "MMMM d, yyyy")
                             : "";
