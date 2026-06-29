@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/familyreunion/static/css/main.737e24ab.css",
-    "main.js": "/familyreunion/static/js/main.0e19592b.js",
+    "main.css": "/familyreunion/static/css/main.112f4179.css",
+    "main.js": "/familyreunion/static/js/main.28807261.js",
     "static/media/anc1.png": "/familyreunion/static/media/anc1.9a0cca835884abeaa53a.png",
     "static/media/root.png": "/familyreunion/static/media/root.c082bc646905726b2464.png",
     "static/media/hazel.jpg": "/familyreunion/static/media/hazel.4689f505c1809c2aa741.jpg",
@@ -17,11 +17,11 @@
     "static/media/ancestors.jpg": "/familyreunion/static/media/ancestors.253d4cb28b2ecd28c261.jpg",
     "static/media/mary.jpg": "/familyreunion/static/media/mary.fdffc2a664811f465714.jpg",
     "index.html": "/familyreunion/index.html",
-    "main.737e24ab.css.map": "/familyreunion/static/css/main.737e24ab.css.map",
-    "main.0e19592b.js.map": "/familyreunion/static/js/main.0e19592b.js.map"
+    "main.112f4179.css.map": "/familyreunion/static/css/main.112f4179.css.map",
+    "main.28807261.js.map": "/familyreunion/static/js/main.28807261.js.map"
   },
   "entrypoints": [
-    "static/css/main.737e24ab.css",
-    "static/js/main.0e19592b.js"
+    "static/css/main.112f4179.css",
+    "static/js/main.28807261.js"
   ]
 }
