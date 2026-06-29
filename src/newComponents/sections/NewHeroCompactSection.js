@@ -35,6 +35,63 @@ const tips = [
   "💡 Tip: Head to the Family Media page to upload historic photos and tag your relatives."
 ];
 
+const BRANCH_NAMES = ["Mary", "Ben", "Sylvester", "Alma", "Bobbie Jean", "Hazel", "James", "John", "Joyce", "Lorene", "Loretta"];
+
+const LeaderboardLoadingAnim = ({ style }) => {
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 800);
+    return () => clearInterval(interval);
+  }, []);
+
+  const colors = ["#F7DC92", "#e0e0e0", "#cd7f32"];
+
+  if (style === 0) {
+    // Name Shuffle — slot machine cycling
+    const shuffled = [...BRANCH_NAMES].sort(() => Math.random() - 0.5);
+    const visible = shuffled.slice(0, 3);
+    return (
+      <div className="lb-loading-shuffle">
+        <TrophyOutlined className="lb-loading-center-trophy" />
+        {visible.map((name, idx) => (
+          <div key={`${tick}-${idx}`} className="lb-loading-name-slot">
+            <TrophyOutlined style={{ color: colors[idx], fontSize: "0.85rem" }} />
+            <span className="lb-slot-name">{name} Line</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (style === 1) {
+    // Podium Race — 3 trophies with shuffling names
+    const shuffled = [...BRANCH_NAMES].sort(() => Math.random() - 0.5);
+    return (
+      <div className="lb-loading-podium">
+        {[0, 1, 2].map(idx => (
+          <div key={`${tick}-${idx}`} className="lb-loading-podium-row">
+            <TrophyOutlined style={{ color: colors[idx], fontSize: "1rem" }} />
+            <span className="lb-podium-name">{shuffled[idx]} Line</span>
+            <span className="lb-podium-dots">
+              {".".repeat((tick + idx) % 4)}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Style 2: Pulse & fade — names cycle one at a time
+  const nameIdx = tick % BRANCH_NAMES.length;
+  return (
+    <div className="lb-loading-pulse">
+      <TrophyOutlined className="lb-loading-pulse-trophy" />
+      <span key={tick} className="lb-pulse-name">{BRANCH_NAMES[nameIdx]} Line</span>
+    </div>
+  );
+};
+
 const NewHeroCompactSection = ({ demoMode }) => {
   const { session: realSession, profile: realProfile, setProfile } = AuthConsumer();
   const navigate = useNavigate();
@@ -42,8 +99,6 @@ const NewHeroCompactSection = ({ demoMode }) => {
   const {
     branchLeaders: cachedLeaders,
     setBranchLeaders: setCachedLeaders,
-    globalProfiles: cachedProfiles,
-    setGlobalProfiles: setCachedProfiles,
   } = useHomeCache();
 
   const isDemo = !!demoMode;
@@ -60,8 +115,11 @@ const NewHeroCompactSection = ({ demoMode }) => {
   }, [isDemo, demoMode, realProfile]);
 
   const [step, setStep] = useState("welcome");
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+  const [loadingHeroData, setLoadingHeroData] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [leaderboardAnimStyle] = useState(() => Math.floor(Math.random() * 3));
 
   // Lineage Builder States
   const [branchLeaders, setBranchLeaders] = useState([]);
@@ -132,7 +190,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch connections
+  // Fetch lineage trail + connections in one effect (gated by profile state)
   useEffect(() => {
     if (isDemo) {
       if (demoMode === "connected_complete") {
@@ -142,29 +200,68 @@ const NewHeroCompactSection = ({ demoMode }) => {
         setSpouseProfile(null);
         setChildrenProfiles([]);
       }
+      if (demoMode && demoMode.startsWith("connected")) {
+        setLineageTrail({
+          ancestor: { id: "mary-id", firstname: "Mary", nickname: "", lastname: "Thibodeaux", avatar_url: "mary.jpg" },
+          parent: { id: "arthur-id", firstname: "Arthur", nickname: "", lastname: "Thibodeaux", avatar_url: "arthur.jpg" },
+          me: profile || { id: "demo-user-id", firstname: "David", lastname: "Smith", avatar_url: "john.jpg" }
+        });
+      } else {
+        setLineageTrail(null);
+      }
       return;
     }
 
     if (!profile || !profile.id) {
       setSpouseProfile(null);
       setChildrenProfiles([]);
+      setLineageTrail(null);
+      setLoadingHeroData(false);
       return;
     }
 
-    const checkFamilyConnections = async () => {
+    const hasLineage = profile.parent && profile.ancestor;
+
+    if (!hasLineage) {
+      setLineageTrail(null);
+      setSpouseProfile(null);
+      setChildrenProfiles([]);
+      setLoadingHeroData(false);
+      return;
+    }
+
+    const fetchHeroData = async () => {
       try {
-        const { data: connData, error: connErr } = await supabase
-          .from("connection")
-          .select("connection_type, profile_1, profile_2")
-          .or(`profile_1.eq.${profile.id},profile_2.eq.${profile.id}`)
-          .eq("status", "active");
+        const [ancestorRes, parentRes, connRes, childrenRes] = await Promise.all([
+          supabase.from("profile")
+            .select("id, firstname, nickname, lastname, avatar_url, branch")
+            .eq("id", profile.ancestor).single(),
+          supabase.from("profile")
+            .select("id, firstname, nickname, lastname, avatar_url, branch")
+            .eq("id", profile.parent).single(),
+          supabase.from("connection")
+            .select("connection_type, profile_1, profile_2")
+            .or(`profile_1.eq.${profile.id},profile_2.eq.${profile.id}`)
+            .eq("status", "active"),
+          supabase.from("profile")
+            .select("id, firstname, nickname, lastname, avatar_url, branch, parent, ancestor")
+            .eq("parent", profile.id)
+        ]);
 
-        if (connErr) throw connErr;
+        if (ancestorRes.error) throw ancestorRes.error;
+        if (parentRes.error) throw parentRes.error;
+        setLineageTrail({
+          ancestor: ancestorRes.data,
+          parent: parentRes.data,
+          me: profile
+        });
 
-        const spouseConns = (connData || []).filter(c => c.connection_type === "spouse");
-        const hasSpouse = spouseConns.length > 0;
+        if (childrenRes.error) throw childrenRes.error;
+        setChildrenProfiles(childrenRes.data || []);
 
-        if (hasSpouse) {
+        if (connRes.error) throw connRes.error;
+        const spouseConns = (connRes.data || []).filter(c => c.connection_type === "spouse");
+        if (spouseConns.length > 0) {
           const spouseId = spouseConns[0].profile_1 === profile.id ? spouseConns[0].profile_2 : spouseConns[0].profile_1;
           const { data: spouseProf, error: spouseProfErr } = await supabase
             .from("profile")
@@ -173,20 +270,14 @@ const NewHeroCompactSection = ({ demoMode }) => {
             .single();
           if (!spouseProfErr && spouseProf) {
             setSpouseProfile(spouseProf);
+          } else {
+            setSpouseProfile(null);
           }
         } else {
           setSpouseProfile(null);
         }
 
-        const { data: childrenData, error: childErr } = await supabase
-          .from("profile")
-          .select("id, firstname, nickname, lastname, avatar_url, branch, parent, ancestor")
-          .eq("parent", profile.id);
-
-        if (childErr) throw childErr;
-        setChildrenProfiles(childrenData || []);
-
-        if (profile.parent === null && profile.ancestor === null && hasSpouse) {
+        if (profile.parent === null && profile.ancestor === null && spouseConns.length > 0) {
           const spouseId = spouseConns[0].profile_1 === profile.id ? spouseConns[0].profile_2 : spouseConns[0].profile_1;
           const { data: spouseProfileObj, error: spouseProfErr } = await supabase
             .from("profile")
@@ -207,61 +298,13 @@ const NewHeroCompactSection = ({ demoMode }) => {
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoadingHeroData(false);
       }
     };
 
-    checkFamilyConnections();
+    fetchHeroData();
   }, [profile, isDemo, demoMode, setProfile]);
-
-  // Fetch lineage trail
-  useEffect(() => {
-    if (isDemo) {
-      if (demoMode && demoMode.startsWith("connected")) {
-        setLineageTrail({
-          ancestor: { id: "mary-id", firstname: "Mary", nickname: "", lastname: "Thibodeaux", avatar_url: "mary.jpg" },
-          parent: { id: "arthur-id", firstname: "Arthur", nickname: "", lastname: "Thibodeaux", avatar_url: "arthur.jpg" },
-          me: profile || { id: "demo-user-id", firstname: "David", lastname: "Smith", avatar_url: "john.jpg" }
-        });
-      } else {
-        setLineageTrail(null);
-      }
-      return;
-    }
-
-    const fetchLineageTrail = async () => {
-      if (!profile || !profile.id || !profile.parent || !profile.ancestor) {
-        setLineageTrail(null);
-        return;
-      }
-      try {
-        const { data: ancestorProfile, error: ancErr } = await supabase
-          .from("profile")
-          .select("id, firstname, nickname, lastname, avatar_url, branch")
-          .eq("id", profile.ancestor)
-          .single();
-
-        if (ancErr) throw ancErr;
-
-        const { data: parentProfile, error: parErr } = await supabase
-          .from("profile")
-          .select("id, firstname, nickname, lastname, avatar_url, branch")
-          .eq("id", profile.parent)
-          .single();
-
-        if (parErr) throw parErr;
-
-        setLineageTrail({
-          ancestor: ancestorProfile,
-          parent: parentProfile,
-          me: profile
-        });
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchLineageTrail();
-  }, [profile, isDemo, demoMode]);
 
   // Fetch branch leaders and active leaderboard
   useEffect(() => {
@@ -289,10 +332,9 @@ const NewHeroCompactSection = ({ demoMode }) => {
     }
 
     const loadCoreData = async () => {
-      setLoadingData(true);
+      setLoadingLeaderboard(true);
       try {
         let leaders = cachedLeaders;
-        let allProfiles = cachedProfiles;
 
         if (!leaders) {
           const { data, error } = await supabase
@@ -306,29 +348,28 @@ const NewHeroCompactSection = ({ demoMode }) => {
           setCachedLeaders(data);
         }
 
-        if (!allProfiles) {
-          const { data, error } = await supabase
-            .from("profile")
-            .select("id, parent, ancestor, branch, email, sunrise");
+        // Fetch only ancestor IDs for counting — minimal payload
+        const { data: ancestorRows, error: countErr } = await supabase
+          .from("profile")
+          .select("ancestor")
+          .not("ancestor", "is", null)
+          .gt("branch", 1);
 
-          if (error) throw error;
-          allProfiles = data;
-          setCachedProfiles(data);
-        }
+        if (countErr) throw countErr;
 
-        const leaderboardData = buildAncestorLeaderboard(allProfiles, leaders);
+        const leaderboardData = buildAncestorLeaderboard(ancestorRows || [], leaders);
 
         setBranchLeaders(leaders);
         setLeaderboard(leaderboardData);
       } catch (err) {
         console.error(err);
       } finally {
-        setLoadingData(false);
+        setLoadingLeaderboard(false);
       }
     };
 
     loadCoreData();
-  }, [isDemo, cachedLeaders, cachedProfiles, setCachedLeaders, setCachedProfiles]);
+  }, [isDemo, cachedLeaders, setCachedLeaders]);
 
   const handleStartLineageBuilder = () => {
     setIsWizardOpen(true);
@@ -725,16 +766,9 @@ const NewHeroCompactSection = ({ demoMode }) => {
 
       {/* Row 2: Context-Aware Connection Dashboard */}
       <div className="compact-dashboard-wrapper">
-        
-        {loadingData && (
-          <div className="compact-dashboard-loading">
-            <Spin indicator={<LoadingOutlined style={{ fontSize: "1.5rem", color: '#f3e7b1' }} spin />} />
-            <p style={{ marginTop: "0.5rem", color: '#EABEA9', fontSize: '0.8rem' }}>Loading family data...</p>
-          </div>
-        )}
 
         {/* GUEST VIEW */}
-        {!loadingData && !session && (
+        {!session && (
           <div className="guest-welcome-card-wrapper">
             <h2 className="welcome-card-title">Explore Our Living Heritage</h2>
             <p className="welcome-card-subtext">
@@ -760,7 +794,7 @@ const NewHeroCompactSection = ({ demoMode }) => {
         )}
 
         {/* LOGGED IN & UNONBOARDED VIEW (Redirection fallback) */}
-        {!loadingData && session && (!profile || !profile.firstname) && (
+        {session && (!profile || !profile.firstname) && (
           <div className="onboarding-welcome-card-wrapper">
             <h2 className="welcome-card-title">Let's set up your profile</h2>
             <p className="welcome-card-subtext">
@@ -779,11 +813,19 @@ const NewHeroCompactSection = ({ demoMode }) => {
         )}
 
         {/* LOGGED IN VIEW */}
-        {!loadingData && session && profile && profile.firstname && (
+        {session && profile && profile.firstname && (
           <>
             {/* Visual 3-Avatar Lineage Chain Card */}
             <div className="compact-lineage-card">
-              {(() => {
+              {loadingHeroData ? (
+                <div className="compact-lineage-welcome">
+                  <h3 className="compact-welcome-name">Welcome, {profile.firstname || session?.user?.user_metadata?.full_name?.split(" ")[0] || "Family"}</h3>
+                  <div className="compact-welcome-shimmer">
+                    <div className="shimmer-bar" />
+                    <span className="compact-welcome-subtext">Loading family information...</span>
+                  </div>
+                </div>
+              ) : (() => {
                 const nodes = [];
                 
                 // 1. Ancestor Node
@@ -899,28 +941,41 @@ const NewHeroCompactSection = ({ demoMode }) => {
                   <TrophyOutlined className="compact-card-icon gold-color" />
                   <span className="compact-card-title">Leaderboard</span>
                 </div>
-                <div className="compact-scores-box">
-                  {leaderboard.slice(0, 3).map((item, idx) => {
-                    const colors = ["#F7DC92", "#e0e0e0", "#cd7f32"];
-                    const trophyColor = colors[idx] || "#EABEA9";
-                    return (
-                      <div key={item.leader.id} className="compact-score-row">
-                        <div className="compact-score-row-top">
-                          <TrophyOutlined style={{ color: trophyColor, marginRight: "0.4rem", fontSize: "0.95rem" }} />
-                          <span className="compact-score-name">{item.leader.firstname} Line</span>
+                {loadingLeaderboard ? (
+                  <div className="compact-scores-box leaderboard-loading">
+                    <LeaderboardLoadingAnim style={leaderboardAnimStyle} />
+                  </div>
+                ) : (
+                  <div className="compact-scores-box">
+                    {leaderboard.slice(0, 3).map((item, idx) => {
+                      const colors = ["#F7DC92", "#e0e0e0", "#cd7f32"];
+                      const trophyColor = colors[idx] || "#EABEA9";
+                      return (
+                        <div key={item.leader.id} className="compact-score-row">
+                          <div className="compact-score-row-top">
+                            <TrophyOutlined style={{ color: trophyColor, marginRight: "0.4rem", fontSize: "0.95rem" }} />
+                            <span className="compact-score-name">{item.leader.firstname} Line</span>
+                          </div>
+                          <div className="compact-score-row-bottom">
+                            <span className="compact-score-count">{item.count} Active Members</span>
+                          </div>
                         </div>
-                        <div className="compact-score-row-bottom">
-                          <span className="compact-score-count">{item.count} Active Members</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Column 2: Connections & Dynamic CTA Actions Card */}
               <div className="compact-col-card compact-actions-center">
-                {getActiveCTA()}
+                {loadingHeroData && profile.parent && profile.ancestor ? (
+                  <div className="compact-cta-card-content cta-loading">
+                    <div className="shimmer-bar" style={{ width: "60%", marginBottom: "0.5rem" }} />
+                    <div className="shimmer-bar" style={{ width: "80%" }} />
+                  </div>
+                ) : (
+                  getActiveCTA()
+                )}
               </div>
 
             </div>

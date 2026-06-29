@@ -347,7 +347,6 @@ const NewLayoutContent = () => {
             <div className="menu-columns">
               {/* Tree Column */}
               <div className="menu-column">
-                <div className="menu-column-title">Tree</div>
                 {treeItems.map((item) => {
                   const isSelected = location.pathname === item.path;
                   const isLocked = item.requiresAuth && !session;
@@ -375,7 +374,6 @@ const NewLayoutContent = () => {
 
               {/* Pulse Column */}
               <div className="menu-column">
-                <div className="menu-column-title">Pulse</div>
                 {pulseItems.map((item) => {
                   const isSelected = location.pathname === item.path;
                   const isLocked = item.requiresAuth && !session;
