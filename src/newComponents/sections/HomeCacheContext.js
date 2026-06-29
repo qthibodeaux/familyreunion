@@ -32,10 +32,17 @@ export const HomeCacheProvider = ({ children }) => {
   );
 };
 
+const noop = () => {};
+const fallback = {
+  branchLeaders: null, setBranchLeaders: noop,
+  globalProfiles: null, setGlobalProfiles: noop,
+  lineageData: null, setLineageData: noop,
+  bulletinFeed: null, setBulletinFeed: noop,
+  mosaicProfiles: null, setMosaicProfiles: noop,
+  finderInitial: null, setFinderInitial: noop,
+};
+
 export const useHomeCache = () => {
   const context = useContext(HomeCacheContext);
-  if (!context) {
-    throw new Error("useHomeCache must be used within a HomeCacheProvider");
-  }
-  return context;
+  return context || fallback;
 };
